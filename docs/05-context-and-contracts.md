@@ -958,3 +958,15 @@ has no airtime authority. Release/takeover and the replay policy remain existing
 controller operations. Studio shows waiting, preparing, ready, playing or paused
 state plus actual prepared/aired counts. End-of-file can leave no eligible live
 return; holding remains the valid outcome. No second angle is synthesized.
+
+Every deliberate Studio search submission gets a new operation ID, including
+repeated words. Page restoration reads the last operation without resubmitting.
+This lets the operator search again after indexing finishes or a failed attempt.
+VSS retrieval uses cancellable async HTTP within the existing query deadline.
+Registered-parent lookup uses the latest receipt for each binding key and checks
+that key against the current tenant configuration.
+
+Caption and query vectors have a process-local cache capped at 256 entries. Its
+key contains endpoint, returned model ID/version, and exact text hash. VSS search
+still runs on every new query; cached vectors do not freeze archive results. A
+restart drops the cache, including entries with unknown model versions.

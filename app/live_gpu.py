@@ -2,6 +2,7 @@
 from __future__ import annotations
 import asyncio
 import base64
+from collections import OrderedDict
 from fractions import Fraction
 import hashlib
 import json
@@ -9,6 +10,7 @@ import math
 import os
 from pathlib import Path
 import tempfile
+import threading
 import time
 from urllib.parse import urlsplit
 
@@ -92,6 +94,9 @@ class LiveGPU:
         self.models={}
         self.verified=set()
         self.last_yolo={}
+        self.embedding_revision=None
+        self.vector_cache=OrderedDict()
+        self.vector_lock=threading.Lock()
 
     def configured(self,name):
         if name in ('storage','jobs'):return True
@@ -168,30 +173,62 @@ class LiveGPU:
             model,version=await discover(client,url,self.config.get('COSMOS_EMBED1_MODEL'),
                 self.config.get('GPU_BEARER_TOKEN'),deadline)
             self.models['search']={'model_id':model}
+            self.embedding_revision=version
             self.registry.settings.providers['search']=self.registry.settings.providers['search'].model_copy(update={'model_id':model})
         return url,self.models['search']['model_id']
+
+    async def vector(self,client,url,model,text,deadline):
+        key=(url,model,self.embedding_revision,hashlib.sha256(text.encode()).hexdigest())
+        with self.vector_lock:
+            if key in self.vector_cache:
+                self.vector_cache.move_to_end(key)
+                return self.vector_cache[key]
+        result=await request(client,'POST',url+'/v1/embeddings',token=self.config.get('GPU_BEARER_TOKEN'),
+            deadline=deadline,payload={'input':text,'model':model,'request_type':'query','encoding_format':'float'})
+        data=result['data'][0]['embedding']
+        if (not isinstance(data,list) or len(data)!=256 or
+            any(type(x) not in (int,float) or not math.isfinite(x) for x in data)):
+            raise ValueError('Embed1 must return 256 finite dimensions')
+        data=tuple(data)
+        with self.vector_lock:
+            self.vector_cache[key]=data;self.vector_cache.move_to_end(key)
+            while len(self.vector_cache)>256:self.vector_cache.popitem(last=False)
+        return data
 
     async def query(self,query,entries,deadline):
         # VSS finds registered parent videos. Embed1 ranks their locally retained
         # scene captions. Replay time comes from local evidence, not upload time.
-        from vss_client import VssClient, configuration
+        from vss_client import binding_key, configuration
+        config=configuration()
         foundation=self.registry.foundation
         with foundation.lock:
             owners=[json.loads(r['body']) for r in foundation._records('recording',run=query.run_id)]
-            uploads=[json.loads(r['body']) for r in foundation.db.execute(
-                "SELECT body FROM records WHERE kind='video_analysis' ORDER BY revision DESC")]
-        parent_hash={r['receipt']['original_video']:r['sha256'] for r in uploads if 'receipt' in r}
+            uploads=list(foundation.db.execute(
+                "SELECT id,body FROM records WHERE kind='video_analysis' ORDER BY revision DESC"))
+        parent_hash={};seen=set()
+        for row in uploads:
+            if row['id'] in seen:continue
+            seen.add(row['id']);record=json.loads(row['body'])
+            if 'receipt' in record and row['id']==binding_key(config,record):
+                parent_hash[record['receipt']['original_video']]=record['sha256']
         source_hash={(r['source_id'],r['epoch']):r.get('original_sha256') for r in owners}
         allowed=set(source_hash.values())-{None}
         if not allowed:return []
-        def recall():
-            client=VssClient(configuration(),cancelled=lambda:time.time()>=deadline)
-            try:
-                client.verify()
-                return client.request('POST','/api/v1/search',payload={'query':query.text,'top_k':40,
-                    'llm_top_n':0,'tags':['breadcast-'+sha for sha in sorted(allowed)],'include_public':False})
-            finally:client.close()
-        found=await asyncio.to_thread(recall)
+        # Keep retrieval on the async transport. A canceled five-second search
+        # must not wait for a synchronous client's executor to finish.
+        async with httpx.AsyncClient(follow_redirects=False) as client:
+            ingress=config['INGRESS_URL']
+            login=await request(client,'POST',ingress+'/api/v1/auth/login',deadline=deadline,
+                payload={'username':config['USERNAME'],'password':config['PASSWORD']})
+            token=login.get('access_token') if isinstance(login,dict) else None
+            if not isinstance(token,str) or not token or str(login.get('token_type','')).lower()!='bearer':
+                raise ValueError('VAST search login returned no usable access token')
+            identity=await request(client,'GET',ingress+'/api/v1/auth/me',token=token,deadline=deadline)
+            if not isinstance(identity,dict) or identity.get('username')!=config['USERNAME']:
+                raise ValueError('VAST search identity does not match the assigned team')
+            found=await request(client,'POST',ingress+'/api/v1/search',token=token,deadline=deadline,
+                payload={'query':query.text,'top_k':40,'llm_top_n':0,
+                    'tags':['breadcast-'+sha for sha in sorted(allowed)],'include_public':False})
         matched={parent_hash[row['original_video']] for row in found.get('chunk_results',[])
             if isinstance(row,dict) and row.get('original_video') in parent_hash and parent_hash[row['original_video']] in allowed}
         candidates=[entry for entry in entries if source_hash.get((entry['scene']['source']['source_id'],
@@ -201,17 +238,9 @@ class LiveGPU:
         async with httpx.AsyncClient(follow_redirects=False) as client:
             url,model=await self.embedding_model(client,deadline)
             if model!=query.embedding_version:raise ValueError('Embedding configuration changed; submit a new query')
-            async def vector(text):
-                result=await request(client,'POST',url+'/v1/embeddings',token=self.config.get('GPU_BEARER_TOKEN'),
-                    deadline=deadline,payload={'input':text,'model':model,'request_type':'query','encoding_format':'float'})
-                data=result['data'][0]['embedding']
-                if (not isinstance(data,list) or len(data)!=256 or
-                    any(type(x) not in (int,float) or not math.isfinite(x) for x in data)):
-                    raise ValueError('Embed1 must return 256 finite dimensions')
-                return data
-            target=await vector(query.text);ranked=[]
+            target=await self.vector(client,url,model,query.text,deadline);ranked=[]
             for entry in candidates[:32]:
-                caption=await vector(entry['scene']['description'])
+                caption=await self.vector(client,url,model,entry['scene']['description'],deadline)
                 norm=math.sqrt(sum(x*x for x in target)*sum(x*x for x in caption))
                 score=sum(a*b for a,b in zip(target,caption))/norm if norm else 0
                 if score>0:ranked.append((entry['scene']['scene_id'],float(score)))

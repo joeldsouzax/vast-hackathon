@@ -711,8 +711,9 @@ document.querySelector('#moment-search').addEventListener('submit', async event 
   event.preventDefault(); if (!state) return;
   const generation = ++searchGeneration;
   const text = document.querySelector('#moment-query').value.trim(); if (!text) return;
-  const previous = JSON.parse(sessionStorage.getItem('breadcast-moment-query') || 'null');
-  const request = previous?.text === text && previous.run_id === state.control.run_id ? previous : {id: crypto.randomUUID(), run_id: state.control.run_id, text, limit: 5};
+  // A deliberate submission is a new search over the current archive. Restoring
+  // the page still reads the stored operation instead of issuing it again.
+  const request = {id: crypto.randomUUID(), run_id: state.control.run_id, text, limit: 5};
   sessionStorage.setItem('breadcast-moment-query', JSON.stringify(request));
   document.querySelector('#moment-status').textContent = 'Finding retained moments…';
   try {const result = await api('/api/search', request); if (generation === searchGeneration) showMoments(result);}

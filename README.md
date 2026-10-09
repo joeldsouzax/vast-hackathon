@@ -92,6 +92,12 @@ finds registered parent videos. Embed1 ranks the retained scene captions from
 those videos. Results use locally recorded source intervals; an upload timestamp
 is never used as replay time. Only this event/run's bound footage is returned.
 
+Submit the same words again after processing finishes to search the latest
+archive. Each submission is new; reloading the page restores the last result.
+Previously computed caption vectors are reused within this app process. VSS
+retrieval still runs for every new search. The existing five-second query budget
+also applies to async provider calls.
+
 Set `WANDB_API_KEY` and the returned model IDs in `BREADCAST_SEGMENTOR_MODEL`,
 `BREADCAST_DIRECTOR_MODEL`, and `BREADCAST_COMMENTATOR_MODEL`. Use a segmentor
 model with image input and tool output. `WANDB_TEAM` and `WANDB_PROJECT` supply
