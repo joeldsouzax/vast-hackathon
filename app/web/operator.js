@@ -264,7 +264,8 @@ async function refresh() {
     const speech=state.direction.provider_capabilities?.speech;
     const voice=speech?.protocol==='elevenlabs' ? `ElevenLabs${speech.voice_name ? ' · '+speech.voice_name : ''}` :
       speech?.ready ? 'Configured speech' : 'Speech unavailable';
-    crewHealth.textContent=`${state.direction.fixture ? 'Local fixture crew' : 'Provider crew'} · ${state.control.crew_paused ? 'Paused · Release control to run' : 'Control released'} · Director: ${state.direction.roles.director} · Commentator: ${state.direction.roles.commentator} · ${voice} · Replays: ${state.replay_work.scheduling || state.replay_work.reason} · ${state.direction.reason}`;
+    const connecting=Object.entries(state.providers || {}).filter(([,provider])=>provider.connection?.state==='connecting').map(([name])=>name);
+    crewHealth.textContent=`${state.direction.fixture ? 'Local fixture crew' : 'Provider crew'}${connecting.length ? ' · Connecting: '+connecting.join(', ') : ''} · ${state.control.crew_paused ? 'Human control · Release control to run' : 'Automatic mode'} · Director: ${state.direction.roles.director} · Commentator: ${state.direction.roles.commentator} · ${voice} · Replays: ${state.replay_work.scheduling || state.replay_work.reason} · ${state.direction.reason}`;
     document.querySelector('#setup-status').textContent = state.direction.setup.ready ? `Graphics ready · Context ${state.direction.setup.context_revision}` : 'Event graphics need preparation for the current context.';
     document.querySelector('#framing-status').textContent = p.framing ? 'Static crop active · Use Full frame to reset.' : 'Full frame';
     if (!document.querySelector('#event-setup-form').dataset.loaded) {

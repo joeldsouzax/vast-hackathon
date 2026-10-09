@@ -117,12 +117,16 @@ class ExamplePlayback:
                 return
             # Only a human button press authorizes Start. Late startup cannot
             # overwrite a human control change made while bytes were loading.
-            with self.lock:
+            with self.lock, self.app.control.lock:
                 if cancel.is_set():
                     return
                 self._action('live', {'slot': leases[0]['slot'], 'independent': True}, authority)
                 self._action('audio', {'slot': leases[0]['slot'],
                     'muted': not videos[0]['metadata'].get('audio_present', False)})
+                # Start includes permission for automatic crew work. The same
+                # controller lock keeps a later human takeover authoritative.
+                if getattr(cfg, 'crew_mode', 'automatic') == 'automatic':
+                    self._action('resume', {})
                 self.state = 'playing'
             for video in videos:
                 self.app.video_analysis.submit(video)

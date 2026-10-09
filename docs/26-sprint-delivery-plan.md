@@ -465,3 +465,16 @@ five decoded camera cuts, microphone retention, three independent RTSP readers,
 slot reuse, old-token rejection, restart, and cleanup. Reader startup is measured
 separately from sustained playback. Browser, physical-device, and production
 acceptance remain pending. See [S02 evidence](evidence/sprint-two.json).
+
+### Automatic video startup correction
+
+Candidate `breadcast-video-startup-r01` fixes the VM report's paused crew after
+Start video. The default mode is automatic. Live selection, source audio, and
+crew release use one controller bundle. Later Take control remains authoritative.
+Configured provider metadata loads through a shared worker before a short clip
+needs it. Production proof remains pending. Checks were skipped by instruction.
+
+On the VM, recreate the service, prepare the event, and press Start video. Confirm
+Automatic mode without pressing Release control. Press Take control while playing
+and confirm Human control. Confirm missing provider configuration remains visible.
+Actual commentary still requires mapped evidence and accessible role models.

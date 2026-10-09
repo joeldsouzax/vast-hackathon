@@ -42,6 +42,9 @@ diagram when the explanation needs one.
   Current user override: connect the full S01–S07 stack first and skip checks.
   The user tests the full flow on the VM. Do not label skipped checks as passed.
   Preserve the existing controller contracts; defer additional failsafe work.
+  Automatic mode is the default. Start video releases the crew through the
+  controller; a later Take control pauses it. Do not require an extra Release
+  control step for the default video flow.
 
 - Merge every complete runnable sprint into `main` and push `main`. The user's
   production system deploys `main` automatically. Do not leave a sprint release

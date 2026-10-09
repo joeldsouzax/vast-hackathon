@@ -105,8 +105,11 @@ class Config:
     operator_token_file: Path | None = None
     operator_token: str = field(default="", init=False, repr=False)
     server_videos_config: Path = ROOT.parent / 'config/server-videos.json'
+    crew_mode: str = 'automatic'
 
     def __post_init__(self):
+        if self.crew_mode not in ('automatic', 'human'):
+            raise ValueError('BREADCAST_CREW_MODE must be automatic or human')
         self.public_url=public_origin(self.public_url)
         if self.public_path_prefix not in ('', '/app'):
             raise ValueError('BREADCAST_PUBLIC_PATH_PREFIX must be empty or /app')
@@ -953,6 +956,8 @@ def main():
     serve.add_argument('--operator-token-file', type=Path, default=os.environ.get('BREADCAST_OPERATOR_TOKEN_FILE') or None)
     serve.add_argument('--server-videos-config', type=Path,
         default=os.environ.get('BREADCAST_SERVER_VIDEOS_CONFIG') or ROOT.parent / 'config/server-videos.json')
+    serve.add_argument('--crew-mode', choices=('automatic', 'human'),
+        default=os.environ.get('BREADCAST_CREW_MODE', 'automatic'))
     samples = sub.add_parser("sample", help="Publish labeled sample media; this is not a live phone test")
     samples.add_argument("--runtime", type=Path, default=runtime)
     samples.add_argument("--count", type=int, choices=range(1, 6), default=1)
@@ -1003,7 +1008,7 @@ def main():
                  ice_servers=tuple(json.loads(args.ice_servers.read_text())) if args.ice_servers else (),
                  print_access=not args.quiet, foundation_config=args.foundation_config or None,program_proof=args.program_proof,webrtc_port=args.webrtc_port,
                  public_path_prefix=args.public_path_prefix, operator_auth=operator_auth, operator_token_file=args.operator_token_file,
-                 server_videos_config=args.server_videos_config)
+                 server_videos_config=args.server_videos_config, crew_mode=args.crew_mode)
     app = App(cfg)
     server = uvicorn.Server(uvicorn.Config(web_api(app), host=cfg.bind, port=cfg.port, workers=1,
         reload=False, access_log=False, log_level="warning", proxy_headers=False,

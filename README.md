@@ -120,9 +120,12 @@ the team's models.
 ## Let the crew direct and speak
 
 Prepare the event graphics in Event details. Set the supplied event facts and
-leave unknown names and scores blank. Start video, then press the hand control
-to **Release control**. This allows fresh W&B director and commentator proposals.
-**Take control** pauses them. The director uses current mapped evidence and the
+leave unknown names and scores blank. **Start video** enables automatic mode by
+default. No separate Release control step is required. This allows fresh W&B
+director and commentator proposals.
+**Take control** pauses them. **Release control** allows fresh proposals again.
+Set `BREADCAST_CREW_MODE=human` only when a run must start with the crew paused.
+The director uses current mapped evidence and the
 existing typed controller actions. A single input can produce commentary and
 replays; it cannot demonstrate switching between two distinct views.
 
@@ -181,8 +184,9 @@ docker compose up -d --build --force-recreate studio
 ```
 
 1. Open Studio, prepare event graphics, and start the repository video.
-2. Press the hand control to **Release control**. The Crew status shows director,
-   commentator, selected speech service, and automatic replay state.
+2. Confirm **Automatic mode** in Crew status. Start video releases the crew by
+   default. The status shows director, commentator, selected speech service, and
+   automatic replay state. Take control still pauses crew actions.
 3. Current Cosmos observations can nominate replay candidates. The W&B segmentor
    plans the edit. The existing worker renders and publishes a ready replay.
 4. The W&B director sees ready assets and current opportunity evidence. It can
@@ -198,6 +202,12 @@ produce only archive evidence. A model can also abstain when no useful action is
 supported. The second video and detector tracking remain unverified. None of
 these conditions is a passed autonomous demo. The user requested skipped checks;
 the VM must establish actual playback, provider access, speech and replay behavior.
+
+At startup, a shared analysis worker reads configured provider metadata. It
+discovers W&B models, ElevenLabs models and voices, Cosmos readiness, Embed1
+models, and YOLO readiness before the short clip needs them. Each connection
+gets five seconds. Metadata discovery does not start playback, synthesize speech,
+or prove successful inference. Advanced diagnostics show each connection state.
 
 Studio reports provider failures by connection: Cosmos, YOLO, search, W&B roles,
 speech, or VAST jobs/storage. Authentication, access, rate limit, deadline and

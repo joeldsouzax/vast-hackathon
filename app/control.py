@@ -20,7 +20,7 @@ class Coordinator:
         self.app = app
         self.lock = threading.RLock()
         self.run_id = uuid.uuid4().hex
-        self.crew_paused = False
+        self.crew_paused = getattr(app.cfg, 'crew_mode', 'automatic') == 'human'
         self.program_started = False
         self.revision = 0
         self.policy = {'minimum_shot_s': 5, 'replay_max_s': 12, 'replay_cooldown_s': 30, 'replays_enabled': True}

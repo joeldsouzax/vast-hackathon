@@ -23,8 +23,31 @@ class LiveRoles:
         self.models={}
         self.verified=set()
         self.catalog=[]
+        self.model_ids=None
+        self.selection_failures={}
 
     def configured(self):return bool(self.config.get('WANDB_API_KEY'))
+
+    async def prepare(self,transport,deadline,*,role=None):
+        url=endpoint(self.config.get('BREADCAST_WANDB_BASE_URL','https://api.inference.wandb.ai/v1'),boundary='llm')
+        key=self.config.get('WANDB_API_KEY')
+        if not key:raise ProviderFailure('configuration_missing','llm',hint='Set WANDB_API_KEY on the VM')
+        if self.model_ids is None:
+            returned=await request(transport,'GET',url+'/models',token=key,deadline=deadline,boundary='llm')
+            rows=returned.get('data',[]) if isinstance(returned,dict) else []
+            self.model_ids=[r['id'] for r in rows if isinstance(r,dict) and isinstance(r.get('id'),str)
+                and 0<len(r['id'])<=192 and not any(ord(c)<32 for c in r['id'])]
+            self.catalog=self.model_ids[:64]
+        for selected_role in ((role,) if role else ('director','commentator','segmentor')):
+            selected=self.config.get('BREADCAST_'+selected_role.upper()+'_MODEL')
+            if not selected and len(self.model_ids)==1:selected=self.model_ids[0]
+            if selected not in self.model_ids:
+                failure=ProviderFailure('configuration_missing','llm',
+                    hint='Set BREADCAST_'+selected_role.upper()+'_MODEL to an available W&B model ID')
+                self.selection_failures[selected_role]=failure.public()
+                if role:raise failure
+            else:
+                self.models[selected_role]=selected;self.selection_failures.pop(selected_role,None)
 
     async def llm(self,role,context,snapshot,deadline):
         if role not in ('director','commentator','segmentor'):raise ValueError('Unknown application role')
@@ -36,15 +59,7 @@ class LiveRoles:
         if budget<=0:raise TimeoutError('Role deadline expired')
         async with asyncio.timeout(budget),httpx.AsyncClient(follow_redirects=False) as transport:
             if role not in self.models:
-                returned=await request(transport,'GET',url+'/models',token=key,deadline=deadline,boundary='llm')
-                rows=returned.get('data',[]) if isinstance(returned,dict) else []
-                ids=[r['id'] for r in rows if isinstance(r,dict) and isinstance(r.get('id'),str)]
-                self.catalog=[model for model in ids if 0<len(model)<=192 and not any(ord(c)<32 for c in model)][:64]
-                selected=self.config.get('BREADCAST_'+role.upper()+'_MODEL')
-                if not selected and len(ids)==1:selected=ids[0]
-                if selected not in ids:raise ProviderFailure('configuration_missing','llm',
-                    hint='Set BREADCAST_'+role.upper()+'_MODEL to an available W&B model ID')
-                self.models[role]=selected
+                await self.prepare(transport,deadline,role=role)
             headers={}
             if self.config.get('WANDB_TEAM') and self.config.get('WANDB_PROJECT'):
                 headers['OpenAI-Project']=self.config['WANDB_TEAM']+'/'+self.config['WANDB_PROJECT']

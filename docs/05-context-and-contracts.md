@@ -978,3 +978,16 @@ an automatic retry. Coordinator/status code uses these fields instead of raw
 provider exceptions or response bodies. W&B model catalogs contain returned
 model IDs only and stay on the protected operator status surface. Speech with
 captions but no PCM audio reports `Caption only`, not successful speech.
+
+The default server-video mode is `automatic`. The authenticated Start command
+selects live video, selects source audio, and releases the crew as one controller
+bundle. A changed control revision during loading rejects startup. A later human
+Take control wins and pauses crew proposals. `BREADCAST_CREW_MODE=human` starts
+with the crew paused and omits release from that bundle. Automatic mode grants
+crew proposal permission; evidence, deadlines, and controller validation still
+grant airtime. Process startup and metadata discovery leave the program holding.
+
+Provider metadata discovery uses the existing shared worker pool. It has a
+five-second budget per configured connection and does not mark inference as
+verified. Metadata failures do not stop continuous media. Actual role calls keep
+their original evidence deadlines and do not receive a new deadline from warming.

@@ -6,12 +6,50 @@
   "implementation_checks": "skipped by user instruction",
   "production_run": "pending",
   "connections": [
-    {"release": "breadcast-video-analysis-r01", "commit": "a339a44", "flow": "private VAST upload and archive inspection"},
-    {"release": "breadcast-video-perception-r01", "commit": "bcc37f3", "flow": "current-window Cosmos and YOLO"},
-    {"release": "breadcast-video-recall-r01", "commit": "b366299", "flow": "VSS/Embed1 search and W&B visual replay planning"},
-    {"release": "breadcast-video-speech-r01", "commit": "e2eb0e4", "flow": "configured NVIDIA speech and program mixing"},
-    {"release": "breadcast-video-elevenlabs-r01", "commit": "add27f9", "flow": "ElevenLabs commentary speech"},
-    {"release": "breadcast-video-autonomy-r01", "flow": "automatic preparation and director scheduling status"}
+    {
+      "release": "breadcast-video-analysis-r01",
+      "commit": "a339a44",
+      "flow": "private VAST upload and archive inspection"
+    },
+    {
+      "release": "breadcast-video-perception-r01",
+      "commit": "bcc37f3",
+      "flow": "current-window Cosmos and YOLO"
+    },
+    {
+      "release": "breadcast-video-recall-r01",
+      "commit": "b366299",
+      "flow": "VSS/Embed1 search and W&B visual replay planning"
+    },
+    {
+      "release": "breadcast-video-speech-r01",
+      "commit": "e2eb0e4",
+      "flow": "configured NVIDIA speech and program mixing"
+    },
+    {
+      "release": "breadcast-video-elevenlabs-r01",
+      "commit": "add27f9",
+      "flow": "ElevenLabs commentary speech"
+    },
+    {
+      "release": "breadcast-video-autonomy-r01",
+      "flow": "automatic preparation and director scheduling status",
+      "commit": "66735c2"
+    },
+    {
+      "release": "breadcast-video-recall-r02",
+      "commit": "a205132",
+      "flow": "fresh repeated archive searches"
+    },
+    {
+      "release": "breadcast-provider-status-r01",
+      "commit": "dc34e14",
+      "flow": "provider-specific safe error diagnostics"
+    },
+    {
+      "release": "breadcast-video-startup-r01",
+      "flow": "automatic Start bundle and provider metadata discovery"
+    }
   ],
   "pending": [
     "real VAST and GPU access/output on the VM",

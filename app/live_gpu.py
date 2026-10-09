@@ -113,6 +113,22 @@ class LiveGPU:
         config=self.registry.settings.providers[name]
         return config.model_copy(update=self.models.get(name,{}))
 
+    async def prepare(self,client,boundary,deadline):
+        token=self.config.get('GPU_BEARER_TOKEN')
+        if boundary=='cosmos':
+            url=endpoint(self.config.get('COSMOS3_REASON_URL'),boundary='cosmos')
+            model,version=await discover(client,url,self.config.get('COSMOS3_REASON_MODEL'),token,deadline)
+            for route in ('/v1/health/ready','/v1/health/live'):
+                await request(client,'GET',url+route,token=token,deadline=deadline,boundary='cosmos')
+            self.models['cosmos']={'model_id':model,'version':version}
+        elif boundary=='search':
+            await self.embedding_model(client,deadline)
+        elif boundary=='yolo':
+            url=endpoint(self.config.get('YOLO_URL'),boundary='yolo')
+            result=await request(client,'GET',url+'/healthz',token=token,deadline=deadline,boundary='yolo')
+            if not isinstance(result,dict) or result.get('ok') is not True or result.get('model_loaded') is not True:
+                raise ProviderFailure('capability_unverified','yolo',hint='The model has not loaded')
+
     async def analyze(self,window,manifests,*,work_deadline=None):
         token=self.config.get('GPU_BEARER_TOKEN')
         cosmos=endpoint(self.config.get('COSMOS3_REASON_URL'),boundary='cosmos');yolo=endpoint(self.config.get('YOLO_URL'),boundary='yolo')

@@ -786,6 +786,7 @@ class Foundation:
         for index in range(self.settings.limits.concurrency):
             thread=threading.Thread(target=self._worker,name=f'analysis-{index}',daemon=True)
             self.threads.append(thread);thread.start()
+        if self.registry.live:self.submit_role('connect',lambda:asyncio.run(self.registry.prepare()))
 
     def _next(self):
         with self.transaction():
@@ -808,7 +809,7 @@ class Foundation:
 
     def submit_role(self, role, work):
         """One newest pending trigger per role; workers share the analysis budget."""
-        if role not in ('director','commentator','speech','segmentor','search'):raise ValueError('Unknown role work')
+        if role not in ('director','commentator','speech','segmentor','search','connect'):raise ValueError('Unknown role work')
         with self.lock:
             if role=='search' and role in self.role_pending:
                 raise ValueError('capacity_reached: search queue')
@@ -825,10 +826,10 @@ class Foundation:
                 if prefer_role or not self.db.execute("SELECT 1 FROM jobs WHERE state='queued' AND run=?",(self.run_id,)).fetchone():
                     # Archive work never consumes both shared slots. Fresh live work
                     # precedes new archive work; alternating analysis retains progress.
-                    archive_busy=bool({'segmentor','search'} & self.role_active)
-                    role=next((key for key in ('director','commentator','speech','segmentor','search')
+                    archive_busy=bool({'segmentor','search','connect'} & self.role_active)
+                    role=next((key for key in ('director','commentator','speech','segmentor','search','connect')
                         if key in self.role_pending and key not in self.role_active and
-                        (key not in ('segmentor','search') or not archive_busy)),None)
+                        (key not in ('segmentor','search','connect') or not archive_busy)),None)
                     if role:
                         work=self.role_pending.pop(role);self.role_active.add(role)
             if work:

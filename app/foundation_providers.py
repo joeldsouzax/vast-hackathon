@@ -5,10 +5,12 @@ import json
 from pathlib import Path
 import time
 import av
+import httpx
 from pydantic_ai import Agent
 from pydantic_ai.models.function import FunctionModel
 from pydantic_ai.messages import ModelResponse, ToolCallPart
 from foundation_records import Observation, LLMResult, SpeechResult, SegmentorResult
+from provider_errors import public_failure
 
 BOUNDARIES = ('storage', 'jobs', 'yolo', 'cosmos', 'search', 'llm', 'speech')
 
@@ -27,6 +29,35 @@ class Registry:
         self.roles=LiveRoles(self) if self.live else None
         from live_speech import LiveSpeech
         self.voice=LiveSpeech(self) if self.live else None
+        self.connections={}
+
+    async def prepare(self):
+        """Read provider metadata in an existing worker; no content or airtime."""
+        if not self.live:return
+        async with httpx.AsyncClient(follow_redirects=False) as client:
+            for boundary in ('speech','llm','cosmos','search','yolo'):
+                if self.foundation.stop.is_set():return
+                configured=(self.voice.configured() if boundary=='speech' else
+                    self.roles.configured() if boundary=='llm' else self.live.configured(boundary))
+                if not configured:
+                    self.connections[boundary]={'state':'not_configured'};continue
+                if boundary=='speech' and self.voice.protocol!='elevenlabs':
+                    self.connections[boundary]={'state':'deferred','reason':'Voice discovery runs with the selected event'};continue
+                self.connections[boundary]={'state':'connecting'}
+                deadline=time.time()+5
+                try:
+                    if boundary=='llm':
+                        await self.roles.prepare(client,deadline)
+                    elif boundary=='speech':
+                        async with httpx.AsyncClient(follow_redirects=False,
+                            headers={'xi-api-key':self.voice.config['ELEVENLABS_API_KEY']}) as voice_client:
+                            await self.voice.elevenlabs(voice_client,self.foundation.event_context(),deadline)
+                    else:await self.live.prepare(client,boundary,deadline)
+                    self.connections[boundary]={'state':'needs_configuration' if boundary=='llm' and self.roles.selection_failures else 'discovered'}
+                except Exception as error:
+                    self.connections[boundary]={'state':'unavailable','failure':public_failure(error,boundary)}
+
+    def connection(self,boundary):return dict(self.connections.get(boundary,{'state':'pending'}))
 
     def capabilities(self):
         results = {}
@@ -38,6 +69,7 @@ class Registry:
                 results[boundary]={'adapter':'live','ready':ready,'live_verified':self.voice.verified,
                     'model_id':self.voice.model,'protocol':self.voice.protocol,'version':self.voice.version,
                     'voice_id':self.voice.voice_id,'voice_name':self.voice.voice_name,
+                    'connection':self.connection(boundary),
                     'reason':'Speech transport configured; event voice and VM audio proof required'
                         if ready else 'Text-to-speech endpoint is missing; captions only'}
                 continue
@@ -46,11 +78,13 @@ class Registry:
                 results[boundary]={'adapter':'live','ready':ready,'live_verified':bool(self.roles.verified),
                     'roles_verified':sorted(self.roles.verified),'models':dict(self.roles.models),
                     'available_model_ids':list(self.roles.catalog),
+                    'selection_failures':dict(self.roles.selection_failures),'connection':self.connection(boundary),
                     'reason':'W&B roles configured; runtime model selection required' if ready else 'W&B API key is missing'}
                 continue
             if mode=='live' and config.protocol=='workshop-v1' and boundary in ('storage','jobs','cosmos','yolo','search'):
                 ready=self.live.configured(boundary)
                 results[boundary]={'adapter':'live','ready':ready,'live_verified':boundary in self.live.verified,
+                    'connection':self.connection(boundary) if boundary in ('cosmos','yolo','search') else None,
                     'reason':'Runtime provider calls configured; VM proof pending' if ready else 'Workshop endpoint is missing'}
                 continue
             if mode == 'fixture':
