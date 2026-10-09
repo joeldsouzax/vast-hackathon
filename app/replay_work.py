@@ -129,8 +129,10 @@ class ReplayWork:
                     outcome=None
                     try:
                         check_budget(deadline)
+                        provider=self.foundation.registry.require('search')
                         query=SearchQuery(event_id=self.foundation.settings.event.event_id,run_id=request.run_id,text=request.text,
-                            limit=request.limit,index_version=self.settings.index_version,embedding_version=self.settings.embedding_version)
+                            limit=request.limit,index_version=provider.version if provider.adapter=='live' else self.settings.index_version,
+                            embedding_version=provider.model_id if provider.adapter=='live' else self.settings.embedding_version)
                         internal=self.foundation.search(query,deadline_utc=deadline)
                         hits=[]
                         for hit in internal:
@@ -186,7 +188,9 @@ class ReplayWork:
         if record['state']!='complete':raise ReplayError('provider_unavailable',status=503)
         hit=next((h for h in record['result']['hits'] if (h['scene_id'],h['scene_revision'])==(scene_id,revision)),None)
         if not hit:raise ReplayError('missing_reference','Selected hit was not in this query',404)
-        if (hit['index_version'],hit['embedding_version'])!=(self.settings.index_version,self.settings.embedding_version):
+        provider=self.foundation.registry.require('search')
+        expected=(provider.version,provider.model_id) if provider.adapter=='live' else (self.settings.index_version,self.settings.embedding_version)
+        if (hit['index_version'],hit['embedding_version'])!=expected:
             raise ReplayError('index_changed','Search configuration changed',409)
         scene=self.scene(scene_id,revision)
         if scene.source.model_dump()!=hit['source']:raise ReplayError('scene_changed')

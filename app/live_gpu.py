@@ -35,7 +35,7 @@ def json_content(value):
 
 
 async def request(client,method,url,*,token=None,payload=None,deadline=None):
-    budget=min(15,deadline-time.time()) if deadline else 15
+    budget=min(45,deadline-time.time()) if deadline else 15
     if budget<=0:raise TimeoutError('Provider deadline expired')
     headers={'Authorization':'Bearer '+token} if token else {}
     try:
@@ -102,10 +102,10 @@ class LiveGPU:
         config=self.registry.settings.providers[name]
         return config.model_copy(update=self.models.get(name,{}))
 
-    async def analyze(self,window,manifests):
+    async def analyze(self,window,manifests,*,work_deadline=None):
         token=self.config.get('GPU_BEARER_TOKEN')
         cosmos=endpoint(self.config.get('COSMOS3_REASON_URL'));yolo=endpoint(self.config.get('YOLO_URL'))
-        deadline=window.deadline_utc
+        deadline=work_deadline or window.deadline_utc
         async with httpx.AsyncClient(follow_redirects=False) as client:
             if 'cosmos' not in self.models:
                 model,version=await discover(client,cosmos,self.config.get('COSMOS3_REASON_MODEL'),token,deadline)
@@ -158,4 +158,62 @@ class LiveGPU:
                 'payload_sha256':hashlib.sha256(json.dumps(detected,sort_keys=True).encode()).hexdigest(),
                 'tracking_verified':False,'box_time_mapping_verified':False}
             self.verified.update(('cosmos','yolo'))
+            if self.configured('search') and 'search' not in self.models:
+                await self.embedding_model(client,deadline)
             return result
+
+    async def embedding_model(self,client,deadline):
+        url=endpoint(self.config.get('COSMOS_EMBED1_URL'))
+        if 'search' not in self.models:
+            model,version=await discover(client,url,self.config.get('COSMOS_EMBED1_MODEL'),
+                self.config.get('GPU_BEARER_TOKEN'),deadline)
+            self.models['search']={'model_id':model}
+            self.registry.settings.providers['search']=self.registry.settings.providers['search'].model_copy(update={'model_id':model})
+        return url,self.models['search']['model_id']
+
+    async def query(self,query,entries,deadline):
+        # VSS finds registered parent videos. Embed1 ranks their locally retained
+        # scene captions. Replay time comes from local evidence, not upload time.
+        from vss_client import VssClient, configuration
+        foundation=self.registry.foundation
+        with foundation.lock:
+            owners=[json.loads(r['body']) for r in foundation._records('recording',run=query.run_id)]
+            uploads=[json.loads(r['body']) for r in foundation.db.execute(
+                "SELECT body FROM records WHERE kind='video_analysis' ORDER BY revision DESC")]
+        parent_hash={r['receipt']['original_video']:r['sha256'] for r in uploads if 'receipt' in r}
+        source_hash={(r['source_id'],r['epoch']):r.get('original_sha256') for r in owners}
+        allowed=set(source_hash.values())-{None}
+        if not allowed:return []
+        def recall():
+            client=VssClient(configuration(),cancelled=lambda:time.time()>=deadline)
+            try:
+                client.verify()
+                return client.request('POST','/api/v1/search',payload={'query':query.text,'top_k':40,
+                    'llm_top_n':0,'tags':['breadcast-'+sha for sha in sorted(allowed)],'include_public':False})
+            finally:client.close()
+        found=await asyncio.to_thread(recall)
+        matched={parent_hash[row['original_video']] for row in found.get('chunk_results',[])
+            if isinstance(row,dict) and row.get('original_video') in parent_hash and parent_hash[row['original_video']] in allowed}
+        candidates=[entry for entry in entries if source_hash.get((entry['scene']['source']['source_id'],
+            entry['scene']['source']['epoch'])) in matched and
+            (entry['index_version'],entry['embedding_version'])==(query.index_version,query.embedding_version)]
+        if not candidates:return []
+        async with httpx.AsyncClient(follow_redirects=False) as client:
+            url,model=await self.embedding_model(client,deadline)
+            if model!=query.embedding_version:raise ValueError('Embedding configuration changed; submit a new query')
+            async def vector(text):
+                result=await request(client,'POST',url+'/v1/embeddings',token=self.config.get('GPU_BEARER_TOKEN'),
+                    deadline=deadline,payload={'input':text,'model':model,'request_type':'query','encoding_format':'float'})
+                data=result['data'][0]['embedding']
+                if (not isinstance(data,list) or len(data)!=256 or
+                    any(type(x) not in (int,float) or not math.isfinite(x) for x in data)):
+                    raise ValueError('Embed1 must return 256 finite dimensions')
+                return data
+            target=await vector(query.text);ranked=[]
+            for entry in candidates[:32]:
+                caption=await vector(entry['scene']['description'])
+                norm=math.sqrt(sum(x*x for x in target)*sum(x*x for x in caption))
+                score=sum(a*b for a,b in zip(target,caption))/norm if norm else 0
+                if score>0:ranked.append((entry['scene']['scene_id'],float(score)))
+            self.verified.add('search')
+            return sorted(ranked,key=lambda row:(-row[1],row[0]))[:query.limit]

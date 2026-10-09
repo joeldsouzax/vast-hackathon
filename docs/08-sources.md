@@ -58,6 +58,19 @@ Checked the four edited Markdown files: 29 local links resolve and code fences c
 
 The subsequent [media experiment validation](11-media-experiment-validation.md) is the authority for implementation versions, measured output, completed tests, and remaining gates. Its sample and browser-fixture results do not verify provider access or physical phones.
 
+## Current workshop transport sources
+
+Reviewed on **2026-10-09**. The local `.cursor/skills/` upload, videos, search,
+GPU guide and model health documents define the supplied VSS and GPU calls.
+[CoreWeave's Serverless API](https://docs.coreweave.com/products/inference/serverless/api-reference)
+defines the W&B endpoint, bearer key and model listing.
+[Chat Completions](https://docs.coreweave.com/products/inference/serverless/api-reference/chat-completions)
+defines the optional `OpenAI-Project` header.
+[PydanticAI's OpenAI provider](https://pydantic.dev/docs/ai/models/openai/)
+defines custom Chat Completions transport and typed model output.
+These sources establish request contracts, not access to the assigned tenant.
+The user requested skipped checks while connections are implemented.
+
 
 ## Docker packaging checks
 

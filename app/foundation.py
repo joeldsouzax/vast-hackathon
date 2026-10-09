@@ -43,6 +43,7 @@ class Foundation:
         self.storage = FileStorage(root if root.is_absolute() else self.runtime/root)
         self.registry = Registry(settings)
         self.registry.storage=self.storage
+        self.registry.foundation=self
         self.lock = threading.RLock()
         self.readonly=readonly
         self.db = sqlite3.connect(f"file:{self.runtime/'foundation.sqlite'}?mode=ro" if readonly else self.runtime/'foundation.sqlite',
@@ -70,6 +71,7 @@ class Foundation:
         self.stop = threading.Event()
         self.wake = threading.Event()
         self.active_sources = set()
+        self.archive_active = set()
         self.pin_owners = set()
         self.threads = []
         self.snapshot_reader = snapshot
@@ -94,6 +96,7 @@ class Foundation:
                 self._put('context', settings.event.event_id, settings.event.revision, settings.event, run='')
             # Lost completion notifications are recoverable from committed job states.
             self.db.execute("UPDATE jobs SET state='queued' WHERE state='running' AND run=?", (run_id,))
+            self.db.execute("UPDATE jobs SET state='archive_queued' WHERE state='archive_running' AND run=?",(run_id,))
             self.db.execute("UPDATE jobs SET state='expired',error='Prior run',updated=? WHERE run<>? AND state IN ('queued','running')", (time.time(),run_id))
             self.db.execute('DELETE FROM pins WHERE deadline<=?', (time.time(),))
         self.unavailable_chunks=frozenset(r['id'] for r in self.db.execute("SELECT id FROM records WHERE kind='chunk' AND available=0"))
@@ -468,9 +471,10 @@ class Foundation:
                 if old.native.end>=window.native.end:
                     self._notify('analysis.skipped',window.job_key,{'window':window.model_dump(),'reason':'Older pending window'})
                     return 'skipped'
-                self.db.execute("UPDATE jobs SET state='skipped',error='Superseded pending interval' WHERE key=?",(row['key'],))
+                state='archive_queued' if self.registry.live else 'skipped'
+                self.db.execute("UPDATE jobs SET state=?,error='Superseded live interval; retained for archive' WHERE key=?",(state,row['key']))
                 self._notify('analysis.skipped',row['key'],{'window':old.model_dump(),'reason':'Superseded pending interval'})
-            state='expired' if window.deadline_utc<=time.time() else 'queued'
+            state=('archive_queued' if self.registry.live else 'expired') if window.deadline_utc<=time.time() else 'queued'
             self.db.execute('INSERT INTO jobs VALUES (?,?,?,?,?,?,0,?,?)',
                 (window.job_key,src,self.run_id,window.model_dump_json(),state,window.deadline_utc,
                  'Original deadline expired' if state=='expired' else None,time.time()))
@@ -507,7 +511,7 @@ class Foundation:
             self._validate_observation(observation,window)
         if len(observations)>256:raise ValueError('Provider result count exceeds window limit')
         with self.lock:
-            issued=self.db.execute('SELECT body FROM jobs WHERE key=?',(window.job_key,)).fetchone()
+            issued=self.db.execute('SELECT body,state FROM jobs WHERE key=?',(window.job_key,)).fetchone()
             if not issued or AnalysisWindow.model_validate_json(issued['body'])!=window:
                 raise ValueError('Result has no matching issued request')
         signature=operation_key([o.model_dump() for o in observations])
@@ -541,14 +545,15 @@ class Foundation:
                 self._notify('scene.updated',scene_key+'-'+str(scene.revision),{'scene_id':scene_key,'revision':scene.revision})
             current=self.reviewed_snapshot()
             result={'job_key':window.job_key,'evidence_ids':[o.evidence_id for o in observations],
-                    'live_eligible':window.deadline_basis=='frame-receipt' and time.time()<window.deadline_utc and window.source.run_id==self.run_id
+                    'live_eligible':issued['state']!='archive_running' and window.deadline_basis=='frame-receipt' and time.time()<window.deadline_utc and window.source.run_id==self.run_id
                         and window.source in current.sources
                         and window.snapshot.context_revision==current.context_revision
                         and window.snapshot.configuration_revision==current.configuration_revision
                         and window.snapshot.program_revision==current.program_revision
                         and window.snapshot.control_revision==current.control_revision}
             self.db.execute('INSERT INTO operations VALUES (?,?,?)',(window.job_key,signature,canonical(result)))
-            self.db.execute("UPDATE jobs SET state='completed',updated=? WHERE key=?",(time.time(),window.job_key))
+            self.db.execute("UPDATE jobs SET state=?,updated=? WHERE key=?",(
+                'archive_completed' if issued['state']=='archive_running' else 'completed',time.time(),window.job_key))
             self._notify('analysis.completed',window.job_key,result)
         self.stage_times.append({'trace_id':window.trace_id,'stage':'persistence-and-index','seconds':time.time()-persisted})
         self.scene_versions={r['id']:r['revision'] for r in self._records('scene',run=self.run_id)}
@@ -670,8 +675,9 @@ class Foundation:
                 if obs.source!=source or obs.native.start<cutoff:continue
                 if role=='commentator' and obs.native.end>eligible.end:continue
                 # Expired jobs stay inspectable, outside live director context.
-                job=self.db.execute('SELECT deadline,body FROM jobs WHERE key=?',(obs.job_key,)).fetchone()
-                if role=='director' and (not job or job['deadline']<=time.time() or json.loads(job['body']).get('deadline_basis')!='frame-receipt'):continue
+                job=self.db.execute('SELECT deadline,body,state FROM jobs WHERE key=?',(obs.job_key,)).fetchone()
+                if role=='commentator' and not archive and job and job['state']=='archive_completed':continue
+                if role=='director' and (not job or job['state']=='archive_completed' or job['deadline']<=time.time() or json.loads(job['body']).get('deadline_basis')!='frame-receipt'):continue
                 ordinal=self.db.execute("SELECT ordinal FROM evidence_versions WHERE id=?",(obs.evidence_id,)).fetchone()[0]
                 if ordinal>snapshot.evidence_revision:continue
                 observations.append(obs)
@@ -781,14 +787,20 @@ class Foundation:
 
     def _next(self):
         with self.transaction():
-            rows=self.db.execute("SELECT * FROM jobs WHERE state='queued' AND run=? ORDER BY updated",(self.run_id,)).fetchall()
+            rows=self.db.execute("SELECT * FROM jobs WHERE state IN ('queued','archive_queued') AND run=? ORDER BY CASE state WHEN 'queued' THEN 0 ELSE 1 END,updated",(self.run_id,)).fetchall()
             for row in rows:
                 if row['source'] in self.active_sources:continue
-                if row['deadline']<=time.time():
+                archive=row['state']=='archive_queued'
+                if row['deadline']<=time.time() and not archive and self.registry.live:
+                    self.db.execute("UPDATE jobs SET state='archive_queued',error='Live deadline expired; retained for archive' WHERE key=?",(row['key'],))
+                    continue
+                if archive and self.archive_active:continue
+                if row['deadline']<=time.time() and not archive:
                     self.db.execute("UPDATE jobs SET state='expired',error='Original deadline expired' WHERE key=?",(row['key'],))
                     self._notify('analysis.expired','expiry-'+row['key'],{'job_key':row['key']});continue
                 self.active_sources.add(row['source'])
-                self.db.execute("UPDATE jobs SET state='running',updated=? WHERE key=?",(time.time(),row['key']))
+                if archive:self.archive_active.add(row['key'])
+                self.db.execute("UPDATE jobs SET state=?,updated=? WHERE key=?",('archive_running' if archive else 'running',time.time(),row['key']))
                 return row
         return None
 
@@ -828,16 +840,20 @@ class Foundation:
             prefer_role=True
             if not row:self.wake.wait(.1);self.wake.clear();continue
             window=AnalysisWindow.model_validate_json(row['body'])
+            archive=row['state']=='archive_queued'
+            work_deadline=time.time()+45 if archive else window.deadline_utc
             pin='analysis-'+window.job_key
             began=time.time()
             self.stage_times.append({'trace_id':window.trace_id,'stage':'closure-storage-queue','seconds':max(0,began-(window.deadline_utc-self.settings.limits.live_deadline_s))})
             try:
-                if time.time()>=window.deadline_utc:raise TimeoutError('Original live deadline expired')
-                self.resolve(window.source,window.native,owner=pin,deadline_utc=min(window.deadline_utc,time.time()+self.settings.limits.pin_seconds))
+                if time.time()>=work_deadline:raise TimeoutError('Analysis work deadline expired')
+                self.resolve(window.source,window.native,owner=pin,deadline_utc=min(work_deadline,time.time()+self.settings.limits.pin_seconds))
                 manifests=self.chunks(window.source,window.native)
                 def attempted(count):
                     with self.transaction():self.db.execute('UPDATE jobs SET attempts=? WHERE key=?',(count,window.job_key))
-                results=asyncio.run(bounded_call(lambda:analyze_artifacts(window,manifests,self.settings,self.storage,self.registry),window.deadline_utc,self.settings.limits,attempted))
+                limits=self.settings.limits.model_copy(update={'call_timeout_s':45.0,'retries':0}) if archive else self.settings.limits
+                results=asyncio.run(bounded_call(lambda:analyze_artifacts(window,manifests,self.settings,self.storage,self.registry,
+                    work_deadline=work_deadline),work_deadline,limits,attempted))
                 self.stage_times.append({'trace_id':window.trace_id,'stage':'inference','seconds':time.time()-began})
                 origin='fixture' if self.registry.require('cosmos').adapter=='fixture' else 'provider'
                 self.ingest(window,results,trusted_origin=origin)
@@ -847,11 +863,12 @@ class Foundation:
                 self.last_failure=reason
                 with self.transaction():
                     self.db.execute('UPDATE jobs SET state=?,error=?,updated=? WHERE key=?',
-                        ('expired' if isinstance(error,TimeoutError) else 'failed',reason,time.time(),window.job_key))
+                        ('archive_queued' if not archive and self.registry.live else 'expired' if isinstance(error,TimeoutError) else 'failed',reason,time.time(),window.job_key))
                     self._notify('analysis.failed','failure-'+window.job_key,{'job_key':window.job_key,'reason':reason})
             finally:
                 self.release(pin)
-                with self.lock:self.active_sources.discard(row['source'])
+                with self.lock:
+                    self.active_sources.discard(row['source']);self.archive_active.discard(row['key'])
 
     def recover(self):
         """Recover committed readiness notifications, including missed deliveries."""

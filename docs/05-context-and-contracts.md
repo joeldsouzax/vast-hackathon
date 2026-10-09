@@ -911,3 +911,23 @@ the adapter converts these to issued native ticks and preserves the snapshot.
 YOLO receives the same bytes. Its raw counts are not normalized boxes or tracks.
 Only actual model output receives `origin=provider`. No archive result acquires a
 new live deadline from this transport connection.
+
+Live work that expires or is superseded can enter `archive_queued`, then
+`archive_running` and `archive_completed`. This uses the original issued window,
+source, snapshot, and live deadline. A separate 45-second archive execution budget
+does not refresh that deadline. Only one shared analysis worker runs archive
+analysis at a time. Archive-completed evidence is excluded from live direction.
+
+Workshop search first uses private VSS semantic retrieval to select registered
+parent uploads. Recorded input hashes resolve those parents to the current run's
+retained scenes. Embed1 ranks their captions with 256-dimensional vectors. Search
+does not convert VSS upload or segment timestamps into local camera time. Its
+playable intervals come from already-normalized local scene evidence. This is
+caption ranking within VSS-selected parents, not verified video-vector reranking.
+
+W&B roles use the pinned PydanticAI Chat Completions transport. Runtime model
+listing validates each configured role ID. The segmentor receives actual image
+content with its source clock labels, not image bytes inside ordinary prompt text.
+Adapters bind snapshot, origin and model metadata; models return only typed intents.
+The existing director/controller, commentary preparation and replay compiler own
+all validation and airtime. Hosted model versions remain unknown unless returned.

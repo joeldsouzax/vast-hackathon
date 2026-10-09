@@ -384,7 +384,10 @@ S03 is **in progress: tenant probe and registered-video VAST archive slice imple
 The archive slice connects private upload, stored-byte verification, DataEngine
 completion, summary, and YOLO sidecar display. It does not close live timing or
 tracking gates. The current-window slice also connects actual Cosmos and YOLO
-requests to the existing evidence ledger. S04–S07 are **not started**.
+requests to the existing evidence ledger. S04 has connected VSS/Embed1 search and
+the W&B visual segmentor to the existing replay renderer. S05 has the W&B director
+transport; its crew controls remain to be connected. S06 speech and S07 scheduling
+connections follow. All real provider runs remain pending; checks were skipped.
 Release commits and production acceptance are recorded in the sprint handoff.
 
 ## 11 Evidence and cumulative regression
@@ -442,8 +445,8 @@ record the blocker instead of inventing a pass.
 | S01 | Implemented; candidate `breadcast-s01-r01` releases through main | Pending Docker image build, trusted HTTPS/WebRTC, one physical phone for five minutes, host restart and root/prefix checks |
 | S02 | Implemented; candidate `breadcast-s02-r01` releases through main | Pending five physical phones, three browser viewers, 15-minute run and actual host proof |
 | S03 | Tenant probe and registered-video archive slice implemented; timing/tracking remain | Pending real VAST run; archive-slice checks skipped by user instruction |
-| S04 | Not started | Pending |
-| S05 | Not started | Pending |
+| S04 | VSS/Embed1 search and W&B visual planning connected to retained replay | Pending actual query, accepted model plan, rendered preview and playback |
+| S05 | W&B director transport connected; crew controls follow | Pending eligible current evidence and a real accepted crew action |
 | S06 | Not started | Pending |
 | S07 | Not started | Pending |
 

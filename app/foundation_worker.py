@@ -2,7 +2,7 @@
 from foundation_storage import inspect_video
 
 
-async def analyze_artifacts(window, manifests, settings, storage, registry):
+async def analyze_artifacts(window, manifests, settings, storage, registry, *, work_deadline=None):
     if window.snapshot.configuration_revision!=settings.configuration_revision:
         raise ValueError('Worker configuration differs from issued snapshot')
     if set(window.chunk_ids)!={m.chunk_id for m in manifests}:
@@ -18,4 +18,4 @@ async def analyze_artifacts(window, manifests, settings, storage, registry):
         if manifest.native.start>position:raise ValueError('Worker coverage gap')
         position=max(position,manifest.native.end)
     if position<window.native.end:raise ValueError('Worker interval is not finalized')
-    return await registry.analyze(window,manifests)
+    return await registry.analyze(window,manifests,work_deadline=work_deadline)

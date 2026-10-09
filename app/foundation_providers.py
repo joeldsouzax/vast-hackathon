@@ -23,12 +23,20 @@ class Registry:
         self.labels = json.loads(Path(settings.fixture_file).read_text()) if settings.fixture_file else {}
         from live_gpu import LiveGPU
         self.live=LiveGPU(self) if any(p.protocol=='workshop-v1' for p in settings.providers.values()) else None
+        from live_roles import LiveRoles
+        self.roles=LiveRoles(self) if self.live else None
 
     def capabilities(self):
         results = {}
         for boundary in BOUNDARIES:
             config = self.settings.providers.get(boundary)
             mode = config.adapter if config else 'disabled'
+            if mode=='live' and config.protocol=='workshop-v1' and boundary=='llm':
+                ready=self.roles.configured()
+                results[boundary]={'adapter':'live','ready':ready,'live_verified':bool(self.roles.verified),
+                    'roles_verified':sorted(self.roles.verified),'models':dict(self.roles.models),
+                    'reason':'W&B roles configured; runtime model selection required' if ready else 'W&B API key is missing'}
+                continue
             if mode=='live' and config.protocol=='workshop-v1' and boundary in ('storage','jobs','cosmos','yolo','search'):
                 ready=self.live.configured(boundary)
                 results[boundary]={'adapter':'live','ready':ready,'live_verified':boundary in self.live.verified,
@@ -55,11 +63,11 @@ class Registry:
             raise CapabilityError(name+': '+state['reason'])
         return self.live.provider(name) if self.live and self.settings.providers[name].protocol=='workshop-v1' else self.settings.providers[name]
 
-    async def analyze(self, window, manifests):
+    async def analyze(self, window, manifests, *, work_deadline=None):
         """Labels bind to declared sample intervals, never to arbitrary camera footage."""
         self.require('yolo'); self.require('cosmos')
         if self.live and self.settings.providers['cosmos'].protocol=='workshop-v1':
-            return await self.live.analyze(window,manifests)
+            return await self.live.analyze(window,manifests,work_deadline=work_deadline)
         if any(m.provenance != 'sample' for m in manifests):
             raise CapabilityError('Fixtures require explicitly labeled sample input')
         if 'media_hashes' in self.labels and any(m.media.sha256 not in self.labels['media_hashes'] for m in manifests):
@@ -105,6 +113,9 @@ class Registry:
         if remaining <= 0: raise TimeoutError('LLM deadline expired')
         if context['snapshot'] != snapshot.model_dump(mode='json'):
             raise ValueError('Context does not match reviewed snapshot')
+        if self.roles and self.settings.providers['llm'].protocol=='workshop-v1':
+            async with asyncio.timeout(remaining):
+                return await self.roles.llm(role,context,snapshot,deadline_utc)
         def fixture(messages, info):
             tool = info.output_tools[0]
             if role=='segmentor':
@@ -163,6 +174,7 @@ class Registry:
     async def query(self, query, entries, deadline_utc):
         """Verified transports plug in here. Fixture scores remain simulated."""
         config=self.require('search')
+        if self.live and config.protocol=='workshop-v1':return await self.live.query(query,entries,deadline_utc)
         if config.adapter!='fixture':raise CapabilityError('Search transport requires tenant verification')
         if time.time()>=deadline_utc:raise TimeoutError('Search deadline expired')
         ranked=[]

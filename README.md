@@ -84,6 +84,33 @@ flowchart LR
   Pipeline --> Studio[Archive summary in Studio]
 ```
 
+## Search and model-edited replay
+
+After the clip has produced retained scene evidence and VSS has indexed its
+private upload, open Replays and search for a visible action. VSS semantic search
+finds registered parent videos. Embed1 ranks the retained scene captions from
+those videos. Results use locally recorded source intervals; an upload timestamp
+is never used as replay time. Only this event/run's bound footage is returned.
+
+Set `WANDB_API_KEY` and the returned model IDs in `BREADCAST_SEGMENTOR_MODEL`,
+`BREADCAST_DIRECTOR_MODEL`, and `BREADCAST_COMMENTATOR_MODEL`. Use a segmentor
+model with image input and tool output. `WANDB_TEAM` and `WANDB_PROJECT` supply
+optional usage attribution. The configurable base defaults to the documented
+`https://api.inference.wandb.ai/v1` service on CoreWeave. Do not use a text-only
+model for visual replay planning.
+
+Choose **Prepare replay** on a search result. The W&B segmentor sees the retained
+evidence and actual timestamped frames. It proposes a typed edit plan. The existing
+worker renders that plan, then Studio offers Preview and Play. Play still requires
+the program controller. Late window analysis runs as archive work with its original
+live deadline unchanged. This makes retained evidence available for later search;
+it cannot authorize a late camera cut.
+
+The director and commentator use the same W&B role transport and existing crew
+controls. Each needs eligible current evidence. A successful archive summary alone
+does not enable live crew decisions. Speech and automatic scheduling are the next
+connection slices. These connections have not been run against the team's models.
+
 ```mermaid
 flowchart LR
   File[Configured video] --> Start[Red Start button]
