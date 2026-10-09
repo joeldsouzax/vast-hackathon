@@ -261,7 +261,10 @@ async function refresh() {
         (analysis.detection_counts || []).map(item=>`${item.label}: ${item.count}`).join(' · ') :
       'No YOLO sidecar returned for this video.';
     const crewHealth=document.querySelector('#crew-health');crewHealth.hidden=!state.direction.enabled;
-    crewHealth.textContent=`${state.direction.fixture ? 'Local fixture crew' : 'Provider crew'} · ${state.direction.reason}`;
+    const speech=state.direction.provider_capabilities?.speech;
+    const voice=speech?.protocol==='elevenlabs' ? `ElevenLabs${speech.voice_name ? ' · '+speech.voice_name : ''}` :
+      speech?.ready ? 'Configured speech' : 'Speech unavailable';
+    crewHealth.textContent=`${state.direction.fixture ? 'Local fixture crew' : 'Provider crew'} · ${state.control.crew_paused ? 'Paused · Release control to run' : 'Control released'} · Director: ${state.direction.roles.director} · Commentator: ${state.direction.roles.commentator} · ${voice} · Replays: ${state.replay_work.scheduling || state.replay_work.reason} · ${state.direction.reason}`;
     document.querySelector('#setup-status').textContent = state.direction.setup.ready ? `Graphics ready · Context ${state.direction.setup.context_revision}` : 'Event graphics need preparation for the current context.';
     document.querySelector('#framing-status').textContent = p.framing ? 'Static crop active · Use Full frame to reset.' : 'Full frame';
     if (!document.querySelector('#event-setup-form').dataset.loaded) {
@@ -694,7 +697,7 @@ function showMoments(result) {
     const timing = document.createElement('p');
     const [num, den] = hit.source.time_base.split('/').map(Number);
     const fresh = result.freshness.find(x => x.source.source_id === hit.source.source_id && x.source.epoch === hit.source.epoch);
-    timing.textContent = `Original camera ${hit.source.slot} · ${(hit.native.start*num/den).toFixed(2)}–${(hit.native.end*num/den).toFixed(2)}s · ${hit.available ? 'Available' : hit.reason || 'Unavailable'}${fresh ? ` · Indexed through ${(fresh.watermark*num/den).toFixed(2)}s` : ' · Index freshness unknown'}`;
+    timing.textContent = `Recorded input ${hit.source.slot} · ${(hit.native.start*num/den).toFixed(2)}–${(hit.native.end*num/den).toFixed(2)}s · ${hit.available ? 'Available' : hit.reason || 'Unavailable'}${fresh ? ` · Indexed through ${(fresh.watermark*num/den).toFixed(2)}s` : ' · Index freshness unknown'}`;
     const prepare = document.createElement('button'); prepare.textContent = 'Prepare replay'; prepare.disabled = !hit.available;
     prepare.onclick = async () => {
       prepare.disabled = true;

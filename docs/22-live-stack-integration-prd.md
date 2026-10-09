@@ -33,6 +33,13 @@ output. Its clocks describe file playback and derived media, not physical captur
 R01 device rehearsal and G05 five-camera throughput are deferred. The second
 video remains unavailable until configured; never invent another angle.
 
+Connection status: the registered-video path now joins VAST upload/DataEngine,
+archive inspection, current-window Cosmos/YOLO, VSS/Embed1 recall, W&B director,
+commentator and visual segmentor, ElevenLabs speech, deterministic rendering, and
+automatic replay scheduling through the existing controller. This is code wiring
+for VM testing. Actual provider output, timing, detector geometry/tracking, speech
+quality, media continuity and the full acceptance demonstration remain unverified.
+
 ## 1 Scope and completion
 
 The product serves one event, one program output, one operator, up to five phone cameras, and at least three viewer devices. The operator prepares the event, shares its QR code, starts the program, and releases control to the crew. The crew proposes camera, audio, graphic, framing, commentary, and replay actions. The program controller validates every action and owns airtime.

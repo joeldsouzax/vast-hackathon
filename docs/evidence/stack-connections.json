@@ -1,0 +1,26 @@
+{
+  "schema_version": "1",
+  "scope": "registered-video stack connection candidates",
+  "input": "repo-video-1",
+  "fixture": false,
+  "implementation_checks": "skipped by user instruction",
+  "production_run": "pending",
+  "connections": [
+    {"release": "breadcast-video-analysis-r01", "commit": "a339a44", "flow": "private VAST upload and archive inspection"},
+    {"release": "breadcast-video-perception-r01", "commit": "bcc37f3", "flow": "current-window Cosmos and YOLO"},
+    {"release": "breadcast-video-recall-r01", "commit": "b366299", "flow": "VSS/Embed1 search and W&B visual replay planning"},
+    {"release": "breadcast-video-speech-r01", "commit": "e2eb0e4", "flow": "configured NVIDIA speech and program mixing"},
+    {"release": "breadcast-video-elevenlabs-r01", "commit": "add27f9", "flow": "ElevenLabs commentary speech"},
+    {"release": "breadcast-video-autonomy-r01", "flow": "automatic preparation and director scheduling status"}
+  ],
+  "pending": [
+    "real VAST and GPU access/output on the VM",
+    "assigned W&B role model IDs and visual/tool support",
+    "actual ElevenLabs key/model/voice use and audible output",
+    "live receipt timing and measured model latency",
+    "YOLO box time mapping and tracking; crop unavailable until verified",
+    "automatic replay preparation, scheduling, playback and return demonstration",
+    "Docker build and deployed media behavior",
+    "second server video when available"
+  ]
+}

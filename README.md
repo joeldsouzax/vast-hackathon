@@ -165,6 +165,34 @@ Missing speech service leaves eligible captions or silence. It does not count as
 working spoken commentary. Endpoint access, language, pronunciation and audible
 content still require the VM run.
 
+## Run the connected stack through automatic replay
+
+After deployment, keep the VM's existing `.env`, operator token and TLS files.
+Supply the workshop variables and `ELEVENLABS_API_KEY`, then recreate the service:
+
+```sh
+docker compose up -d --build --force-recreate studio
+```
+
+1. Open Studio, prepare event graphics, and start the repository video.
+2. Press the hand control to **Release control**. The Crew status shows director,
+   commentator, selected speech service, and automatic replay state.
+3. Current Cosmos observations can nominate replay candidates. The W&B segmentor
+   plans the edit. The existing worker renders and publishes a ready replay.
+4. The W&B director sees ready assets and current opportunity evidence. It can
+   propose replay playback through the program controller. Ready assets never
+   start playback on their own. The program returns to eligible live output after
+   replay, or holding when the video has ended. Return live interrupts a replay.
+5. After the clip ends, its VAST upload and archive analysis can still finish.
+   Search those retained moments and prepare a manual replay. Start the clip again
+   for another current-input session. Stop cancels the video source.
+
+The clip is about 20 seconds. Slow model calls can miss that live session and
+produce only archive evidence. A model can also abstain when no useful action is
+supported. The second video and detector tracking remain unverified. None of
+these conditions is a passed autonomous demo. The user requested skipped checks;
+the VM must establish actual playback, provider access, speech and replay behavior.
+
 ```mermaid
 flowchart LR
   File[Configured video] --> Start[Red Start button]

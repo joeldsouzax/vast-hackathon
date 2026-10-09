@@ -950,3 +950,11 @@ adapter, which records the actual voice ID. This is a selection rule, not a gues
 voice identity. Standard ElevenLabs MP3 is decoded and converted to 48 kHz mono
 WAV before the existing duration, sample and mixer checks. No paid WAV format is
 required. Raw provider audio and synthesized assets stay in the runtime store.
+
+Workshop replay settings enable the existing automatic candidate coordinator.
+The sequence is observed opportunity → candidate → W&B visual plan → deterministic
+render → ready asset → fresh W&B director proposal → controller playback. Preparation
+has no airtime authority. Release/takeover and the replay policy remain existing
+controller operations. Studio shows waiting, preparing, ready, playing or paused
+state plus actual prepared/aired counts. End-of-file can leave no eligible live
+return; holding remains the valid outcome. No second angle is synthesized.

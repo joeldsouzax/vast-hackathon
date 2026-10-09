@@ -385,9 +385,12 @@ The archive slice connects private upload, stored-byte verification, DataEngine
 completion, summary, and YOLO sidecar display. It does not close live timing or
 tracking gates. The current-window slice also connects actual Cosmos and YOLO
 requests to the existing evidence ledger. S04 has connected VSS/Embed1 search and
-the W&B visual segmentor to the existing replay renderer. S05 has the W&B director
-transport; its crew controls remain to be connected. S06 speech and S07 scheduling
-connections follow. All real provider runs remain pending; checks were skipped.
+the W&B visual segmentor to the existing replay renderer. S05 connects the W&B
+director to existing release/takeover controls. S06 connects the W&B commentator
+and ElevenLabs speech to the mixer. S07 connects current observations, automatic
+candidate preparation, model planning, ready assets, director scheduling and
+controller playback/return. All real provider runs remain pending; checks were
+skipped. These are implementation connections, not accepted production sprints.
 Release commits and production acceptance are recorded in the sprint handoff.
 
 ## 11 Evidence and cumulative regression
@@ -448,7 +451,7 @@ record the blocker instead of inventing a pass.
 | S04 | VSS/Embed1 search and W&B visual planning connected to retained replay | Pending actual query, accepted model plan, rendered preview and playback |
 | S05 | W&B director connected to existing release/takeover controls | Pending eligible current evidence and a real accepted crew action |
 | S06 | W&B commentator and ElevenLabs speech connected to mixer; NVIDIA NIM optional | Pending actual account/model/voice use and viewer audio proof |
-| S07 | Not started | Pending |
+| S07 | Automatic preparation, ready-asset scheduling, controller playback/return and operator status connected | Pending real end-to-end VM demonstration and remaining perception/timing/tracking gates |
 
 S01 local checks: 13 focused access, configuration, provenance, and existing
 example tests pass. A local synthetic one-camera run decoded 75 video frames and

@@ -66,7 +66,8 @@ class ReplayWork:
         self.app=app;self.foundation=app.foundation;self.settings=self.foundation.settings.replay
         self.lock=threading.RLock();self.candidates={};self.query_waiters={};self.query_count=0
         self.pending={'recall':None,'automatic':None};self.planning=False
-        self.tickets={};self.output_readers={};self.aired=set();self.reason='Automatic replay preparation is disabled'
+        self.tickets={};self.output_readers={};self.aired=set()
+        self.reason='Awaiting current source evidence' if self.settings.enabled else 'Automatic replay preparation is disabled'
         self.cursor=self.foundation.cursor('replays');self.last_reconcile=0.
         self.thread=threading.Thread(target=self._run,name='replay-coordinator',daemon=True)
         with self.foundation.lock:
@@ -77,7 +78,15 @@ class ReplayWork:
 
     def status(self):
         with self.lock:
+            automatic=[c for c in self.candidates.values() if c.purpose=='automatic']
+            ready=sum(c.state=='ready' and c.deadline_utc>time.time() and c.candidate_id not in self.aired for c in automatic)
+            scheduling=('disabled' if not self.settings.enabled or not self.app.control.policy['replays_enabled'] else
+                'waiting_start' if not self.app.control.program_started else
+                'paused' if self.app.control.crew_paused else
+                'playing' if self.app.program.actual=='REPLAY' else
+                'ready' if ready else 'preparing' if self.planning or self.pending['automatic'] else 'waiting_evidence')
             return {'enabled':self.settings.enabled,'reason':self.reason,'planning':self.planning,
+                'scheduling':scheduling,'automatic_ready':ready,'automatic_prepared':len(automatic),'automatic_aired':len(self.aired),
                 'pending':{k:v for k,v in self.pending.items()},'limits':self.settings.model_dump(),
                 'candidates':[c.model_dump(mode='json') for c in self.candidates.values()][-32:]}
 
