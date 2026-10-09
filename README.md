@@ -108,8 +108,44 @@ it cannot authorize a late camera cut.
 
 The director and commentator use the same W&B role transport and existing crew
 controls. Each needs eligible current evidence. A successful archive summary alone
-does not enable live crew decisions. Speech and automatic scheduling are the next
-connection slices. These connections have not been run against the team's models.
+does not enable live crew decisions. These connections have not been run against
+the team's models.
+
+## Let the crew direct and speak
+
+Prepare the event graphics in Event details. Set the supplied event facts and
+leave unknown names and scores blank. Start video, then press the hand control
+to **Release control**. This allows fresh W&B director and commentator proposals.
+**Take control** pauses them. The director uses current mapped evidence and the
+existing typed controller actions. A single input can produce commentary and
+replays; it cannot demonstrate switching between two distinct views.
+
+Speech uses NVIDIA Magpie TTS NIM when available. Set `BREADCAST_TTS_URL` to its
+base before `/v1`, keep `BREADCAST_TTS_PROTOCOL=nvidia-nim`, and set
+`BREADCAST_TTS_API_KEY` if it needs authentication. The app reads readiness,
+model metadata, and `/v1/audio/list_voices`, then sends a multipart request to
+`/v1/audio/synthesize`. Select a returned voice in `BREADCAST_TTS_VOICE` or Event
+details. `BREADCAST_TTS_LANGUAGE` can select a returned locale explicitly; a short
+event language such as `en` is resolved only when the returned locale is unique.
+The app requests 48 kHz WAV audio. A single returned model needs no model setting.
+
+The [NVIDIA speech API](https://docs.nvidia.com/nim/speech/26.07.0/reference/api-references/tts/http-tts.html)
+supports this connection. The supplied VM configuration does not establish a
+running Magpie service. No shared GPU service is deployed or changed by Breadcast.
+The app does not assume that Canary speech-to-text can synthesize.
+
+For an existing OpenAI-compatible speech service, select
+`BREADCAST_TTS_PROTOCOL=openai` instead. That route uses `/v1/models` and
+`POST /v1/audio/speech` with `model`, `input`, `voice`, and `response_format=wav`.
+Only configure a service that implements the chosen API.
+
+The W&B commentator supplies grounded text. The speech adapter generates WAV,
+decodes it, and sends it through the existing prepared-cue path. The program mixer
+combines it with the selected source audio. Generated speech must fit eight seconds
+and its current evidence interval. The Viewer receives the mixed program audio.
+Missing speech service leaves eligible captions or silence. It does not count as
+working spoken commentary. Endpoint access, language, pronunciation and audible
+content still require the VM run.
 
 ```mermaid
 flowchart LR

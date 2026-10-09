@@ -25,12 +25,21 @@ class Registry:
         self.live=LiveGPU(self) if any(p.protocol=='workshop-v1' for p in settings.providers.values()) else None
         from live_roles import LiveRoles
         self.roles=LiveRoles(self) if self.live else None
+        from live_speech import LiveSpeech
+        self.voice=LiveSpeech(self) if self.live else None
 
     def capabilities(self):
         results = {}
         for boundary in BOUNDARIES:
             config = self.settings.providers.get(boundary)
             mode = config.adapter if config else 'disabled'
+            if mode=='live' and config.protocol=='workshop-v1' and boundary=='speech':
+                ready=self.voice.configured()
+                results[boundary]={'adapter':'live','ready':ready,'live_verified':self.voice.verified,
+                    'model_id':self.voice.model,'protocol':self.voice.protocol,'version':self.voice.version,
+                    'reason':'Speech transport configured; event voice and VM audio proof required'
+                        if ready else 'Text-to-speech endpoint is missing; captions only'}
+                continue
             if mode=='live' and config.protocol=='workshop-v1' and boundary=='llm':
                 ready=self.roles.configured()
                 results[boundary]={'adapter':'live','ready':ready,'live_verified':bool(self.roles.verified),
@@ -189,6 +198,8 @@ class Registry:
         from foundation_records import EventContext
         event=EventContext.model_validate(event_context or self.settings.event)
         if event.event_id!=self.settings.event.event_id:raise ValueError('Speech preferences belong to another event')
+        if self.voice and self.settings.providers['speech'].protocol=='workshop-v1':
+            return await self.voice.synthesize(text,storage,deadline_utc,event)
         # Fixtures return the declared phrase. Preferences do not verify a voice.
         if not isinstance(text, str) or not 0 < len(text) <= 2048: raise ValueError('Invalid speech text')
         if time.time() >= deadline_utc: raise TimeoutError('Speech deadline expired')

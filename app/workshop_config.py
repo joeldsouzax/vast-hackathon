@@ -11,7 +11,8 @@ NAMES=('INGRESS_URL','USERNAME','PASSWORD','S3_CHUNKS_BUCKET','S3_ENDPOINT',
     'YOLO_URL','COSMOS_EMBED1_URL','COSMOS_EMBED1_MODEL','GPU_BEARER_TOKEN',
     'WANDB_API_KEY','WANDB_TEAM','WANDB_PROJECT','BREADCAST_WANDB_BASE_URL',
     'BREADCAST_DIRECTOR_MODEL','BREADCAST_COMMENTATOR_MODEL','BREADCAST_SEGMENTOR_MODEL',
-    'BREADCAST_TTS_URL','BREADCAST_TTS_MODEL','BREADCAST_TTS_API_KEY','BREADCAST_TTS_VOICE')
+    'BREADCAST_TTS_URL','BREADCAST_TTS_MODEL','BREADCAST_TTS_API_KEY','BREADCAST_TTS_VOICE',
+    'BREADCAST_TTS_PROTOCOL','BREADCAST_TTS_LANGUAGE')
 
 
 def values():
@@ -40,6 +41,6 @@ def settings():
         endpoint=config.get('BREADCAST_WANDB_BASE_URL','https://api.inference.wandb.ai/v1'),secret_env='WANDB_API_KEY')
     providers['speech']=ProviderConfig(adapter='live',protocol='workshop-v1',version='unknown',
         endpoint=config.get('BREADCAST_TTS_URL'),model_id=config.get('BREADCAST_TTS_MODEL'),secret_env='BREADCAST_TTS_API_KEY')
-    return FoundationSettings(providers=providers,
+    return FoundationSettings(providers=providers,event={'event_id':'manual-event','voice_id':config.get('BREADCAST_TTS_VOICE')},
         direction={'enabled':True},replay={'enabled':True,'index_version':'breadcast-caption-index-1',
             'embedding_version':config.get('COSMOS_EMBED1_MODEL','unresolved-embedding-model')})

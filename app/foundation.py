@@ -886,7 +886,7 @@ class Foundation:
             for job in self.db.execute('SELECT * FROM jobs WHERE run=? ORDER BY updated',(self.run_id,)):
                 window=AnalysisWindow.model_validate_json(job['body'])
                 item=progress.setdefault(job['source'],{'source':window.source.model_dump(),'completed_intervals':[], 'gaps':[]})
-                if job['state']=='completed':item['completed_intervals'].append(window.native.model_dump())
+                if job['state'] in ('completed','archive_completed'):item['completed_intervals'].append(window.native.model_dump())
                 elif job['state'] in ('skipped','failed','expired'):
                     item['gaps'].append({'native':window.native.model_dump(),'state':job['state'],'reason':job['error']})
             for item in progress.values():

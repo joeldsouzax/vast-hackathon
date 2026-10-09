@@ -537,7 +537,7 @@ class App:
                 "program": self.program.status(), "delay_s": self.cfg.delay,
                 "join_url": self.join_url(), "join_remaining_s": max(0, self.join_expires - time.monotonic()),
                 "replays": replays, "jobs": jobs, "gateway_error": self.gateway_error,
-                "providers": "not connected", "scope": "single-event media experiment",
+                "providers": self.foundation.registry.capabilities(), "scope": "single-event media experiment",
                 "control": self.control.snapshot(), "foundation": self.foundation.diagnostics(),
                 "direction": self.direction.status(), "replay_work":self.replay_work.status(), "event_context":self.foundation.event_context().model_dump(mode='json')}
 

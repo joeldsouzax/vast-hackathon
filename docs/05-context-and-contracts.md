@@ -931,3 +931,13 @@ content with its source clock labels, not image bytes inside ordinary prompt tex
 Adapters bind snapshot, origin and model metadata; models return only typed intents.
 The existing director/controller, commentary preparation and replay compiler own
 all validation and airtime. Hosted model versions remain unknown unless returned.
+
+The speech transport supports NVIDIA NIM's documented multipart
+`/v1/audio/synthesize` interface with returned model metadata and voice discovery,
+or an explicitly selected OpenAI-compatible `/v1/audio/speech` interface. It binds the
+request to the reviewed event voice and exact commentator text. Decoded WAV frame
+count, sample rate, channels and duration are measured before mixer admission.
+`SpeechResult.transcript` records the requested text binding; it is not an ASR
+verification of audible words. Voice quality, pronunciation, expressive delivery
+and actual spoken contents require production review. No endpoint is assumed
+from the supplied ASR service. Missing TTS access keeps the spoken gate open.

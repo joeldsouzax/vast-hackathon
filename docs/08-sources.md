@@ -71,6 +71,12 @@ defines custom Chat Completions transport and typed model output.
 These sources establish request contracts, not access to the assigned tenant.
 The user requested skipped checks while connections are implemented.
 
+[NVIDIA's TTS HTTP API](https://docs.nvidia.com/nim/speech/26.07.0/reference/api-references/tts/http-tts.html)
+defines Magpie NIM model metadata, voice listing and multipart synthesis returning
+WAV. [NVIDIA Dynamo voice APIs](https://docs.nvidia.com/dynamo/dev/multimodal/voice-pipelines)
+document the separate OpenAI-compatible speech route. Neither establishes a
+running speech service on this team's VM.
+
 
 ## Docker packaging checks
 

@@ -46,7 +46,7 @@ the exact external prerequisite. All timestamps are UTC.
 | G04 Search | W04 | unverified | Query the team index, identify filters/version/scope, and play a result |
 | G05 Live capacity | W03 with W07 | unverified | Measure the selected path across five sources under PRD 22 targets |
 | G06 W&B roles | W05 | unverified | Discover usable models; verify structured output and segmentor images |
-| G07 Speech | W05 | blocked | No text-to-speech service or voice has been established; identify an available team service |
+| G07 Speech | W05 | blocked | NVIDIA Magpie NIM and optional OpenAI-compatible speech adapters connected; actual team endpoint and voice remain unverified |
 | G08 Hosting and phones | W06 | unverified | Verify packaging/host, resources, HTTPS, operator boundary and reachable WebRTC route |
 | G09 Tracking | W03 | unverified | Determine provider state ownership; otherwise verify the local tracker and behavior |
 
