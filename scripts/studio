@@ -51,7 +51,7 @@ case "$command" in
       -e BREADCAST_CHECK_DIFF_SHA256="$(git -C "$repo_dir" diff --binary HEAD | shasum -a 256 | cut -d ' ' -f 1)" \
       -e BREADCAST_CHECK_CONTRACT_SHA256="$(contract_inputs_sha256)" \
       -v "$output_dir:/evidence" breadcast-studio:foundation "$command" --evidence /evidence "$@" ;;
-  foundation-capabilities|foundation-query|foundation-worker)
+  stack-probe|stage-server-videos|foundation-capabilities|foundation-query|foundation-worker)
     exec "${compose[@]}" run --rm --no-deps studio "$command" "$@" ;;
   stop|down|logs|build) exec "${compose[@]}" "$command" "$@" ;;
   *) echo 'Usage: studio [serve|sample|check|one-camera-check|five-camera-check|foundation-check|direction-check|replay-check|foundation-capabilities|foundation-query|foundation-worker|stop|down|logs|build]' >&2; exit 2 ;;

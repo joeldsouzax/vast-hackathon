@@ -852,3 +852,21 @@ phone media. Browser requests also bind their response to the current source and
 operator session. Slot numbers alone do not identify a continuous camera source.
 Transient Join status-request failures do not revoke the local stream. Confirmed
 invalid/expired ownership stops sharing; the gateway still enforces expiry.
+
+### Configurable server video input
+
+Current input mode uses one registered repo/local/S3 video. `config/server-videos.json`
+selects one or two trusted server URIs. The browser cannot submit a file path.
+Original bytes are retained with SHA-256 and measured file metadata. Server video
+chunks use `provenance=server_video`; they are neither physical capture nor labeled
+fixture evidence. Recording ownership preserves the input video ID and original
+hash. Unknown sensor time stays unknown.
+
+Protected POST `/api/examples/start` and `/api/examples/stop` accept an empty
+object. They return asynchronous playback status. Start stages the configured
+bytes, obtains ordinary capacity-limited leases, starts FFmpeg, and asks the
+program controller to select the first source. Stop cancels pending startup,
+terminates publishers, and fences their leases. A human control change during
+loading prevents late startup from taking airtime. Playback runs once and drains
+the existing delayed frames before returning to holding. Opening Studio, changing
+config, or probing providers never starts playback.

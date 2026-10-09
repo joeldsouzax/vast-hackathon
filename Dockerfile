@@ -42,6 +42,7 @@ COPY tests/fixtures ./tests/fixtures
 COPY tests/fixtures/demo.mp4 ./demo.mp4
 COPY docs/examples ./docs/examples
 COPY config ./config
+COPY _sample-videos ./_sample-videos
 COPY docker/healthcheck.py ./container-healthcheck.py
 COPY --chmod=755 docker/entrypoint.sh /usr/local/bin/breadcast-studio
 # Browser tools are confined to the isolated acceptance image.

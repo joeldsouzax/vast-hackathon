@@ -22,6 +22,8 @@
 !docs/examples/*.json
 !config/
 !config/*.json
+!_sample-videos/
+!_sample-videos/*.mp4
 !tests/browser/
 !tests/browser/*.cjs
 !tests/browser/package.json

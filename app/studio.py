@@ -37,6 +37,7 @@ from foundation_records import FoundationSettings, SourceEpoch
 from direction import Direction
 from replay_work import ReplayWork
 from http_api import web_api, auth_api
+from example_playback import ExamplePlayback
 import uvicorn
 
 ROOT = Path(__file__).resolve().parent
@@ -102,6 +103,7 @@ class Config:
     operator_auth: str = "local"
     operator_token_file: Path | None = None
     operator_token: str = field(default="", init=False, repr=False)
+    server_videos_config: Path = ROOT.parent / 'config/server-videos.json'
 
     def __post_init__(self):
         self.public_url=public_origin(self.public_url)
@@ -311,6 +313,7 @@ class App:
         self.gateway_error = None
         self.recording_thread = None
         self.closed = False
+        self.examples = ExamplePlayback(self)
 
     def foundation_snapshot(self):
         # Never take the controller lock from the ledger: human writes use the reverse order.
@@ -527,7 +530,7 @@ class App:
                 replay.update(eligible=True, reason='')
             except (ValueError, KeyError) as error:
                 replay.update(eligible=False, reason=str(error))
-        return {"cameras": cameras, "occupied": len(cameras), "capacity": 5,
+        return {"cameras": cameras, "occupied": len(cameras), "capacity": 5, "examples": self.examples.status(),
                 "program": self.program.status(), "delay_s": self.cfg.delay,
                 "join_url": self.join_url(), "join_remaining_s": max(0, self.join_expires - time.monotonic()),
                 "replays": replays, "jobs": jobs, "gateway_error": self.gateway_error,
@@ -578,6 +581,9 @@ class App:
         owner={"event_id": self.foundation.settings.event.event_id, "run_id": self.control.run_id,
                 "source_id": row["path"], "epoch": max(1,row["epoch"]), "slot": row["slot"],
                 "created_utc": data["utc"], "provenance": "sample" if (self.cfg.runtime / ("sample-"+row["id"])).exists() else "camera"}
+        video=self.examples.asset_for(row['path'])
+        if video:
+            owner.update(provenance='server_video',video_id=video['id'],original_sha256=video['sha256'])
         from foundation import operation_key
         with self.foundation.transaction():
             recordings=[json.loads(r['body']) for r in self.foundation._records('recording',run=self.control.run_id)]
@@ -795,6 +801,7 @@ class App:
         if self.closed: return
         self.closed = True
         self.stop.set()
+        self.examples.close()
         if self.direction.thread.is_alive():self.direction.thread.join(timeout=3)
         if self.control.thread.is_alive():self.control.thread.join(timeout=3)
         self.render_cancel.set()
@@ -883,6 +890,12 @@ def sample(args):
 
 def main():
     import sys
+    if sys.argv[1:2] == ['stack-probe']:
+        from provider_probe import main as probe_main
+        return probe_main(sys.argv[2:])
+    if sys.argv[1:2] == ['stage-server-videos']:
+        from server_videos import main as videos_main
+        return videos_main(sys.argv[2:])
     if sys.argv[1:2] == ['one-camera-check']:
         from sprint_one_check import main as sprint_one_main
         sys.argv.pop(1)
@@ -934,6 +947,8 @@ def main():
     serve.add_argument('--public-path-prefix', default=os.environ.get('BREADCAST_PUBLIC_PATH_PREFIX', ''))
     serve.add_argument('--operator-auth', choices=('local', 'proxy', 'token'), default=os.environ.get('BREADCAST_OPERATOR_AUTH') or None)
     serve.add_argument('--operator-token-file', type=Path, default=os.environ.get('BREADCAST_OPERATOR_TOKEN_FILE') or None)
+    serve.add_argument('--server-videos-config', type=Path,
+        default=os.environ.get('BREADCAST_SERVER_VIDEOS_CONFIG') or ROOT.parent / 'config/server-videos.json')
     samples = sub.add_parser("sample", help="Publish labeled sample media; this is not a live phone test")
     samples.add_argument("--runtime", type=Path, default=runtime)
     samples.add_argument("--count", type=int, choices=range(1, 6), default=1)
@@ -983,7 +998,8 @@ def main():
                                  or []),
                  ice_servers=tuple(json.loads(args.ice_servers.read_text())) if args.ice_servers else (),
                  print_access=not args.quiet, foundation_config=args.foundation_config or None,program_proof=args.program_proof,webrtc_port=args.webrtc_port,
-                 public_path_prefix=args.public_path_prefix, operator_auth=operator_auth, operator_token_file=args.operator_token_file)
+                 public_path_prefix=args.public_path_prefix, operator_auth=operator_auth, operator_token_file=args.operator_token_file,
+                 server_videos_config=args.server_videos_config)
     app = App(cfg)
     server = uvicorn.Server(uvicorn.Config(web_api(app), host=cfg.bind, port=cfg.port, workers=1,
         reload=False, access_log=False, log_level="warning", proxy_headers=False,

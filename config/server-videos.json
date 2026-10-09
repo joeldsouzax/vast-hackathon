@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "videos": [
+    {
+      "id": "repo-video-1",
+      "name": "Video 1",
+      "uri": "file:../_sample-videos/15449351-hd_1920_1080_60fps.mp4",
+      "expected_sha256": "70ed2d738b2d72b4d3234075704c27155007acd153356e3d028ab885bfdbb55a"
+    }
+  ]
+}

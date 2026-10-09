@@ -251,3 +251,5 @@
 .operator-login{max-width:28rem;margin:3rem auto;padding:1.5rem}.operator-login input{width:100%}.operator-login button{margin-top:1rem}.operator-lock{position:fixed;right:1rem;top:5rem;z-index:20}
 
 .camera-capacity{font-size:12px;margin:4px 0 6px;color:#354c3b}.camera-state{font-size:11px;margin:0;padding:5px 7px;color:#354c3b;background:#fffdf5}
+
+.example-controls{flex-shrink:0}.studio-page .example-video-button{background:#be2e29;border:1px solid #a4211d;color:#fff;font-weight:600}.studio-page .example-video-button:hover:not(:disabled){background:#a4211d}.studio-page .example-video-button:disabled{opacity:.55;cursor:default}

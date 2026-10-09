@@ -19,6 +19,15 @@ services:
       BREADCAST_OPERATOR_AUTH: token
       BREADCAST_OPERATOR_TOKEN_FILE: /run/secrets/operator_token
       BREADCAST_RUNTIME: /var/lib/breadcast-studio
+      BREADCAST_SERVER_VIDEOS_CONFIG: /opt/breadcast/config/server-videos.json
+      BREADCAST_S3_ENDPOINT_URL: ${BREADCAST_S3_ENDPOINT_URL:-}
+      S3_ENDPOINT: ${S3_ENDPOINT:-}
+      ACCESS_KEY: ${ACCESS_KEY:-}
+      SECRET_KEY: ${SECRET_KEY:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN:-}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
       BREADCAST_ICE_HOSTS: ${BREADCAST_ICE_HOSTS:-}
       BREADCAST_BIND: ${BREADCAST_BIND:-0.0.0.0}
       BREADCAST_PORT: ${BREADCAST_PORT:-8080}
@@ -35,6 +44,7 @@ services:
     volumes:
       - studio-runtime:/var/lib/breadcast-studio
       - ./.runtime/tls:/run/breadcast/tls:ro
+      - ${BREADCAST_SERVER_VIDEOS_CONFIG_SOURCE:-./config/server-videos.json}:/opt/breadcast/config/server-videos.json:ro
     stop_grace_period: 60s
     restart: "no"
     logging:

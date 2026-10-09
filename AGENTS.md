@@ -34,6 +34,13 @@ diagram when the explanation needs one.
 
 ## Project rules
 
+- Current input priority: use the one video in `_sample-videos/` as the base for
+  stack integration. Its paths are configurable; a second VM/S3 video can follow
+  when available. Defer camera-permission work and physical-camera validation.
+  The red Start video / Stop video control belongs below the operator video.
+  Work one runnable change at a time. Push complete changes to `main` promptly.
+  Use basic required checks; the user tests the full flow on the VM.
+
 - Merge every complete runnable sprint into `main` and push `main`. The user's
   production system deploys `main` automatically. Do not leave a sprint release
   only on a separate branch. Tag the release commit and provide its production

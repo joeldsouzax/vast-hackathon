@@ -273,6 +273,9 @@ def web_api(app, *, manage_lifecycle=True):
         if path=='/internal/context':
             return send(200,app.update_event_context(data))
         if path=='/api/setup':return send(200,app.setup_event(data))
+        if path in ('/api/examples/start','/api/examples/stop'):
+            if data:raise ValueError('Video playback takes no client-supplied paths')
+            return send(202,app.examples.start() if path.endswith('/start') else app.examples.stop())
         functions={'/api/replay-calibrations':app.replay_context.calibrate,'/api/replay-evidence':app.replay_context.register_evidence,
                    '/api/replay-window':app.replay_context.window,'/api/replay-select':app.replay_context.select_fixture}
         if path in functions:return send(200,functions[path](data))
@@ -280,7 +283,8 @@ def web_api(app, *, manage_lifecycle=True):
 
     paths=('/api/leases','/api/lease/{lease_id}/release','/api/cameras/{lease_id}/remove','/api/event/end','/api/join/rotate','/api/actions',
         '/api/chat','/api/replays','/api/replay-cancel','/api/replay-validate','/api/graphics/preview','/api/program',
-        '/api/replay-calibrations','/api/replay-evidence','/api/replay-window','/api/replay-select','/internal/context','/api/setup')
+        '/api/replay-calibrations','/api/replay-evidence','/api/replay-window','/api/replay-select','/internal/context','/api/setup',
+        '/api/examples/start','/api/examples/stop')
     async def post_endpoint(request:Request):
         path=request.scope['path']
         if path.startswith('/internal/') and request.client.host not in ('127.0.0.1','::1'):raise PermissionError('Internal interface requires local access')

@@ -13,6 +13,17 @@ This is the delivery authority for [PRD 22](22-live-stack-integration-prd.md).
 [Document 05](05-context-and-contracts.md) controls contracts. [Document 24](24-provider-verification.md)
 records external gates. Sprint planning does not close any acceptance gate.
 
+## Current delivery priority
+
+S01 and S02 are pushed to main. The user has deferred further camera work.
+Continue the stack around the uploaded repository video, then add the second
+VM/S3 video when available. The input paths are configurable. The current complete
+slice is the red Start video / Stop video button and its backend playback path.
+Finish each runnable change and push promptly; run only basic required checks.
+The user tests the full flow on the VM. Do not wait for production acceptance to
+start the next change. S03–S07 keep their integration goals, using this registered
+video instead of requiring a phone. Physical-phone gates remain deferred.
+
 ## 1 Delivery rules
 
 “Production ready” means ready for the feature scope of that sprint on the tested

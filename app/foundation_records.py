@@ -141,7 +141,7 @@ class ChunkManifest(Record):
     finalized_utc: float
     ready: Literal[True] = True
     configuration_revision: Positive
-    provenance: Literal['camera', 'sample']
+    provenance: Literal['camera', 'sample', 'server_video']
 
     @model_validator(mode='after')
     def mapping_owner(self):

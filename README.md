@@ -2,27 +2,52 @@
 
 **Updated:** 2026-10-09
 
-Breadcast turns phone cameras into one live program. The current slices deliver a manual
-studio for up to five cameras: event setup, QR joining, source audio, operator
-access, continuous playback, and source health. Physical phone acceptance on the production host is
-pending. Real VAST, Cosmos, YOLO, semantic search, W&B reasoning, and generated
-speech remain unavailable until their sprint is verified.
+Breadcast turns video inputs into one program. The current priority is the
+teammate's uploaded video, followed by the VAST, Cosmos, YOLO, search, and W&B
+integration. Phone-camera validation is deferred on this VM.
 
-Phone playback stays independent of model calls. Only the program controller
-changes what viewers see. Preparing an event does not put a camera on air.
+## Play the uploaded video
+
+Open Studio and enter the operator credential. Click the red **Start video**
+button directly below the program video. It loads the bundled clip, starts its
+media stream, and selects it through the program controller. **Stop video** stops
+that source and returns its program to holding. The clip plays once; Start can
+play it again. No camera permission is required.
+
+The clip is `_sample-videos/15449351-hd_1920_1080_60fps.mp4`, imported from the
+teammate's `lukas-wip` branch. Its actual metadata is 1280×720, about 20 seconds,
+with H.264 video and AAC audio. Its filename does not define its dimensions.
+
+[config/server-videos.json](config/server-videos.json) selects the input. The
+bundled clip works by default. Your teammate can change `uri` to another `file:`
+path or `s3://bucket/key`. Relative file paths resolve from the JSON file's folder.
+If changing the input, update or remove `expected_sha256`; a mismatch rejects it.
+One or two entries are supported; use this one video until the second is available.
+
+Compose mounts that config read-only. `BREADCAST_SERVER_VIDEOS_CONFIG_SOURCE`
+selects its host path. `BREADCAST_S3_ENDPOINT_URL` or the VM's `S3_ENDPOINT` selects
+an S3 endpoint; no endpoint is hardcoded. The supplied `ACCESS_KEY`/`SECRET_KEY`
+pair or the normal AWS credential chain supplies server credentials. Keep these
+out of Git. Compose passes the documented key variables; an IAM role must be
+reachable from the container if using instance credentials. Plain local playback
+makes no S3 call.
+
+The app validates media, preserves immutable bytes and SHA-256, and records
+`server_video` provenance. It does not call this a physical camera or fixture
+analysis. Provider work remains independent from program playback. Real model
+and VAST integration remain pending their verified runtime contracts.
 
 ```mermaid
 flowchart LR
-  Setup[Prepare event] --> Join[Phone scans QR]
-  Join --> Preview[Camera preview]
-  Preview --> Start[Operator takes camera live]
-  Start --> View[Viewer video and audio]
+  File[Configured video] --> Start[Red Start button]
+  Start --> Controller[Program controller]
+  Controller --> View[Program video and audio]
+  Stop[Red Stop button] --> Hold[Holding]
 ```
 
 ## Build and start the studio
 
-Use Docker Engine with Docker Compose v2 on a host reachable by the phone and
-viewer. The host needs trusted HTTPS and reachable WebRTC TCP and UDP ports.
+Use Docker Engine with Docker Compose v2 on the VM. The host needs trusted HTTPS and reachable WebRTC TCP and UDP ports.
 A successful page load does not prove media reachability. The production host,
 HTTPS route, and phone network must be checked there.
 
@@ -111,6 +136,16 @@ records at `/var/lib/breadcast-studio`. Recordings use the existing bounded
 retention limits. Container output logs rotate at 10 MB across three files.
 Compose does not restart a stopped broadcast automatically.
 
+## Basic VM check for this video slice
+
+After deployment from `main`, open Studio. Start the video. Confirm the picture
+and source audio advance, then Stop and confirm holding. Start again. While it
+loads, press Stop and confirm no late playback starts. Missing or invalid input
+must show a clear failure without changing the current program.
+
+Small checks cover configuration, file/S3 staging, access, and cancellation. No
+full test suite or physical-camera rehearsal blocks this input slice.
+
 ## Open the app
 
 Use your configured HTTPS origin and prefix:
@@ -139,7 +174,7 @@ Select its source in **Audio → Use microphone**. Open the Viewer page on a
 separate device and enable its local playback audio. A muted browser does not
 prove a missing program microphone.
 
-## Required production check for S01
+## Deferred phone check for S01
 
 Use the exact pushed revision. Record results in a date-free report such as
 `.runtime/s01-production.md`. Include its full SHA, browser/device versions,
@@ -170,7 +205,7 @@ failures. The sprint handoff lists the checks actually run. No full-suite run is
 required merely because the code is being pushed. Production acceptance is
 pending until the checks above pass on the pushed SHA.
 
-## Required production check for S02
+## Deferred phone check for S02
 
 Test the deployed `main` SHA. S01's phone check remains required; continue with:
 

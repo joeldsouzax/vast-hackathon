@@ -209,6 +209,31 @@ function cameraCard(camera) {
   if (camera.state === 'ACTIVE' && camera.epoch != null && camera.last_frame_age_s != null && camera.last_frame_age_s <= 3) preview(image, camera);
   else clearCameraPreview(image, cameraStateLabel(camera));
 }
+let examplesBusy = false;
+function examplesState(examples) {
+  const button = document.querySelector('#example-video'), status = document.querySelector('#example-video-status');
+  const stopping = examples?.state === 'stopping', starting = examples?.state === 'starting';
+  const active = ['starting', 'playing', 'stopping'].includes(examples?.state);
+  button.textContent = active ? 'Stop video' : 'Start video';
+  button.disabled = examplesBusy || !operatorAuthorized || (!examples?.configured && !active) || stopping;
+  const reason = !examples?.configured ? 'Video is not configured.' : starting ? 'Starting video…' :
+    stopping ? 'Stopping video…' : examples.state === 'failed' ? examples.reason || 'Video could not start. Try again.' : '';
+  if (status.textContent !== reason) status.textContent = reason;
+  status.hidden = !reason;
+}
+document.querySelector('#example-video').onclick = async () => {
+  const examples = state?.examples;
+  if (examplesBusy || !operatorAuthorized || !['stopped', 'starting', 'playing', 'failed'].includes(examples?.state)) return;
+  const action = ['starting', 'playing'].includes(examples.state) ? 'stop' : 'start';
+  if (action === 'start' && !examples.configured) return;
+  examplesBusy = true; examplesState(examples);
+  try {
+    const result = await api(`/api/examples/${action}`, {});
+    if (operatorAuthorized && state && result.state) state.examples = {...state.examples, ...result};
+    examplesState(state?.examples); message(); await refresh();
+  } catch (error) {message(error.message);}
+  finally {examplesBusy = false; examplesState(state?.examples);}
+};
 async function refresh() {
   if (refreshing || ended || !operatorAuthorized) return;
   refreshing = true;
@@ -216,6 +241,7 @@ async function refresh() {
     const nextState = await api('/api/status', undefined);
     if (!operatorAuthorized) return;
     state = nextState;
+    examplesState(state.examples);
     if (connectionFailed) { message(); connectionFailed = false; }
     document.querySelector('#workspace').hidden = false;
     document.querySelector('#end').hidden = false;
@@ -478,7 +504,8 @@ let programFitPending = false;
 function fitProgram() {
   const main = document.querySelector('.main-surface');
   const gap = parseFloat(getComputedStyle(main).rowGap) || 0;
-  const reserve = document.querySelector('.camera-section').getBoundingClientRect().height + gap;
+  const reserve = document.querySelector('.camera-section').getBoundingClientRect().height +
+    document.querySelector('.example-controls').getBoundingClientRect().height + gap * 2;
   fitProgramFrame(programVideo, reserve);
 }
 function scheduleProgramFit() {
@@ -487,6 +514,7 @@ function scheduleProgramFit() {
 }
 const programSizer = new ResizeObserver(scheduleProgramFit);
 programSizer.observe(document.querySelector('.main-surface')); programSizer.observe(document.querySelector('.camera-section'));
+programSizer.observe(document.querySelector('.example-controls'));
 programVideo.addEventListener('loadedmetadata', scheduleProgramFit);
 
 document.querySelector('#takeover').onclick = () => runControl(state.control.crew_paused ? 'resume' : 'takeover');

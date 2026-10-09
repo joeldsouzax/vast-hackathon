@@ -16,6 +16,21 @@ Implement real video understanding, semantic recall, application reasoning, and 
 | External facts and decisions | [Provider verification record](24-provider-verification.md) |
 | Existing acceptance | [Build plan](07-build-and-demo.md), [foundation PRD](17-event-understanding-and-provider-adapters-prd.md), [direction PRD](19-live-direction-and-commentary-prd.md), [replay PRD](20-timely-replays-and-broadcast-validation-prd.md) |
 
+## Current input priority
+
+The user now requires integration against one repository video before adding a
+second VM/S3 video. The source is configurable. Camera-permission development
+and physical-phone acceptance are deferred and do not block this current build.
+Use a red Start video / Stop video button below the operator video. The program
+controller still owns airtime. Complete one runnable change before pushing main;
+use basic checks and let the user test the full flow on the VM.
+
+Original camera goals below remain future product goals. For this input phase,
+R02/R03/R06/R07 acceptance uses the registered server video and actual provider
+output. Its clocks describe file playback and derived media, not physical capture.
+R01 device rehearsal and G05 five-camera throughput are deferred. The second
+video remains unavailable until configured; never invent another angle.
+
 ## 1 Scope and completion
 
 The product serves one event, one program output, one operator, up to five phone cameras, and at least three viewer devices. The operator prepares the event, shares its QR code, starts the program, and releases control to the crew. The crew proposes camera, audio, graphic, framing, commentary, and replay actions. The program controller validates every action and owns airtime.
