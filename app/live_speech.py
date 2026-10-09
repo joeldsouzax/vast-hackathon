@@ -92,7 +92,7 @@ class LiveSpeech:
                     token=None
                 elif self.protocol=='nvidia-nim':
                     if self.voices is None:
-                        await request(client,'GET',url+'/v1/health/ready',token=token,deadline=deadline,boundary='speech')
+                        await request(client,'GET',url+'/v1/health/ready',token=token,deadline=deadline,boundary='speech',response_json=False)
                         metadata=await request(client,'GET',url+'/v1/metadata',token=token,deadline=deadline,boundary='speech')
                         models=[item['shortName'] for item in metadata.get('modelInfo',[])
                             if isinstance(item,dict) and isinstance(item.get('shortName'),str)]

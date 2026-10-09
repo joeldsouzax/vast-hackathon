@@ -53,12 +53,17 @@
     },
     {
       "release": "breadcast-vm-config-r01",
-      "flow": "mounted assigned config, VM Docker restart and assigned S3 TLS option"
+      "flow": "mounted assigned config, VM Docker restart and assigned S3 TLS option",
+      "commit": "b494ba0"
+    },
+    {
+      "release": "breadcast-wandb-selection-r01",
+      "flow": "documented defaults selected from actual W&B catalog, status-based NIM health"
     }
   ],
   "pending": [
     "real VAST and GPU access/output on the VM",
-    "assigned W&B role model IDs and visual/tool support",
+    "actual W&B selected-role image/tool output and latency",
     "actual ElevenLabs key/model/voice use and audible output",
     "live receipt timing and measured model latency",
     "YOLO box time mapping and tracking; crop unavailable until verified",

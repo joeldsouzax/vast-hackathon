@@ -106,9 +106,14 @@ Previously computed caption vectors are reused within this app process. VSS
 retrieval still runs for every new search. The existing five-second query budget
 also applies to async provider calls.
 
-Set `WANDB_API_KEY` and the returned model IDs in `BREADCAST_SEGMENTOR_MODEL`,
-`BREADCAST_DIRECTOR_MODEL`, and `BREADCAST_COMMENTATOR_MODEL`. Use a segmentor
-model with image input and tool output. `WANDB_TEAM` and `WANDB_PROJECT` supply
+Set `WANDB_API_KEY`. Empty role model settings now select supported IDs from
+the actual returned account catalog. Director and commentator prefer Granite
+4.2 8B, then Llama 3.1 8B, GPT OSS 20B, and Llama 3.3 70B. Segmentor prefers
+Gemma 4 26B A4B, then Qwen3.6 35B A3B, Qwen3.8 27B, and Gemma 4 31B.
+These vision models can receive its inspected frames. No default is used unless
+the catalog returns that exact ID. Actual image/tool behavior still needs VM
+proof. Set `BREADCAST_SEGMENTOR_MODEL`, `BREADCAST_DIRECTOR_MODEL`, and
+`BREADCAST_COMMENTATOR_MODEL` to override selection with returned IDs. `WANDB_TEAM` and `WANDB_PROJECT` supply
 optional usage attribution. The configurable base defaults to the documented
 `https://api.inference.wandb.ai/v1` service on CoreWeave. Do not use a text-only
 model for visual replay planning.

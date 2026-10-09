@@ -1001,3 +1001,16 @@ requests. VAST readiness requires all four access settings, rather than the mere
 presence of a configured adapter. The VM Docker helper preserves exported
 workshop variable names through its sudo path; secret values do not enter helper
 arguments or logs.
+
+W&B role defaults now intersect an ordered documented model preference with
+the actual account catalog. Explicit role IDs take precedence and must still
+be returned by that catalog. Director and commentator prefer documented text
+models; segmentor defaults only to documented vision models. An unknown single
+text model can be selected for a text role, but does not automatically become a
+vision segmentor. The catalog, selected IDs, and selection basis are protected
+operator diagnostics. Selection does not prove tool output, vision, latency,
+or successful role execution. Actual typed output validation remains mandatory.
+
+NIM readiness and liveness checks require HTTP 200. They do not require JSON
+response content. Model lists, detector health, and inference outputs still use
+their documented JSON contracts and bounded response decoding.

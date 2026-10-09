@@ -15,6 +15,13 @@ from foundation_records import (DirectorIntent, CommentatorIntent, SegmentorInte
 from live_gpu import endpoint, request
 from provider_errors import ProviderFailure
 
+# Defaults are used only when returned by the account's actual /models call.
+# Capability source: docs.coreweave.com/products/inference/serverless/models
+TEXT_MODELS=('ibm-granite/granite-4.2-8b','meta-llama/Llama-3.1-8B-Instruct',
+    'openai/gpt-oss-20b','meta-llama/Llama-3.3-70B-Instruct')
+VISION_MODELS=('google/gemma-4-26B-A4B-it','Qwen/Qwen3.6-35B-A3B',
+    'Qwen/Qwen3.8-27B','google/gemma-4-31B-it')
+
 
 class LiveRoles:
     def __init__(self,registry):
@@ -25,6 +32,7 @@ class LiveRoles:
         self.catalog=[]
         self.model_ids=None
         self.selection_failures={}
+        self.selection_sources={}
 
     def configured(self):return bool(self.config.get('WANDB_API_KEY'))
 
@@ -35,19 +43,26 @@ class LiveRoles:
         if self.model_ids is None:
             returned=await request(transport,'GET',url+'/models',token=key,deadline=deadline,boundary='llm')
             rows=returned.get('data',[]) if isinstance(returned,dict) else []
-            self.model_ids=[r['id'] for r in rows if isinstance(r,dict) and isinstance(r.get('id'),str)
-                and 0<len(r['id'])<=192 and not any(ord(c)<32 for c in r['id'])]
+            self.model_ids=list(dict.fromkeys(r['id'] for r in rows if isinstance(r,dict) and isinstance(r.get('id'),str)
+                and 0<len(r['id'])<=192 and not any(ord(c)<32 for c in r['id'])))
             self.catalog=self.model_ids[:64]
         for selected_role in ((role,) if role else ('director','commentator','segmentor')):
             selected=self.config.get('BREADCAST_'+selected_role.upper()+'_MODEL')
-            if not selected and len(self.model_ids)==1:selected=self.model_ids[0]
+            source='configured'
+            if not selected:
+                preferences=VISION_MODELS if selected_role=='segmentor' else TEXT_MODELS+VISION_MODELS
+                selected=next((model for model in preferences if model in self.model_ids),None)
+                source='catalog_default'
+                if not selected and selected_role!='segmentor' and len(self.model_ids)==1:
+                    selected=self.model_ids[0];source='single_model'
             if selected not in self.model_ids:
                 failure=ProviderFailure('configuration_missing','llm',
                     hint='Set BREADCAST_'+selected_role.upper()+'_MODEL to an available W&B model ID')
                 self.selection_failures[selected_role]=failure.public()
                 if role:raise failure
             else:
-                self.models[selected_role]=selected;self.selection_failures.pop(selected_role,None)
+                self.models[selected_role]=selected;self.selection_sources[selected_role]=source
+                self.selection_failures.pop(selected_role,None)
 
     async def llm(self,role,context,snapshot,deadline):
         if role not in ('director','commentator','segmentor'):raise ValueError('Unknown application role')

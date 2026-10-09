@@ -19,7 +19,7 @@ commentary or crew direction.
 | `crew_paused: true` after Start | `breadcast-video-startup-r01`, commit `75ec42a`, makes Start release the crew by default through the controller |
 | VAST analysis unavailable; `INGRESS_URL`, `USERNAME`, `PASSWORD`, `S3_CHUNKS_BUCKET` missing | `breadcast-vm-config-r01` mounts the assigned host config read-only; nonempty environment values override it |
 | Cosmos, YOLO, and Embed1 endpoints missing | The same mount exposes assigned GPU values; no host or token is invented |
-| W&B roles need model selection | Startup reads the actual catalog. Set the three role model IDs from that catalog when multiple models are returned; segmentor needs image and tool support |
+| W&B roles need model selection | `breadcast-wandb-selection-r01` selects documented defaults only from actual returned IDs. Explicit role IDs override them; unsupported catalogs still need explicit selection and segmentor image/tool proof |
 | 21 failed foundation jobs | Symptom of missing provider access. Fresh playback after configuration creates fresh work; do not relabel old failed jobs as successful |
 | ElevenLabs configured but no program commentary | Speech needs eligible mapped evidence and a valid W&B commentator result first. Configured TTS is not synthesized audio proof |
 | Docker permission issue | The studio helper supports password-free sudo and preserves exported workshop variable names |
@@ -68,6 +68,8 @@ Inspect protected `/api/status`, especially `providers`, `direction`,
 status now names missing settings. Metadata discovery shows connecting,
 discovered, unavailable, or needs configuration. Model IDs appear in
 `providers.llm.available_model_ids`; selected IDs appear in `providers.llm.models`.
+`providers.llm.model_selection` reports whether each ID came from explicit
+configuration, a documented catalog default, or a single-model text catalog.
 Metadata discovery is not a successful role call.
 
 Record actual Cosmos/YOLO results, measured source timing, W&B role results,

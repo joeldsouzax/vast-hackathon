@@ -93,3 +93,18 @@ The historical media validation completed. The media experiment now uses one Doc
 ## Task 3 library and implementation review
 
 Reviewed on **2026-10-07**. The [Task 3 PRD library decisions](20-timely-replays-and-broadcast-validation-prd.md#library-decisions-and-research) record the GitHub and maintainer sources, selected reuse, and alternatives considered. The review used the current dependency lock, application code, Git history, design docs, and checked-in validation records. It selects existing PyAV, Pydantic AI, FFmpeg, storage, HTTP, and browser tooling. It adds no runtime dependency or integration claim. Task 3 media, provider, and physical-device acceptance remain open.
+
+## VM startup and model selection correction
+
+Reviewed on **2026-10-09**. The teammate's
+[VM problem report](27-vm-integration-problems.md) establishes the reported
+configuration and control failures.
+[CoreWeave model listing](https://docs.coreweave.com/products/inference/serverless/api-reference/list-models)
+establishes account catalog discovery.
+[CoreWeave available models](https://docs.coreweave.com/products/inference/serverless/models)
+establishes the exact default preference IDs and their text/vision types.
+These documented candidates are selected only if the live account catalog
+returns them. Their actual image/tool output and latency remain unverified.
+[NVIDIA NIM health reference](https://docs.nvidia.com/nim/large-language-models/2.0.13/reference/api-reference.html)
+and the supplied workshop GPU health matrix define HTTP 200 as the supported
+readiness/liveness result. JSON inference contracts remain separate.

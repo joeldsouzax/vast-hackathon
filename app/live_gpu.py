@@ -37,19 +37,20 @@ def json_content(value):
     return json.loads(text,parse_constant=invalid)
 
 
-async def request(client,method,url,*,token=None,payload=None,deadline=None,boundary='jobs'):
+async def request(client,method,url,*,token=None,payload=None,deadline=None,boundary='jobs',response_json=True):
     budget=min(45,deadline-time.time()) if deadline else 15
     if budget<=0:raise ProviderFailure('deadline_missed',boundary)
     headers={'Authorization':'Bearer '+token} if token else {}
     try:
         async with asyncio.timeout(budget):
             async with client.stream(method,url,headers=headers,json=payload,timeout=budget) as response:
-                if not 200<=response.status_code<300:
+                if not 200<=response.status_code<300 or not response_json and response.status_code!=200:
                     raise http_failure(response.status_code,boundary,request_id=response.headers.get('x-request-id'),read=method=='GET')
                 raw=bytearray()
                 async for part in response.aiter_bytes():
                     raw.extend(part)
                     if len(raw)>2*1024*1024:raise ProviderFailure('invalid_response',boundary,hint='Response exceeds 2 MiB')
+                if not response_json:return None
                 return json_content(raw.decode())
     except ProviderFailure:raise
     except TimeoutError:raise ProviderFailure('deadline_missed',boundary) from None
@@ -120,7 +121,7 @@ class LiveGPU:
             url=endpoint(self.config.get('COSMOS3_REASON_URL'),boundary='cosmos')
             model,version=await discover(client,url,self.config.get('COSMOS3_REASON_MODEL'),token,deadline)
             for route in ('/v1/health/ready','/v1/health/live'):
-                await request(client,'GET',url+route,token=token,deadline=deadline,boundary='cosmos')
+                await request(client,'GET',url+route,token=token,deadline=deadline,boundary='cosmos',response_json=False)
             self.models['cosmos']={'model_id':model,'version':version}
         elif boundary=='search':
             await self.embedding_model(client,deadline)
@@ -138,7 +139,7 @@ class LiveGPU:
             if 'cosmos' not in self.models:
                 model,version=await discover(client,cosmos,self.config.get('COSMOS3_REASON_MODEL'),token,deadline)
                 for route in ('/v1/health/ready','/v1/health/live'):
-                    await request(client,'GET',cosmos+route,token=token,deadline=deadline,boundary='cosmos')
+                    await request(client,'GET',cosmos+route,token=token,deadline=deadline,boundary='cosmos',response_json=False)
                 self.models['cosmos']={'model_id':model,'version':version}
             health=await request(client,'GET',yolo+'/healthz',token=token,deadline=deadline,boundary='yolo')
             if not isinstance(health,dict) or health.get('ok') is not True or health.get('model_loaded') is not True:

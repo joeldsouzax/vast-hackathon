@@ -494,3 +494,16 @@ the diagnostic branch's source selection over the user's selected base video.
 Checks remain skipped. After recreation, confirm configured provider boundaries
 and Automatic mode. W&B role IDs and fresh mapped evidence remain prerequisites
 for spoken commentary.
+
+### W&B role selection correction
+
+Candidate `breadcast-wandb-selection-r01` removes the VM report's empty-role-ID
+block when the account returns a supported documented model. Explicit configured
+IDs remain authoritative. Vision segmentor defaults stay separate from text role
+defaults. Diagnostics show actual IDs and selection basis. NIM health probes now
+use their HTTP-status contract without requiring JSON bodies. No provider call
+or check ran from this session. Production role output and speech remain pending.
+
+After recreation, leave role IDs empty for default selection. Confirm actual
+selected IDs under protected provider status. Start video and observe actual
+role calls; catalog discovery alone does not establish working commentary.

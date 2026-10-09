@@ -78,8 +78,10 @@ class Registry:
                 results[boundary]={'adapter':'live','ready':ready,'live_verified':bool(self.roles.verified),
                     'roles_verified':sorted(self.roles.verified),'models':dict(self.roles.models),
                     'available_model_ids':list(self.roles.catalog),
+                    'model_selection':dict(self.roles.selection_sources),
                     'selection_failures':dict(self.roles.selection_failures),'connection':self.connection(boundary),
-                    'reason':'W&B roles configured; runtime model selection required' if ready else 'W&B API key is missing'}
+                    'reason':('W&B models selected; actual role output remains unverified' if len(self.roles.models)==3 else
+                        'W&B key configured; model discovery or selection required') if ready else 'W&B API key is missing'}
                 continue
             if mode=='live' and config.protocol=='workshop-v1' and boundary in ('storage','jobs','cosmos','yolo','search'):
                 ready=self.live.configured(boundary)
