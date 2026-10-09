@@ -60,7 +60,7 @@ flowchart LR
 | S07 | Automatic replay and complete event | W00, W05, W06, W07 |
 
 Investigate later gates while the user tests, but keep unaccepted dependent work
-off the delivery branch. Verify external request contracts before implementing
+off `main`. Verify external request contracts before implementing
 transports. Missing production proof stays pending until the user's production
 session; a candidate is not an accepted slice.
 
@@ -73,7 +73,7 @@ it supersedes earlier blanket full-suite requirements.
 
 Use isolated worktrees rooted outside another agent's worktree. Base each worker
 on the coordinator's published seam commit. Branch names use
-`work/sNN/wNN-<topic>`; the cumulative release branch is `delivery/live-stack`. Do not change branches in another agent's checkout.
+`work/sNN/wNN-<topic>`; the production release branch is `main`. Do not change branches in another agent's checkout.
 Do not force-push, reset, or overwrite user changes. Each worktree uses its own
 runtime directory and test port allocation; only one owner runs a shared venue
 camera session at a time.

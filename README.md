@@ -26,6 +26,9 @@ viewer. The host needs trusted HTTPS and reachable WebRTC TCP and UDP ports.
 A successful page load does not prove media reachability. The production host,
 HTTPS route, and phone network must be checked there.
 
+Production deploys `main`. Each runnable slice is merged and pushed to `main`;
+the release tag records its exact revision.
+
 Run these commands from the checked-out release root. Record the release tag and
 SHA supplied with the sprint handoff. Keep local changes separate from that test.
 
@@ -186,7 +189,7 @@ the commands above. Record the resulting SHA and repeat the affected production
 checks. No accepted prior release is assumed until a handoff identifies one.
 
 ```sh
-git fetch origin delivery/live-stack --tags
+git fetch origin main --tags
 ```
 
 ## Implementation plan

@@ -300,15 +300,16 @@ tested stop/start procedure and cannot silently revive an old run.
 
 ## 10 Commit, push, and user handoff
 
-Use one cumulative branch, `delivery/live-stack`, on `origin`. Create it from the
-current reviewed baseline at implementation start. Record that base SHA. Do not
-reset an existing branch with this name; inspect and continue its valid history.
-Do not merge to `main` as an incidental release step.
+Release every runnable slice through `main` on `origin`. The user's production
+system deploys `main` automatically. Complete required targeted checks before
+pushing `main`; the user then runs the production checklist on the deployed SHA.
+Use a local integration branch/worktree when useful, then merge the complete
+checked candidate into `main`. Do not leave runnable releases only on a delivery
+branch. Fetch before merging and preserve unrelated changes. Never force-push.
 
 Workers use `work/sNN/wNN-<topic>` branches in isolated worktrees. Integrate only
 the current sprint's working feature and required tests. Development commits may
-exist inside worker branches; the delivery branch advances only to an integrated,
-tested candidate. Each candidate gets a release commit and immutable tag such as
+exist inside worker branches; `main` advances only to an integrated, checked candidate. Each candidate gets a release commit and immutable tag such as
 `breadcast-s01-r01`. A correction uses `breadcast-s01-r02`. No date in release IDs
 or test-run names. Keep Git's actual commit timestamps unchanged.
 
@@ -322,7 +323,8 @@ For every candidate the coordinator must:
 3. Commit the integrated slice. Check the build and required targeted tests on that exact commit in a clean
    worktree with an empty runtime directory. Failures require a corrective commit and rerun of
    affected checks. Record tests not run and their exact reason.
-4. Tag and push the tested commit and tag to `origin`. Check the remote refs match
+4. Merge the complete tested slice into `main`. Tag that exact commit, then push
+   `main` and the tag to `origin`. This push triggers the user's production deployment. Check the remote refs match
    the local SHA. A local commit or failed push does not complete delivery. Never
    force-push or overwrite tags. The user has requested these per-slice pushes;
    do not ask for the same permission again. Repository restrictions still apply.
@@ -335,14 +337,14 @@ For every candidate the coordinator must:
 User checkout for the first candidate, after its verified push:
 
 ```sh
-git fetch origin delivery/live-stack --tags
+git fetch origin main --tags
 git switch --detach breadcast-s01-r01
 ```
 
 These commands are a future release template. No sprint tag exists merely because
 it appears here. Never discard local changes to make checkout succeed. The release
 handoff supplies the actual tag plus the tested start/check/stop commands. Detached
-checkout fixes the test to one revision while the delivery branch can advance.
+checkout fixes the test to one revision while `main` can advance.
 
 Required handoff, filled with actual values:
 
@@ -350,7 +352,7 @@ Required handoff, filled with actual values:
 Sprint and release tag:
 Status: test candidate | accepted slice
 GitHub commit link and full SHA:
-Remote branch/tag verification:
+Remote main/tag verification and deployed production SHA:
 Feature now available:
 Prerequisites and non-secret configuration:
 Exact checkout, build, start, check, logs, and stop commands:
@@ -381,8 +383,9 @@ test fixtures and the commands to reproduce results belong in tracked test paths
 Production testing is the acceptance step for every pushed candidate. A push is
 not a test pass. Record the deployed SHA before testing; if production runs a
 different SHA, the result cannot accept that candidate. The user runs the supplied
-production checklist. Do not infer deployment or public-broadcast permission from
-permission to push code.
+production checklist. The user explicitly states that pushing `main` deploys production. This
+authorizes that deployment path. It does not start an on-air program; that still
+requires human Start.
 
 Use this minimum test policy for every change:
 
@@ -417,7 +420,7 @@ record the blocker instead of inventing a pass.
 
 | Sprint | Implementation | Production acceptance |
 |---|---|---|
-| S01 | Code written; release checks and push in progress | Pending Docker image build, trusted HTTPS/WebRTC, one physical phone for five minutes, host restart and root/prefix checks |
+| S01 | Code written; final main release checks and push in progress | Pending Docker image build, trusted HTTPS/WebRTC, one physical phone for five minutes, host restart and root/prefix checks |
 | S02 | Not started | Pending |
 | S03 | Not started | Pending |
 | S04 | Not started | Pending |
