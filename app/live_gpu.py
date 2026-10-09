@@ -105,7 +105,8 @@ class LiveGPU:
         self.vector_lock=threading.Lock()
 
     def configured(self,name):
-        if name in ('storage','jobs'):return True
+        if name in ('storage','jobs'):
+            return all(self.config.get(key) for key in ('INGRESS_URL','USERNAME','PASSWORD','S3_CHUNKS_BUCKET'))
         key={'cosmos':'COSMOS3_REASON_URL','yolo':'YOLO_URL','search':'COSMOS_EMBED1_URL'}.get(name)
         return bool(key and self.config.get(key))
 

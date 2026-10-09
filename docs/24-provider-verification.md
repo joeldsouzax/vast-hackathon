@@ -213,3 +213,13 @@ record its sanitized counterpart separately.
 A fixture cannot verify a live gate. When a verified service becomes unhealthy,
 retain its historical proof and set operational status unavailable. A changed
 provider/configuration identity needs a fresh relevant probe before live use.
+
+## Teammate VM problem report
+
+The diagnostic branch `lukas-wip` at `efe3248` reports actual S3 video playback,
+advancing program frames, and configured ElevenLabs transport. It also reports
+paused crew, missing VAST/GPU variables inside Compose, unselected W&B role
+models, and failed foundation jobs. This is teammate evidence; this session did
+not access that VM. It does not prove synthesized speech or successful inference.
+The [VM problems record](27-vm-integration-problems.md) links each observation to
+its correction or next proof. Existing gates remain open until those proofs arrive.

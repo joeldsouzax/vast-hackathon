@@ -98,8 +98,20 @@ def load_config(path):
     return Settings(tuple(videos),maximum,reserve)
 
 
-def s3_client(values=None):
+def s3_verify(values=None):
     values=values or {}
+    value=os.environ.get('BREADCAST_S3_VERIFY') or values.get('BREADCAST_S3_VERIFY') or 'true'
+    if not isinstance(value,str):raise StageError('BREADCAST_S3_VERIFY must be true or false')
+    value=value.strip().lower()
+    if value in ('1','true','yes','on'):return True
+    if value in ('0','false','no','off'):return False
+    raise StageError('BREADCAST_S3_VERIFY must be true or false')
+
+
+def s3_client(values=None):
+    if values is None:
+        from workshop_config import values as workshop_values
+        values=workshop_values()
     def setting(key):return os.environ.get(key) or values.get(key)
     endpoint=setting('BREADCAST_S3_ENDPOINT_URL') or setting('S3_ENDPOINT') or None
     if endpoint is not None:
@@ -113,8 +125,9 @@ def s3_client(values=None):
         credentials={}
         if setting('ACCESS_KEY') and setting('SECRET_KEY'):
             credentials={'aws_access_key_id':setting('ACCESS_KEY'),'aws_secret_access_key':setting('SECRET_KEY')}
-        return boto3.client('s3',endpoint_url=endpoint,config=Config(connect_timeout=5,read_timeout=5,
+        return boto3.client('s3',endpoint_url=endpoint,verify=s3_verify(values),config=Config(connect_timeout=5,read_timeout=60,
             retries={'total_max_attempts':1}),**credentials)
+    except StageError:raise
     except Exception:raise StageError('S3 client could not start; check the VM credential chain and endpoint configuration') from None
 
 

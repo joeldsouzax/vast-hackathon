@@ -30,7 +30,10 @@ an S3 endpoint; no endpoint is hardcoded. The supplied `ACCESS_KEY`/`SECRET_KEY`
 pair or the normal AWS credential chain supplies server credentials. Keep these
 out of Git. Compose passes the documented key variables; an IAM role must be
 reachable from the container if using instance credentials. Plain local playback
-makes no S3 call.
+makes no S3 call. S3 staging also reads the mounted assigned config.
+`BREADCAST_S3_VERIFY=true` is the default. The VM problem branch uses `false`
+for its assigned self-signed S3 endpoint; set that only if needed there. S3 read
+timeout is 60 seconds, with one request attempt.
 
 The app validates media, preserves immutable bytes and SHA-256, and records
 `server_video` provenance. It does not call this a physical camera or fixture
@@ -41,8 +44,13 @@ analysis. Provider work remains independent from program playback.
 Put the assigned VM values for `INGRESS_URL`, `USERNAME`, `PASSWORD`,
 `S3_CHUNKS_BUCKET`, `S3_ENDPOINT`, `ACCESS_KEY`, and `SECRET_KEY` in the ignored
 `.env`. Use the team's actual values. Compose forwards them to the app. For a
-non-container launch, the app can also read one `/config/*.config` file without
-executing it. `BREADCAST_TEAM_CONFIG_DIR` changes that folder.
+container launch, Compose mounts the VM config folder read-only at
+`/run/breadcast/team-config`. `BREADCAST_TEAM_CONFIG_SOURCE` selects the host
+folder and defaults to `/config`. The app reads its single `*.config` file
+without executing it. Nonempty environment values override that file. A
+non-container launch reads `/config` by default; `BREADCAST_TEAM_CONFIG_DIR`
+changes that folder. On hosts without an assigned file, select an empty host
+folder and supply values through `.env`.
 
 Start the video with the same red button. Once playback starts, background work
 checks the VAST tenant, uploads the clip privately with the API's default analysis
@@ -424,6 +432,13 @@ three independent RTSP software readers. Reports are under
 viewer mute, or the full 15-minute production session. These remain manual checks.
 
 ## Logs, stop, restart, and rollback
+
+`./scripts/studio restart` rebuilds and recreates Studio after code, `.env`, or
+Compose changes. It retains the runtime volume. The helper supports the VM
+Docker permission setup and preserves exported workshop variable names when
+using password-free sudo. `.env` remains the location for values absent from
+the assigned file. See the [VM problems record](docs/27-vm-integration-problems.md)
+for the reported cause chain and current fixes.
 
 ```sh
 docker compose logs -f --tail=100 studio

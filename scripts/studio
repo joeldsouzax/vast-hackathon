@@ -4,7 +4,44 @@ script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repo_dir="$(cd -- "$script_dir/.." && pwd)"
 command="${1:-serve}"
 if [[ $# -gt 0 ]]; then shift; fi
-compose=(docker compose --project-directory "$repo_dir" -f "$repo_dir/compose.yaml")
+
+# Prefer Compose v2 plugin; fall back to docker-compose v1. Use sudo when the
+# current user cannot talk to the Docker daemon (common on this workshop VM).
+if docker info >/dev/null 2>&1; then
+  docker_bin=(docker)
+elif sudo -n docker info >/dev/null 2>&1; then
+  # Compose interpolation must keep the workshop variables exported on the VM.
+  # Preserve names only; do not copy secret values into shell arguments or logs.
+  preserved_names=()
+  while IFS= read -r env_name; do
+    case "$env_name" in
+      BREADCAST_*|COSMOS*|YOLO_URL|GPU_BEARER_TOKEN|WANDB_*|ELEVENLABS_*|INGRESS_URL|USERNAME|PASSWORD|S3_*|ACCESS_KEY|SECRET_KEY|AWS_*)
+        preserved_names+=("$env_name") ;;
+    esac
+  done < <(compgen -e)
+  if [[ ${#preserved_names[@]} -gt 0 ]]; then
+    preserve_list="$(IFS=,; echo "${preserved_names[*]}")"
+    docker_bin=(sudo -n "--preserve-env=$preserve_list" docker)
+  else
+    docker_bin=(sudo -n docker)
+  fi
+else
+  echo 'Docker is not reachable. Use a Docker-enabled account or sudo ./scripts/studio.' >&2
+  exit 1
+fi
+if "${docker_bin[@]}" compose version >/dev/null 2>&1; then
+  compose=("${docker_bin[@]}" compose --project-directory "$repo_dir" -f "$repo_dir/compose.yaml")
+elif command -v docker-compose >/dev/null 2>&1; then
+  if [[ "${docker_bin[0]}" == sudo ]]; then
+    compose=("${docker_bin[@]:0:${#docker_bin[@]}-1}" docker-compose --project-directory "$repo_dir" -f "$repo_dir/compose.yaml")
+  else
+    compose=(docker-compose --project-directory "$repo_dir" -f "$repo_dir/compose.yaml")
+  fi
+else
+  echo 'Neither "docker compose" nor "docker-compose" is available.' >&2
+  exit 1
+fi
+
 contract_inputs_sha256() {
   # Hash the packaged contract definitions and authoritative examples, in order.
   # The checker recomputes this manifest inside the image before accepting it.
@@ -18,8 +55,15 @@ contract_inputs_sha256() {
     done
   ) | shasum -a 256 | cut -d ' ' -f 1
 }
+
 case "$command" in
   serve) exec "${compose[@]}" up --build "$@" studio ;;
+  restart)
+    # Rebuild the studio image and recreate the running container detached.
+    # Use after code, Compose, or .env changes. Keeps the named runtime volume.
+    "${compose[@]}" up -d --build --force-recreate "$@" studio
+    "${compose[@]}" ps studio
+    ;;
   sample) exec "${compose[@]}" exec studio breadcast-studio sample "$@" ;;
   check) exec "${compose[@]}" run --build --rm --no-deps studio check "$@" ;;
   one-camera-check)
@@ -37,15 +81,19 @@ case "$command" in
   foundation-check|direction-check|replay-check)
     output_dir="$repo_dir/.runtime/${command}s"
     mkdir -p "$output_dir"
-    docker build --target foundation-check -t breadcast-studio:foundation "$repo_dir"
+    "${docker_bin[@]}" build --target foundation-check -t breadcast-studio:foundation "$repo_dir"
     # Chromium needs a private interface to gather WebRTC candidates. An internal
     # Docker network supplies that interface without an external route.
     validation_network="breadcast-foundation-$$-$RANDOM"
-    docker network create --internal --label breadcast.purpose=foundation-validation "$validation_network" >/dev/null
+    "${docker_bin[@]}" network create --internal --label breadcast.purpose=foundation-validation "$validation_network" >/dev/null
     validation_container="breadcast-check-$$-$RANDOM"
-    trap 'docker rm -f "$validation_container" >/dev/null 2>&1 || true; docker network rm "$validation_network" >/dev/null 2>&1 || true' EXIT
+    cleanup() {
+      "${docker_bin[@]}" rm -f "$validation_container" >/dev/null 2>&1 || true
+      "${docker_bin[@]}" network rm "$validation_network" >/dev/null 2>&1 || true
+    }
+    trap cleanup EXIT
     # Give Chromium private shared-memory space for multiple live-video tabs.
-    docker run --rm --name "$validation_container" --shm-size=512m --no-healthcheck --network "$validation_network" --user "$(id -u):$(id -g)" \
+    "${docker_bin[@]}" run --rm --name "$validation_container" --shm-size=512m --no-healthcheck --network "$validation_network" --user "$(id -u):$(id -g)" \
       -e BREADCAST_RUNTIME=/tmp/breadcast-foundation \
       -e BREADCAST_CHECK_COMMIT="$(git -C "$repo_dir" rev-parse HEAD)" \
       -e BREADCAST_CHECK_DIFF_SHA256="$(git -C "$repo_dir" diff --binary HEAD | shasum -a 256 | cut -d ' ' -f 1)" \
@@ -54,5 +102,5 @@ case "$command" in
   stack-probe|stage-server-videos|foundation-capabilities|foundation-query|foundation-worker)
     exec "${compose[@]}" run --rm --no-deps studio "$command" "$@" ;;
   stop|down|logs|build) exec "${compose[@]}" "$command" "$@" ;;
-  *) echo 'Usage: studio [serve|sample|check|one-camera-check|five-camera-check|foundation-check|direction-check|replay-check|foundation-capabilities|foundation-query|foundation-worker|stop|down|logs|build]' >&2; exit 2 ;;
+  *) echo 'Usage: studio [serve|restart|sample|check|one-camera-check|five-camera-check|foundation-check|direction-check|replay-check|stage-server-videos|foundation-capabilities|foundation-query|foundation-worker|stop|down|logs|build]' >&2; exit 2 ;;
 esac

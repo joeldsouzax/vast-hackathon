@@ -83,9 +83,13 @@ class Registry:
                 continue
             if mode=='live' and config.protocol=='workshop-v1' and boundary in ('storage','jobs','cosmos','yolo','search'):
                 ready=self.live.configured(boundary)
+                required=(('INGRESS_URL','USERNAME','PASSWORD','S3_CHUNKS_BUCKET') if boundary in ('storage','jobs') else
+                    ({'cosmos':'COSMOS3_REASON_URL','yolo':'YOLO_URL','search':'COSMOS_EMBED1_URL'}[boundary],))
+                missing=[name for name in required if not self.live.config.get(name)]
                 results[boundary]={'adapter':'live','ready':ready,'live_verified':boundary in self.live.verified,
+                    'missing_settings':missing,
                     'connection':self.connection(boundary) if boundary in ('cosmos','yolo','search') else None,
-                    'reason':'Runtime provider calls configured; VM proof pending' if ready else 'Workshop endpoint is missing'}
+                    'reason':'Runtime provider calls configured; VM proof pending' if ready else 'Missing workshop settings: '+', '.join(missing)}
                 continue
             if mode == 'fixture':
                 ready = boundary in ('storage', 'jobs', 'search', 'llm') or bool(self.labels.get(boundary))

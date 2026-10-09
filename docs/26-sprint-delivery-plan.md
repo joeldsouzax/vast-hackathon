@@ -478,3 +478,19 @@ On the VM, recreate the service, prepare the event, and press Start video. Confi
 Automatic mode without pressing Release control. Press Take control while playing
 and confirm Human control. Confirm missing provider configuration remains visible.
 Actual commentary still requires mapped evidence and accessible role models.
+
+### VM configuration correction
+
+Candidate `breadcast-vm-config-r01` brings the assigned VM config into Compose
+read-only. Nonempty environment values retain precedence. S3 staging now uses
+that config too. The studio helper supports VM Docker permissions and a restart
+that rebuilds the image. The assigned self-signed S3 route can explicitly disable
+certificate verification; it stays enabled by default. Provider status names
+missing settings and does not claim VAST readiness without its required access.
+
+The [VM problems record](27-vm-integration-problems.md) preserves the teammate's
+observations and separates code corrections from production proof. Do not merge
+the diagnostic branch's source selection over the user's selected base video.
+Checks remain skipped. After recreation, confirm configured provider boundaries
+and Automatic mode. W&B role IDs and fresh mapped evidence remain prerequisites
+for spoken commentary.

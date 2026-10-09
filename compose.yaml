@@ -21,6 +21,8 @@ services:
       BREADCAST_RUNTIME: /var/lib/breadcast-studio
       BREADCAST_SERVER_VIDEOS_CONFIG: /opt/breadcast/config/server-videos.json
       BREADCAST_S3_ENDPOINT_URL: ${BREADCAST_S3_ENDPOINT_URL:-}
+      BREADCAST_S3_VERIFY: ${BREADCAST_S3_VERIFY:-true}
+      BREADCAST_TEAM_CONFIG_DIR: /run/breadcast/team-config
       INGRESS_URL: ${INGRESS_URL:-}
       USERNAME: ${USERNAME:-}
       PASSWORD: ${PASSWORD:-}
@@ -73,6 +75,7 @@ services:
       - operator_token
     volumes:
       - studio-runtime:/var/lib/breadcast-studio
+      - ${BREADCAST_TEAM_CONFIG_SOURCE:-/config}:/run/breadcast/team-config:ro
       - ./.runtime/tls:/run/breadcast/tls:ro
       - ${BREADCAST_SERVER_VIDEOS_CONFIG_SOURCE:-./config/server-videos.json}:/opt/breadcast/config/server-videos.json:ro
     stop_grace_period: 60s

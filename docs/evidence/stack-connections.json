@@ -48,7 +48,12 @@
     },
     {
       "release": "breadcast-video-startup-r01",
-      "flow": "automatic Start bundle and provider metadata discovery"
+      "flow": "automatic Start bundle and provider metadata discovery",
+      "commit": "75ec42a"
+    },
+    {
+      "release": "breadcast-vm-config-r01",
+      "flow": "mounted assigned config, VM Docker restart and assigned S3 TLS option"
     }
   ],
   "pending": [
@@ -60,5 +65,21 @@
     "automatic replay preparation, scheduling, playback and return demonstration",
     "Docker build and deployed media behavior",
     "second server video when available"
-  ]
+  ],
+  "vm_report": {
+    "branch": "lukas-wip",
+    "commit": "efe3248",
+    "source": "PROBLEM.dco",
+    "reported_working": [
+      "S3 playback",
+      "advancing program frames",
+      "ElevenLabs transport configured"
+    ],
+    "reported_blocked": [
+      "crew paused after Start",
+      "VAST/GPU settings missing in container",
+      "W&B role model selection"
+    ],
+    "fix_verification": "pending"
+  }
 }

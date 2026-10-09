@@ -991,3 +991,13 @@ Provider metadata discovery uses the existing shared worker pool. It has a
 five-second budget per configured connection and does not mark inference as
 verified. Metadata failures do not stop continuous media. Actual role calls keep
 their original evidence deadlines and do not receive a new deadline from warming.
+
+Compose reads the team's assigned `*.config` through a read-only host mount.
+The file parser never executes shell text. Nonempty process environment values
+override assigned values. S3 playback and VSS original-byte verification use the
+same assigned S3 configuration. The optional S3 certificate setting applies only
+to boto3 S3 calls; it does not disable HTTPS verification for model or speech
+requests. VAST readiness requires all four access settings, rather than the mere
+presence of a configured adapter. The VM Docker helper preserves exported
+workshop variable names through its sudo path; secret values do not enter helper
+arguments or logs.

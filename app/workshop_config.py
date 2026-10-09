@@ -6,7 +6,8 @@ from foundation_records import FoundationSettings, ProviderConfig
 from provider_probe import assigned_values, ProbeFailure
 
 
-NAMES=('INGRESS_URL','USERNAME','PASSWORD','S3_CHUNKS_BUCKET','S3_ENDPOINT',
+NAMES=('INGRESS_URL','USERNAME','PASSWORD','S3_CHUNKS_BUCKET','S3_SEGMENTS_BUCKET','S3_ENDPOINT',
+    'BREADCAST_S3_ENDPOINT_URL','BREADCAST_S3_VERIFY',
     'ACCESS_KEY','SECRET_KEY','COSMOS3_REASON_URL','COSMOS3_REASON_MODEL',
     'YOLO_URL','COSMOS_EMBED1_URL','COSMOS_EMBED1_MODEL','GPU_BEARER_TOKEN',
     'WANDB_API_KEY','WANDB_TEAM','WANDB_PROJECT','BREADCAST_WANDB_BASE_URL',
@@ -27,7 +28,7 @@ def values():
 def settings():
     config=values()
     enabled=os.environ.get('BREADCAST_STACK_ENABLED','auto')
-    if enabled=='0' or enabled=='auto' and not any(config.get(k) for k in ('COSMOS3_REASON_URL','YOLO_URL','WANDB_API_KEY','ELEVENLABS_API_KEY')):
+    if enabled=='0' or enabled=='auto' and not any(config.get(k) for k in ('INGRESS_URL','COSMOS3_REASON_URL','YOLO_URL','WANDB_API_KEY','ELEVENLABS_API_KEY')):
         return FoundationSettings()
     providers={name:ProviderConfig(adapter='live',version='unknown',protocol='workshop-v1',
         endpoint=config.get(endpoint),model_id=config.get(model) if model else None)
