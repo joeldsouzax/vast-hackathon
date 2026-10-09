@@ -1,0 +1,82 @@
+# Problem: video plays, commentary does not
+
+**Observed:** 2026-10-09 on the VM Compose studio (`breadcast-studio`).
+Configured server video is the NYC bike GoPro chunk from VAST S3
+(`s3://team-36-vss-chunks/team-36/20261008_073129_GOPR0130_chunk_0018.mp4`).
+Operator Start video shows the picture. There is no spoken commentary or
+crew direction.
+
+Compose container logs are almost empty (startup lines and S3 TLS warnings).
+The useful evidence is `GET /api/status` with the operator token.
+
+## What works
+
+- S3 staging and red Start / Stop video playback
+- ElevenLabs key present in Compose; speech provider reports
+  `protocol=elevenlabs` and `ready=true`
+- Program encoder writes frames; clip ends in holding
+
+## What fails / stays inactive
+
+| Surface | Last-run status |
+|---|---|
+| Direction roles (`director`, `commentator`, `speech`) | All `Inactive` |
+| Direction reason | `Awaiting fresh mapped evidence` |
+| Crew control | `crew_paused: true` (Take control still active) |
+| Program commentary | `null` |
+| VAST video analysis | `unavailable` — container missing `INGRESS_URL`, `USERNAME`, `PASSWORD`, `S3_CHUNKS_BUCKET` |
+| YOLO / Cosmos / search | `Workshop endpoint is missing` |
+| W&B LLM | Roles configured; `runtime model selection required` (no role model IDs) |
+| Foundation jobs | `failed: 21` |
+
+## Cause chain
+
+```text
+S3 video --> Start video --> picture OK
+               |
+               v
+      mapped evidence?  NO (VAST/GPU not passed into the container)
+               |
+               v
+      Release control?  NO (crew still paused)
+               |
+               v
+      commentator text + ElevenLabs TTS  never run
+```
+
+ElevenLabs alone does not produce commentary. The commentator needs eligible
+mapped evidence, crew proposals enabled (**Release control**), a selected W&B
+commentator model, then TTS.
+
+README already states that an archive summary alone does not enable live crew
+decisions, and that current clocks/tracker state do not yet provide live
+direction or synchronized commentary until perception and model wiring are
+verified.
+
+## Immediate operator steps (insufficient alone)
+
+1. Prepare the event in Event details.
+2. Start video.
+3. Press the hand control → **Release control**.
+
+## Required wiring to unblock evidence and models
+
+Pass into Compose `.env` (gitignored) and run `./scripts/studio restart`:
+
+- VAST: `INGRESS_URL`, `USERNAME`, `PASSWORD`, `S3_CHUNKS_BUCKET` (and related
+  S3 vars already used for server-video staging)
+- GPU: `COSMOS3_REASON_URL`, `YOLO_URL`, `COSMOS_EMBED1_URL` (and auth if needed)
+- W&B role models: `BREADCAST_COMMENTATOR_MODEL`, `BREADCAST_DIRECTOR_MODEL`
+  (plus `BREADCAST_SEGMENTOR_MODEL` for replays)
+- Optional: `ELEVENLABS_VOICE_ID` / event voice in Event details
+
+## How to re-check
+
+```sh
+./scripts/studio logs --tail=100
+# With operator token:
+curl -sk -H "Authorization: Bearer $TOKEN" https://127.0.0.1:8080/api/status
+```
+
+Inspect `providers`, `direction`, `video_analysis`, `control.crew_paused`, and
+`program.commentary`.
