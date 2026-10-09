@@ -21,12 +21,19 @@ class Registry:
     def __init__(self, settings):
         self.settings = settings
         self.labels = json.loads(Path(settings.fixture_file).read_text()) if settings.fixture_file else {}
+        from live_gpu import LiveGPU
+        self.live=LiveGPU(self) if any(p.protocol=='workshop-v1' for p in settings.providers.values()) else None
 
     def capabilities(self):
         results = {}
         for boundary in BOUNDARIES:
             config = self.settings.providers.get(boundary)
             mode = config.adapter if config else 'disabled'
+            if mode=='live' and config.protocol=='workshop-v1' and boundary in ('storage','jobs','cosmos','yolo','search'):
+                ready=self.live.configured(boundary)
+                results[boundary]={'adapter':'live','ready':ready,'live_verified':boundary in self.live.verified,
+                    'reason':'Runtime provider calls configured; VM proof pending' if ready else 'Workshop endpoint is missing'}
+                continue
             if mode == 'fixture':
                 ready = boundary in ('storage', 'jobs', 'search', 'llm') or bool(self.labels.get(boundary))
                 results[boundary] = {'adapter': mode, 'ready': ready, 'live_verified': False,
@@ -46,11 +53,13 @@ class Registry:
         state = self.capabilities()[name]
         if not state['ready']:
             raise CapabilityError(name+': '+state['reason'])
-        return self.settings.providers[name]
+        return self.live.provider(name) if self.live and self.settings.providers[name].protocol=='workshop-v1' else self.settings.providers[name]
 
     async def analyze(self, window, manifests):
         """Labels bind to declared sample intervals, never to arbitrary camera footage."""
         self.require('yolo'); self.require('cosmos')
+        if self.live and self.settings.providers['cosmos'].protocol=='workshop-v1':
+            return await self.live.analyze(window,manifests)
         if any(m.provenance != 'sample' for m in manifests):
             raise CapabilityError('Fixtures require explicitly labeled sample input')
         if 'media_hashes' in self.labels and any(m.media.sha256 not in self.labels['media_hashes'] for m in manifests):

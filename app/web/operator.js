@@ -347,7 +347,7 @@ async function refresh() {
       row.append(label, list, reason, preview, play);
       replayCards.set(replay.id, row); document.querySelector('#replays').append(row);
     }
-    document.querySelector('#diagnostics').textContent = JSON.stringify({program: p, cameras: state.cameras, gateway_error: state.gateway_error, providers: state.providers, video_analysis:state.video_analysis, direction:state.direction}, null, 2);
+    document.querySelector('#diagnostics').textContent = JSON.stringify({program: p, cameras: state.cameras, gateway_error: state.gateway_error, providers: state.providers, foundation:state.foundation, video_analysis:state.video_analysis, direction:state.direction}, null, 2);
   } catch (error) {
     if (error.status === 403 && operatorAuthMode === 'token') return;
     connectionFailed = true; message('Cannot reach the studio. Retrying…');

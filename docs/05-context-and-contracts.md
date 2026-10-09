@@ -893,3 +893,21 @@ metadata and detection payloads with their hashes. A sidecar's presence does not
 prove tracking or live timing. Saved ready output is reused only after tenant
 configuration and original bytes are checked. Stop video leaves archive work
 running; app shutdown cancels it. No archive result can invoke the controller.
+
+### Workshop runtime adapters
+
+The default runtime can derive live connection settings from the assigned VM
+variables. Explicit foundation JSON remains authoritative when supplied.
+`workshop-v1` selects documented transports; it does not claim verified access.
+Runtime discovery checks the selected model ID before model requests. Missing
+returned model versions use the explicit `unknown` value. Provider gates remain
+open until actual version and behavior evidence exists.
+
+Finalized recordings now issue current-window work for configured live adapters.
+The existing recording/decoder match supplies native frame receipt mapping.
+Analysis proxies concatenate only the issued source interval, without audio,
+at 320×180 and five frames per second. Cosmos describes proxy-relative seconds;
+the adapter converts these to issued native ticks and preserves the snapshot.
+YOLO receives the same bytes. Its raw counts are not normalized boxes or tracks.
+Only actual model output receives `origin=provider`. No archive result acquires a
+new live deadline from this transport connection.

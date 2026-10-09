@@ -302,7 +302,7 @@ class App:
         self.program = Program(cfg, self.get_source, self.log)
         self.control = Coordinator(self)
         self.foundation = Foundation(cfg.runtime, self.control.run_id,
-            FoundationSettings.load(cfg.foundation_config) if cfg.foundation_config else FoundationSettings(),
+            FoundationSettings.load(cfg.foundation_config) if cfg.foundation_config else __import__('workshop_config').settings(),
             snapshot=self.foundation_snapshot)
         self.direction = Direction(self)
         self.replay_work = ReplayWork(self)
@@ -618,7 +618,7 @@ class App:
         while not self.stop.wait(.25):
             try:
                 root = self.cfg.runtime / "recordings"
-                enabled = bool(self.cfg.foundation_config)
+                enabled = self.foundation.registry.capabilities()['storage']['ready']
                 pending = sorted(root.rglob("*.complete"))
                 for notification in pending[:self.foundation.settings.limits.pending_chunks]:
                     if self.stop.is_set():return
@@ -656,7 +656,7 @@ class App:
                                 receipt_uncertainty_ms=measured['uncertainty_ms'] if measured else 0.0,
                                 geometry=__import__('foundation_records').Geometry.model_validate(measured['geometry']) if measured else None)
                             if self.stop.is_set():return
-                            if source.run_id == self.control.run_id and self.foundation.settings.providers.get("jobs") and self.foundation.settings.providers["jobs"].adapter == "fixture":
+                            if source.run_id == self.control.run_id and self.foundation.registry.capabilities()['jobs']['ready']:
                                 self.foundation.enqueue(self.foundation.window(manifest))
                             path.unlink(missing_ok=True); owner_path.unlink(missing_ok=True); notification.unlink(missing_ok=True)
                         elif time.time()-path.stat().st_mtime > 300:

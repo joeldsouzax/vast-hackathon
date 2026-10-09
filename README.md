@@ -62,6 +62,20 @@ state do not yet provide live direction or synchronized commentary. Missing YOLO
 sidecars are shown explicitly. Provider access, model identities, and output
 quality still need the real VM run. No local fixture is reported as provider output.
 
+Set the assigned `COSMOS3_REASON_URL`, `YOLO_URL`, `COSMOS_EMBED1_URL`, and any
+required `GPU_BEARER_TOKEN` in `.env` for current-window perception. Model IDs can
+be left empty when the endpoint serves one model; multiple models require an
+explicit returned ID. The app discovers the model and uses actual recorded
+windows for Cosmos and YOLO. Results enter the existing evidence ledger as
+provider observations. Recording-to-decoder matching supplies live timing when
+it can be measured. Unknown timing retains archive behavior. Detector box clocks
+and tracking are still unverified, so no detector crop is authorized yet.
+
+`BREADCAST_STACK_ENABLED=auto` enables these connections when workshop GPU or
+LLM configuration is present. `0` disables them. An explicit foundation JSON
+still takes precedence. Model versions that are not returned remain `unknown`;
+that label is not a version-verification pass.
+
 ```mermaid
 flowchart LR
   Video[Registered video] --> Playback[Program playback]

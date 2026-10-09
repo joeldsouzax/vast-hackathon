@@ -383,7 +383,8 @@ Implementation follows this plan. S01 is **implemented as candidate `breadcast-s
 S03 is **in progress: tenant probe and registered-video VAST archive slice implemented**.
 The archive slice connects private upload, stored-byte verification, DataEngine
 completion, summary, and YOLO sidecar display. It does not close live timing or
-tracking gates. S04–S07 are **not started**.
+tracking gates. The current-window slice also connects actual Cosmos and YOLO
+requests to the existing evidence ledger. S04–S07 are **not started**.
 Release commits and production acceptance are recorded in the sprint handoff.
 
 ## 11 Evidence and cumulative regression

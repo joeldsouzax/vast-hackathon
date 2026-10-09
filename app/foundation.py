@@ -42,6 +42,7 @@ class Foundation:
         root = Path(settings.storage_directory)
         self.storage = FileStorage(root if root.is_absolute() else self.runtime/root)
         self.registry = Registry(settings)
+        self.registry.storage=self.storage
         self.lock = threading.RLock()
         self.readonly=readonly
         self.db = sqlite3.connect(f"file:{self.runtime/'foundation.sqlite'}?mode=ro" if readonly else self.runtime/'foundation.sqlite',
@@ -838,7 +839,8 @@ class Foundation:
                     with self.transaction():self.db.execute('UPDATE jobs SET attempts=? WHERE key=?',(count,window.job_key))
                 results=asyncio.run(bounded_call(lambda:analyze_artifacts(window,manifests,self.settings,self.storage,self.registry),window.deadline_utc,self.settings.limits,attempted))
                 self.stage_times.append({'trace_id':window.trace_id,'stage':'inference','seconds':time.time()-began})
-                self.ingest(window,results,trusted_origin='fixture')
+                origin='fixture' if self.registry.require('cosmos').adapter=='fixture' else 'provider'
+                self.ingest(window,results,trusted_origin=origin)
                 self.stage_times.append({'trace_id':window.trace_id,'stage':'context-available','seconds':time.time()-began})
             except Exception as error:
                 reason=type(error).__name__ # Provider exception text can contain signed URLs or credentials.
@@ -887,6 +889,7 @@ class Foundation:
             current_sources={s.slot:s.model_dump() for s in self.reviewed_snapshot().sources}
             return {'event_id':self.settings.event.event_id,'run_id':self.run_id,'context_revision':self.context_revision,
                 'capabilities':self.registry.capabilities(),'jobs':counts,'active_jobs':len(self.active_sources),
+                'perception':self.registry.live.last_yolo if self.registry.live else None,
                 'storage_bytes':sum(json.loads(r['body'])['media']['size'] for r in rows if r['available']),
                 'unavailable_chunks':sum(not r['available'] for r in rows),'pins':self.db.execute('SELECT count(*) FROM pins').fetchone()[0],
                 'gaps':[json.loads(r['body']) for r in self._records('gap')[-32:]],'last_failure':self.last_failure,
