@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0",
+  "kind": "starter_templates",
+  "fixture": true,
+  "canvas": {
+    "width": 1920,
+    "height": 1080
+  },
+  "font": "Arial, sans-serif",
+  "note": "Fictional sample bindings. Render an event-specific package and compute hashes before runtime use.",
+  "assets": [
+    {
+      "asset_id": "opening",
+      "path": "opening.svg",
+      "transparent": false,
+      "text_element_ids": [
+        "headline",
+        "subtitle",
+        "footer"
+      ]
+    },
+    {
+      "asset_id": "holding",
+      "path": "holding.svg",
+      "transparent": false,
+      "text_element_ids": [
+        "headline",
+        "subtitle",
+        "footer"
+      ]
+    },
+    {
+      "asset_id": "closing",
+      "path": "closing.svg",
+      "transparent": false,
+      "text_element_ids": [
+        "headline",
+        "subtitle",
+        "footer"
+      ]
+    },
+    {
+      "asset_id": "scorebug",
+      "path": "scorebug.svg",
+      "transparent": true,
+      "text_element_ids": [
+        "home_name",
+        "home_score",
+        "away_name",
+        "away_score",
+        "clock",
+        "period"
+      ]
+    },
+    {
+      "asset_id": "lower-third",
+      "path": "lower-third.svg",
+      "transparent": true,
+      "text_element_ids": [
+        "name",
+        "subtitle"
+      ]
+    },
+    {
+      "asset_id": "replay",
+      "path": "replay.svg",
+      "transparent": true,
+      "text_element_ids": [
+        "speed"
+      ]
+    }
+  ]
+}

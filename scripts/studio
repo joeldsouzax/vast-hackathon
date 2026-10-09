@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+repo_dir="$(cd -- "$script_dir/.." && pwd)"
+command="${1:-serve}"
+if [[ $# -gt 0 ]]; then shift; fi
+compose=(docker compose --project-directory "$repo_dir" -f "$repo_dir/compose.yaml")
+case "$command" in
+  serve) exec "${compose[@]}" up --build "$@" studio ;;
+  sample) exec "${compose[@]}" exec studio breadcast-studio sample "$@" ;;
+  check) exec "${compose[@]}" run --build --rm --no-deps studio check "$@" ;;
+  foundation-check|direction-check|replay-check)
+    output_dir="$repo_dir/.runtime/${command}s"
+    mkdir -p "$output_dir"
+    docker build --target foundation-check -t breadcast-studio:foundation "$repo_dir"
+    # Chromium needs a private interface to gather WebRTC candidates. An internal
+    # Docker network supplies that interface without an external route.
+    validation_network="breadcast-foundation-$$-$RANDOM"
+    docker network create --internal --label breadcast.purpose=foundation-validation "$validation_network" >/dev/null
+    validation_container="breadcast-check-$$-$RANDOM"
+    trap 'docker rm -f "$validation_container" >/dev/null 2>&1 || true; docker network rm "$validation_network" >/dev/null 2>&1 || true' EXIT
+    # Give Chromium private shared-memory space for multiple live-video tabs.
+    docker run --rm --name "$validation_container" --shm-size=512m --no-healthcheck --network "$validation_network" --user "$(id -u):$(id -g)" \
+      -e BREADCAST_RUNTIME=/tmp/breadcast-foundation \
+      -e BREADCAST_CHECK_COMMIT="$(git -C "$repo_dir" rev-parse HEAD)" \
+      -e BREADCAST_CHECK_DIFF_SHA256="$(git -C "$repo_dir" diff --binary HEAD | shasum -a 256 | cut -d ' ' -f 1)" \
+      -e BREADCAST_CHECK_HANDOFF_SHA256="$(shasum -a 256 "$repo_dir/docs/21-timely-replays.md" | cut -d ' ' -f 1)" \
+      -v "$output_dir:/evidence" breadcast-studio:foundation "$command" --evidence /evidence "$@" ;;
+  foundation-capabilities|foundation-query|foundation-worker)
+    exec "${compose[@]}" run --rm --no-deps studio "$command" "$@" ;;
+  stop|down|logs|build) exec "${compose[@]}" "$command" "$@" ;;
+  *) echo 'Usage: studio [serve|sample|check|foundation-check|direction-check|replay-check|foundation-capabilities|foundation-query|foundation-worker|stop|down|logs|build]' >&2; exit 2 ;;
+esac

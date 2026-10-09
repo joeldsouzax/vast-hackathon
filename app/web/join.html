@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Breadcast · Join</title><link rel="icon" href="/brand/breadcast-mark.svg"><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/studio.css"><link rel="stylesheet" href="/public.css"></head>
+<body class="studio-page public-page join-page"><div class="public-scene" aria-hidden="true"><span class="scene-orbit"></span><span class="scene-glow"></span></div><header class="studio-header" data-page="join"></header>
+<main class="join-shell page-reveal"><div class="join-emblem" data-icon="camera" aria-hidden="true"></div><h1>Share your view.</h1><p class="join-description">Join as a camera. Choose when to share.</p>
+<section class="join-flow" data-state="idle" aria-label="Camera sharing"><div class="join-progress" aria-label="Join steps"><span class="step-preview"><b>1</b>Preview</span><i aria-hidden="true"></i><span class="step-share"><b>2</b>Share</span><i aria-hidden="true"></i><span class="step-live"><b>3</b>Live</span></div>
+<label class="microphone-option"><span class="microphone-label"><span data-icon="mic"></span>Share microphone</span><input type="checkbox" id="microphone"></label>
+<button id="join" class="primary"><span data-icon="camera"></span>Join camera</button>
+<div id="preview-container" class="local-preview" hidden><video id="preview" aria-label="Your camera preview" autoplay muted playsinline></video><span class="preview-caption">Your preview</span></div>
+<div id="share-actions" class="share-actions" hidden><button id="start" class="primary" disabled><span data-icon="send"></span>Start sharing</button><button id="stop" type="button" aria-label="Stop sharing" title="Stop sharing" disabled><span data-icon="square"></span></button></div>
+<div class="camera-status-line"><span data-icon="info"></span><p id="status" class="camera-status" role="status">Camera sharing is off.</p></div><p id="message" class="error" role="status" hidden></p></section>
+<p class="join-footnote"><span data-icon="info"></span>Keep this page open while sharing.</p></main>
+<script src="/vendor/publisher.js"></script><script src="/common.js"></script><script src="/join.js"></script></body></html>

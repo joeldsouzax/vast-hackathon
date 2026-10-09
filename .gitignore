@@ -1,0 +1,23 @@
+# Generated recordings, replays, logs, and validation reports
+/.runtime/
+
+# Local settings and development environments
+.env
+.env.*
+!.env.example
+/.direnv/
+/.venv/
+/venv/
+
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Installed browser-test dependencies
+node_modules/
+
+# macOS metadata
+.DS_Store

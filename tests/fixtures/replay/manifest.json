@@ -1,0 +1,19 @@
+{
+  "origin": "generated labeled test media",
+  "generator": "tests/media/archive_fixture.py",
+  "source_frames": "tests/media/replay_fixture.py:staged_image",
+  "native_time_base": "1/15360",
+  "file_pts": "reset per chunk; nonzero/VFR variants use declared generator arguments",
+  "labels_sha256": "c393883e111998c489284f974179a14f653cdbf9947fc3d0d408501a7fba8506",
+  "input_files": "Exact hashes, chunk manifests and source/scene references are saved in each generated archive/fixture.json. Labels are allowed only for these admitted hashes.",
+  "prerecorded_speech": [
+    {
+      "path": "tests/fixtures/direction/replay.wav",
+      "sha256": "58243cbbb10d44510dfb0c4d558d623f7065a0c0e3c62593a9031332c7f9af07"
+    },
+    {
+      "path": "tests/fixtures/foundation/speech.wav",
+      "sha256": "42ce770414fc2b85f519b65dcc5306fb5a241cefb45cf73c8245871935234603"
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "version": "fixture-1",
+  "media": "tests/fixtures/demo.mp4",
+  "ranking": "simulated",
+  "cosmos": [
+    {
+      "start_s": 0.0,
+      "end_s": 6.0,
+      "action": "action-one",
+      "description": "Labeled developing action one; simulated observation, not recognition",
+      "kind": "observed",
+      "uncertainty": 0.25
+    },
+    {
+      "start_s": 6.0,
+      "end_s": 12.0,
+      "action": "action-two",
+      "description": "Labeled adjacent action two; simulated inference",
+      "kind": "inferred",
+      "uncertainty": 0.75
+    }
+  ],
+  "yolo": [
+    {
+      "label": "fixture-subject",
+      "box": [
+        0.2,
+        0.2,
+        0.8,
+        0.8
+      ],
+      "confidence": 0.5
+    }
+  ],
+  "speech": {
+    "file": "/opt/breadcast/tests/fixtures/foundation/speech.wav",
+    "text": "This is a prerecorded Breadcast fixture. The live broadcast remains under human control.",
+    "origin": "fixture",
+    "variants": [
+      {
+        "mode": "replay",
+        "file": "/opt/breadcast/tests/fixtures/direction/replay.wav",
+        "text": "Here is the earlier moment again. This is a prerecorded replay fixture."
+      },
+      {
+        "mode": "interruption",
+        "file": "/opt/breadcast/tests/fixtures/direction/correction.wav",
+        "text": "This cue is a prerecorded interruption test. The picture can change while this sentence is playing."
+      }
+    ]
+  },
+  "faults": [
+    {
+      "slot": 5,
+      "start_s": 24.0,
+      "end_s": 30.0,
+      "delay_s": 9.0
+    }
+  ]
+}

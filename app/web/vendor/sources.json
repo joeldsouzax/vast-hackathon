@@ -1,0 +1,14 @@
+{
+  "publisher.js": {
+    "url": "https://raw.githubusercontent.com/bluenviron/mediamtx/v1.20.1/internal/servers/webrtc/publisher.js",
+    "sha256": "ed94a74e13b11398309ef51590495f3d2b9d4fde159f251fbd77d06c9ff335d0"
+  },
+  "reader.js": {
+    "url": "https://raw.githubusercontent.com/bluenviron/mediamtx/v1.20.1/internal/servers/webrtc/reader.js",
+    "sha256": "a802f229b803c33713d4c69c4cc0d480108a5bf384947aeee4aaf04268bf85c1"
+  },
+  "LICENSE": {
+    "url": "https://raw.githubusercontent.com/bluenviron/mediamtx/v1.20.1/LICENSE",
+    "sha256": "ecae73b0a23185a35a1222edc0aae5245bb9739420bad0125b0c42e935301a80"
+  }
+}

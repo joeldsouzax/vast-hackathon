@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+<title>Breadcast waiting screen</title>
+<style>@font-face{font-family:Outfit;src:url('../fonts/outfit.ttf')}@font-face{font-family:DMSans;src:url('../fonts/dmsans.ttf')}text{font-family:DMSans,sans-serif}.wordmark{font-family:Outfit,sans-serif;font-weight:750}</style>
+<rect width="640" height="360" fill="#F6F1E7"/>
+<circle cx="-10" cy="-5" r="133" fill="#EEE6D7"/><circle cx="653" cy="364" r="143" fill="#EEE6D7"/>
+<g fill="none" stroke="#C7CABB" stroke-width="2"><path d="m65 247 15 4m-1 13 5-9m471-179 13 5m-4 10 7-9"/><path d="M74 78h12m-6-6v12m458 200h12m-6-6v12"/></g>
+<image href="breadcast-mark.svg" x="262" y="51" width="116" height="116"/>
+<text x="320" y="207" text-anchor="middle" class="wordmark" fill="#292D25" font-size="49" letter-spacing="-2">breadcast<tspan fill="#C77730">.</tspan></text>
+<text x="320" y="249" text-anchor="middle" fill="#45583F" font-size="17" font-weight="600">Good things are about to go live.</text>
+<text x="320" y="276" text-anchor="middle" fill="#7B7D70" font-size="12">Your broadcast will appear here.</text>
+</svg>

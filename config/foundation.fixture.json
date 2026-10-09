@@ -1,0 +1,107 @@
+{
+  "configuration_revision": 1,
+  "event": {
+    "event_id": "foundation-fixture",
+    "title": null,
+    "profile": "community"
+  },
+  "storage_directory": "foundation-media",
+  "fixture_file": "/opt/breadcast/tests/fixtures/foundation/labels.json",
+  "providers": {
+    "storage": {
+      "adapter": "fixture",
+      "endpoint": null,
+      "secret_env": null,
+      "model_id": null,
+      "version": "fixture-1",
+      "protocol": null,
+      "formats": [],
+      "capabilities": [],
+      "storage_location": null,
+      "trigger_filter": null,
+      "worker_resources": {}
+    },
+    "jobs": {
+      "adapter": "fixture",
+      "endpoint": null,
+      "secret_env": null,
+      "model_id": null,
+      "version": "fixture-1",
+      "protocol": null,
+      "formats": [],
+      "capabilities": [],
+      "storage_location": null,
+      "trigger_filter": null,
+      "worker_resources": {}
+    },
+    "yolo": {
+      "adapter": "fixture",
+      "endpoint": null,
+      "secret_env": null,
+      "model_id": null,
+      "version": "fixture-1",
+      "protocol": null,
+      "formats": [],
+      "capabilities": [],
+      "storage_location": null,
+      "trigger_filter": null,
+      "worker_resources": {}
+    },
+    "cosmos": {
+      "adapter": "fixture",
+      "endpoint": null,
+      "secret_env": null,
+      "model_id": null,
+      "version": "fixture-1",
+      "protocol": null,
+      "formats": [],
+      "capabilities": [],
+      "storage_location": null,
+      "trigger_filter": null,
+      "worker_resources": {}
+    },
+    "search": {
+      "adapter": "fixture",
+      "endpoint": null,
+      "secret_env": null,
+      "model_id": null,
+      "version": "fixture-1",
+      "protocol": null,
+      "formats": [],
+      "capabilities": [],
+      "storage_location": null,
+      "trigger_filter": null,
+      "worker_resources": {}
+    },
+    "llm": {
+      "adapter": "fixture",
+      "endpoint": null,
+      "secret_env": null,
+      "model_id": null,
+      "version": "fixture-1",
+      "protocol": null,
+      "formats": [],
+      "capabilities": [],
+      "storage_location": null,
+      "trigger_filter": null,
+      "worker_resources": {}
+    },
+    "speech": {
+      "adapter": "fixture",
+      "endpoint": null,
+      "secret_env": null,
+      "model_id": null,
+      "version": "fixture-1",
+      "protocol": null,
+      "formats": [],
+      "capabilities": [],
+      "storage_location": null,
+      "trigger_filter": null,
+      "worker_resources": {}
+    }
+  },
+  "limits": {},
+  "direction": {
+    "enabled": false
+  }
+}

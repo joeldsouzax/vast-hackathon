@@ -1,0 +1,2 @@
+# Preserve upstream license bytes and their recorded SHA-256 values.
+app/web/fonts/*-OFL.txt -text

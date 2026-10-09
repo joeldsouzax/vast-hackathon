@@ -1,0 +1,110 @@
+{
+  "configuration_revision": 1,
+  "event": {
+    "event_id": "event-to-configure",
+    "title": null,
+    "profile": "community"
+  },
+  "storage_directory": "foundation-media",
+  "fixture_file": null,
+  "providers": {
+    "storage": {
+      "adapter": "live",
+      "endpoint": null,
+      "secret_env": null,
+      "model_id": null,
+      "version": null,
+      "protocol": null,
+      "formats": [],
+      "capabilities": [],
+      "storage_location": null,
+      "trigger_filter": null,
+      "worker_resources": {}
+    },
+    "jobs": {
+      "adapter": "live",
+      "endpoint": null,
+      "secret_env": null,
+      "model_id": null,
+      "version": null,
+      "protocol": null,
+      "formats": [],
+      "capabilities": [],
+      "storage_location": null,
+      "trigger_filter": null,
+      "worker_resources": {}
+    },
+    "yolo": {
+      "adapter": "live",
+      "endpoint": null,
+      "secret_env": null,
+      "model_id": null,
+      "version": null,
+      "protocol": null,
+      "formats": [],
+      "capabilities": [],
+      "storage_location": null,
+      "trigger_filter": null,
+      "worker_resources": {}
+    },
+    "cosmos": {
+      "adapter": "live",
+      "endpoint": null,
+      "secret_env": null,
+      "model_id": null,
+      "version": null,
+      "protocol": null,
+      "formats": [],
+      "capabilities": [],
+      "storage_location": null,
+      "trigger_filter": null,
+      "worker_resources": {}
+    },
+    "search": {
+      "adapter": "live",
+      "endpoint": null,
+      "secret_env": null,
+      "model_id": null,
+      "version": null,
+      "protocol": null,
+      "formats": [],
+      "capabilities": [],
+      "storage_location": null,
+      "trigger_filter": null,
+      "worker_resources": {}
+    },
+    "llm": {
+      "adapter": "live",
+      "endpoint": null,
+      "secret_env": null,
+      "model_id": null,
+      "version": null,
+      "protocol": null,
+      "formats": [],
+      "capabilities": [],
+      "storage_location": null,
+      "trigger_filter": null,
+      "worker_resources": {}
+    },
+    "speech": {
+      "adapter": "live",
+      "endpoint": null,
+      "secret_env": null,
+      "model_id": null,
+      "version": null,
+      "protocol": null,
+      "formats": [],
+      "capabilities": [],
+      "storage_location": null,
+      "trigger_filter": null,
+      "worker_resources": {}
+    }
+  },
+  "limits": {},
+  "direction": {
+    "enabled": true
+  },
+  "replay": {
+    "enabled": false
+  }
+}
