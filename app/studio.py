@@ -38,6 +38,7 @@ from direction import Direction
 from replay_work import ReplayWork
 from http_api import web_api, auth_api
 from example_playback import ExamplePlayback
+from video_analysis import VideoAnalysis
 import uvicorn
 
 ROOT = Path(__file__).resolve().parent
@@ -314,6 +315,7 @@ class App:
         self.recording_thread = None
         self.closed = False
         self.examples = ExamplePlayback(self)
+        self.video_analysis = VideoAnalysis(self)
 
     def foundation_snapshot(self):
         # Never take the controller lock from the ledger: human writes use the reverse order.
@@ -531,6 +533,7 @@ class App:
             except (ValueError, KeyError) as error:
                 replay.update(eligible=False, reason=str(error))
         return {"cameras": cameras, "occupied": len(cameras), "capacity": 5, "examples": self.examples.status(),
+                "video_analysis":self.video_analysis.status(),
                 "program": self.program.status(), "delay_s": self.cfg.delay,
                 "join_url": self.join_url(), "join_remaining_s": max(0, self.join_expires - time.monotonic()),
                 "replays": replays, "jobs": jobs, "gateway_error": self.gateway_error,
@@ -802,6 +805,7 @@ class App:
         self.closed = True
         self.stop.set()
         self.examples.close()
+        self.video_analysis.close()
         if self.direction.thread.is_alive():self.direction.thread.join(timeout=3)
         if self.control.thread.is_alive():self.control.thread.join(timeout=3)
         self.render_cancel.set()

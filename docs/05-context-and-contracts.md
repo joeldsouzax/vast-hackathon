@@ -870,3 +870,26 @@ terminates publishers, and fences their leases. A human control change during
 loading prevents late startup from taking airtime. Playback runs once and drains
 the existing delayed frames before returning to holding. Opening Studio, changing
 config, or probing providers never starts playback.
+
+### Registered-video archive processing
+
+Starting registered-video playback queues VSS archive processing independently.
+The logical binding key uses tenant endpoint, username, chunks bucket, and original
+SHA-256. `video_analysis` records in the existing coordinator ledger retain the
+upload receipt, original-byte check, configuration fingerprint, returned version,
+indexed parent, summary, detection sidecars, and request durations. Credentials
+and tokens are not retained. Archive results are bound to the registered file;
+they are not camera-window observations or fresh live evidence.
+
+Persist `submitting` before the non-idempotent upload. An interrupted/ambiguous
+submission stays blocked from duplicate upload. Known receipts resume reads on
+later Start. Explore is the supplied fully-indexed parent surface; re-ingest job
+counters are not required on its cards. Polling is bounded to five minutes and
+at most 1,000 parents per lookup. Unknown clocks, model versions, and tracker
+state stay unknown. Provider failure does not change the program.
+
+Studio receives only summary/status/counts. The ledger retains bounded segment
+metadata and detection payloads with their hashes. A sidecar's presence does not
+prove tracking or live timing. Saved ready output is reused only after tenant
+configuration and original bytes are checked. Stop video leaves archive work
+running; app shutdown cancels it. No archive result can invoke the controller.

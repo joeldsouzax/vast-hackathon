@@ -124,6 +124,8 @@ class ExamplePlayback:
                 self._action('audio', {'slot': leases[0]['slot'],
                     'muted': not videos[0]['metadata'].get('audio_present', False)})
                 self.state = 'playing'
+            for video in videos:
+                self.app.video_analysis.submit(video)
             # Play once. Preserve the final delayed frames before returning to
             # holding. Another Start creates fresh source identities.
             while not cancel.wait(.2) and not self.app.stop.is_set():

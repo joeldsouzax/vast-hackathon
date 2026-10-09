@@ -66,7 +66,7 @@ def bounded_time(seconds):
             signal.setitimer(signal.ITIMER_REAL, max(0.000001, remaining - (time.monotonic() - began)), interval)
 
 
-def assigned_config(directory):
+def assigned_values(directory):
     try:
         files = sorted(Path(directory).glob('*.config'))
     except OSError:
@@ -96,6 +96,11 @@ def assigned_config(directory):
             values[key] = value
     except (OSError, UnicodeError, ValueError):
         raise ProbeFailure('assigned_config_unreadable_or_invalid', blocked=True) from None
+    return values
+
+
+def assigned_config(directory):
+    values = assigned_values(directory)
     if any(not values.get(key) for key in ('INGRESS_URL', 'USERNAME', 'PASSWORD')):
         raise ProbeFailure('assigned_config_missing_required_fields', blocked=True)
     endpoint = values['INGRESS_URL'].rstrip('/')

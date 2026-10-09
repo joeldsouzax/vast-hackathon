@@ -39,13 +39,15 @@ diagram when the explanation needs one.
   when available. Defer camera-permission work and physical-camera validation.
   The red Start video / Stop video control belongs below the operator video.
   Work one runnable change at a time. Push complete changes to `main` promptly.
-  Use basic required checks; the user tests the full flow on the VM.
+  Current user override: connect the full S01–S07 stack first and skip checks.
+  The user tests the full flow on the VM. Do not label skipped checks as passed.
+  Preserve the existing controller contracts; defer additional failsafe work.
 
 - Merge every complete runnable sprint into `main` and push `main`. The user's
   production system deploys `main` automatically. Do not leave a sprint release
   only on a separate branch. Tag the release commit and provide its production
-  test steps. Write and run only tests required for changed behavior and critical
-  failures. The user tests releases manually in production. Continue to the next
+  test steps. The current user override skips checks during stack connection.
+  The user tests releases manually in production. Continue to the next
   sprint after each push while these checks are pending. Stop only work that
   depends on missing access or an unresolved failed contract. Never report
   pending production checks as passed.

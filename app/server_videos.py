@@ -98,8 +98,10 @@ def load_config(path):
     return Settings(tuple(videos),maximum,reserve)
 
 
-def s3_client():
-    endpoint=os.environ.get('BREADCAST_S3_ENDPOINT_URL') or os.environ.get('S3_ENDPOINT') or None
+def s3_client(values=None):
+    values=values or {}
+    def setting(key):return os.environ.get(key) or values.get(key)
+    endpoint=setting('BREADCAST_S3_ENDPOINT_URL') or setting('S3_ENDPOINT') or None
     if endpoint is not None:
         try:
             parsed=urlsplit(endpoint)
@@ -109,8 +111,8 @@ def s3_client():
         import boto3
         from botocore.config import Config
         credentials={}
-        if os.environ.get('ACCESS_KEY') and os.environ.get('SECRET_KEY'):
-            credentials={'aws_access_key_id':os.environ['ACCESS_KEY'],'aws_secret_access_key':os.environ['SECRET_KEY']}
+        if setting('ACCESS_KEY') and setting('SECRET_KEY'):
+            credentials={'aws_access_key_id':setting('ACCESS_KEY'),'aws_secret_access_key':setting('SECRET_KEY')}
         return boto3.client('s3',endpoint_url=endpoint,config=Config(connect_timeout=5,read_timeout=5,
             retries={'total_max_attempts':1}),**credentials)
     except Exception:raise StageError('S3 client could not start; check the VM credential chain and endpoint configuration') from None

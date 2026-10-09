@@ -2,6 +2,11 @@
 
 **Updated:** 2026-10-09
 
+The registered-video archive adapter now performs tenant and source checks at
+runtime before upload/inspection. Its real VM run is pending. The user requested
+that implementation checks be skipped while the full stack is connected. No
+external gate closes from this code change alone.
+
 This is the authority for external capability facts and integration decisions in
 [PRD 22](22-live-stack-integration-prd.md). The integration coordinator updates it
 from sanitized evidence. An unverified row does not establish permission,

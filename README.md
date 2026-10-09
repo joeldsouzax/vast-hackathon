@@ -34,8 +34,41 @@ makes no S3 call.
 
 The app validates media, preserves immutable bytes and SHA-256, and records
 `server_video` provenance. It does not call this a physical camera or fixture
-analysis. Provider work remains independent from program playback. Real model
-and VAST integration remain pending their verified runtime contracts.
+analysis. Provider work remains independent from program playback.
+
+## Process this video with VAST
+
+Put the assigned VM values for `INGRESS_URL`, `USERNAME`, `PASSWORD`,
+`S3_CHUNKS_BUCKET`, `S3_ENDPOINT`, `ACCESS_KEY`, and `SECRET_KEY` in the ignored
+`.env`. Use the team's actual values. Compose forwards them to the app. For a
+non-container launch, the app can also read one `/config/*.config` file without
+executing it. `BREADCAST_TEAM_CONFIG_DIR` changes that folder.
+
+Start the video with the same red button. Once playback starts, background work
+checks the VAST tenant, uploads the clip privately with the API's default analysis
+prompt, and verifies the stored original against its local SHA-256. The supplied
+DataEngine pipeline runs segmentation, YOLO, Cosmos reasoning, and embedding.
+Studio shows processing state, then the archive summary and available YOLO counts.
+Stop video stops playback; archive processing can finish afterward.
+
+Each input hash and tenant have one saved submission. Starting again uses that
+receipt. Completed results are reused after the tenant configuration and original
+bytes are checked. An upload with an unknown outcome is not sent again automatically.
+It needs reconciliation with the team's archive. Indexing gets five minutes; a
+later Start resumes inspection of the existing submission.
+
+The archive summary has no authority to change the program. Its clocks and tracker
+state do not yet provide live direction or synchronized commentary. Missing YOLO
+sidecars are shown explicitly. Provider access, model identities, and output
+quality still need the real VM run. No local fixture is reported as provider output.
+
+```mermaid
+flowchart LR
+  Video[Registered video] --> Playback[Program playback]
+  Video --> Upload[Private VAST upload]
+  Upload --> Pipeline[YOLO Cosmos embeddings]
+  Pipeline --> Studio[Archive summary in Studio]
+```
 
 ```mermaid
 flowchart LR
@@ -145,6 +178,13 @@ must show a clear failure without changing the current program.
 
 Small checks cover configuration, file/S3 staging, access, and cancellation. No
 full test suite or physical-camera rehearsal blocks this input slice.
+
+For VAST, supply the workshop variables and recreate the container. Start video.
+Confirm Studio reaches **VAST archive ready** and compare its summary with the
+clip. Available YOLO sidecars appear below it. Repeat Start and confirm it uses
+the saved result. Missing credentials must show unavailable analysis while video
+playback still works. Automated checks for this archive slice were skipped at
+the user's request; its full flow will be tested on the VM.
 
 ## Open the app
 

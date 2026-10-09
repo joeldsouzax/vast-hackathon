@@ -250,6 +250,16 @@ async function refresh() {
       reader = playProgram(document.querySelector('#program'), error => { message(`Viewer: ${error}`); });
     }
     const p = state.program;
+    const analysis=state.video_analysis || {state:'idle'};
+    document.querySelector('#video-analysis').hidden=analysis.state==='idle';
+    document.querySelector('#video-analysis-status').textContent=analysis.state==='ready' ?
+      `VAST archive ready · ${analysis.segment_count} segments${analysis.cached ? ' · Saved result' : ''}` :
+      `VAST · ${analysis.reason || analysis.state}`;
+    document.querySelector('#video-analysis-summary').textContent=analysis.state==='ready' ? analysis.summary : '';
+    document.querySelector('#video-analysis-detections').textContent=analysis.state!=='ready' ? '' :
+      analysis.yolo_sidecar_received ? `YOLO sidecars: ${analysis.detection_segments} segments. ` +
+        (analysis.detection_counts || []).map(item=>`${item.label}: ${item.count}`).join(' · ') :
+      'No YOLO sidecar returned for this video.';
     const crewHealth=document.querySelector('#crew-health');crewHealth.hidden=!state.direction.enabled;
     crewHealth.textContent=`${state.direction.fixture ? 'Local fixture crew' : 'Provider crew'} · ${state.direction.reason}`;
     document.querySelector('#setup-status').textContent = state.direction.setup.ready ? `Graphics ready · Context ${state.direction.setup.context_revision}` : 'Event graphics need preparation for the current context.';
@@ -337,7 +347,7 @@ async function refresh() {
       row.append(label, list, reason, preview, play);
       replayCards.set(replay.id, row); document.querySelector('#replays').append(row);
     }
-    document.querySelector('#diagnostics').textContent = JSON.stringify({program: p, cameras: state.cameras, gateway_error: state.gateway_error, providers: state.providers, direction:state.direction}, null, 2);
+    document.querySelector('#diagnostics').textContent = JSON.stringify({program: p, cameras: state.cameras, gateway_error: state.gateway_error, providers: state.providers, video_analysis:state.video_analysis, direction:state.direction}, null, 2);
   } catch (error) {
     if (error.status === 403 && operatorAuthMode === 'token') return;
     connectionFailed = true; message('Cannot reach the studio. Retrying…');

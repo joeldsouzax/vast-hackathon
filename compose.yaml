@@ -21,6 +21,11 @@ services:
       BREADCAST_RUNTIME: /var/lib/breadcast-studio
       BREADCAST_SERVER_VIDEOS_CONFIG: /opt/breadcast/config/server-videos.json
       BREADCAST_S3_ENDPOINT_URL: ${BREADCAST_S3_ENDPOINT_URL:-}
+      INGRESS_URL: ${INGRESS_URL:-}
+      USERNAME: ${USERNAME:-}
+      PASSWORD: ${PASSWORD:-}
+      S3_CHUNKS_BUCKET: ${S3_CHUNKS_BUCKET:-}
+      S3_SEGMENTS_BUCKET: ${S3_SEGMENTS_BUCKET:-}
       S3_ENDPOINT: ${S3_ENDPOINT:-}
       ACCESS_KEY: ${ACCESS_KEY:-}
       SECRET_KEY: ${SECRET_KEY:-}
