@@ -34,9 +34,16 @@ diagram when the explanation needs one.
 
 ## Project rules
 
-- Current input priority: use the one video in `_sample-videos/` as the base for
-  stack integration. Its paths are configurable; a second VM/S3 video can follow
-  when available. Defer camera-permission work and physical-camera validation.
+- Rebuild and restart the local studio with `./scripts/studio restart`. That
+  command rebuilds the image, recreates the Compose `studio` container detached,
+  and prints `docker compose ps`. Use it after code, Compose, `.env`, or
+  `config/server-videos.json` changes. Do not invent a separate Docker workflow.
+  First start can use `./scripts/studio serve -d`. Stop with `./scripts/studio stop`.
+
+- Current input priority: use the configured server video (local file or S3 URI
+  in `config/server-videos.json`) as the base for stack integration. A second
+  VM/S3 video can follow when available. Defer camera-permission work and
+  physical-camera validation.
   The red Start video / Stop video control belongs below the operator video.
   Work one runnable change at a time. Push complete changes to `main` promptly.
   Current user override: connect the full S01–S07 stack first and skip checks.

@@ -65,7 +65,7 @@ docker run --name breadcast-studio --stop-timeout 60 \
 docker stop breadcast-studio
 ```
 
-Use either Compose or direct `docker run` for the named container. The [launcher](../scripts/studio) also wraps Compose: `scripts/studio serve`, `scripts/studio sample --file /opt/breadcast/demo.mp4`, `scripts/studio check`, and `scripts/studio stop`.
+Use either Compose or direct `docker run` for the named container. The [launcher](../scripts/studio) also wraps Compose: `scripts/studio serve`, `scripts/studio restart` (rebuild + recreate detached), `scripts/studio sample --file /opt/breadcast/demo.mp4`, `scripts/studio check`, and `scripts/studio stop`.
 
 The browser controls provide:
 
