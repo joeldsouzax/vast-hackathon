@@ -1,0 +1,107 @@
+{
+  "schema_version": "1.1",
+  "plan_id": "multi-camera-example-001",
+  "event_id": "local-studio",
+  "context_revision": 1,
+  "fixture": true,
+  "scene_id": "staged-ball",
+  "scene_revision": 1,
+  "expires_at": 1791334800,
+  "source_mapping_revisions": {
+    "camera-1:1": 1,
+    "camera-2:1": 1
+  },
+  "evidence_ids": [
+    "view-1",
+    "view-2"
+  ],
+  "evidence_revisions": {
+    "view-1": 1,
+    "view-2": 1
+  },
+  "shots": [
+    {
+      "source_id": "camera-1",
+      "source_epoch": 1,
+      "event_start_ms": 1000,
+      "event_end_ms": 3000,
+      "speed": 1,
+      "crop_normalized": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "evidence_ids": [
+        "view-1"
+      ],
+      "reason": "view-1 observes the visible ball path. The wide shot establishes the action.",
+      "edit": "continuous"
+    },
+    {
+      "source_id": "camera-2",
+      "source_epoch": 1,
+      "event_start_ms": 3000,
+      "event_end_ms": 4000,
+      "speed": 0.5,
+      "crop_normalized": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "evidence_ids": [
+        "view-2"
+      ],
+      "reason": "view-2 observes the same movement. The closer view adds ball detail at the calibrated cut.",
+      "edit": "continuous"
+    },
+    {
+      "source_id": "camera-1",
+      "source_epoch": 1,
+      "event_start_ms": 4000,
+      "event_end_ms": 5000,
+      "speed": 1,
+      "crop_normalized": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "evidence_ids": [
+        "view-1"
+      ],
+      "reason": "view-1 retains the aftermath and keeps the ball in the frame.",
+      "edit": "continuous"
+    },
+    {
+      "source_id": "camera-2",
+      "source_epoch": 1,
+      "event_start_ms": 1000,
+      "event_end_ms": 3000,
+      "speed": 0.5,
+      "crop_normalized": [
+        0.16666666666666666,
+        0.16666666666666666,
+        0.6666666666666666,
+        0.6666666666666666
+      ],
+      "evidence_ids": [
+        "view-2"
+      ],
+      "reason": "view-2 repeats the established interval from a closer view. ALTERNATE ANGLE identifies the time jump.",
+      "edit": "repeat"
+    }
+  ],
+  "transition": "cut",
+  "expected_duration_ms": 9000,
+  "audio_policy": "mute_source_and_live_audio",
+  "replay_marker": true,
+  "score_overlay": "hidden",
+  "output": {
+    "width": 640,
+    "height": 360,
+    "fps_num": 15,
+    "fps_den": 1
+  }
+}

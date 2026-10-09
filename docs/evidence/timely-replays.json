@@ -1,0 +1,444 @@
+{
+  "evidence_scope": "historical validation",
+  "prd": "docs/20-timely-replays-and-broadcast-validation-prd.md",
+  "status": "Core replay/search paths implemented. Full local acceptance, live verification, and physical-device gates remain open.",
+  "local_ready": false,
+  "live_verified": false,
+  "device_ready": false,
+  "complete_broadcast": false,
+  "source": {
+    "commit": "87d0b82f5df10d58cbfc4c3df9bca7cf1726d818",
+    "dirty_diff_sha256": "77f8d1ab553e6b20777b81050e5f1bdff8b5249242d3a525b7bd96e0814920fa",
+    "file_hashes": {
+      "Dockerfile": "da7481d2ce3b475139506aa0ec02a12f6d990912065813682522d82b9639440f",
+      "app/control.py": "a9ba150c89f26439472509139d22a17fa9c1e0001e3de81d49e485282af5f945",
+      "app/direction.py": "99b7e6eb099c5e1ace75d44ac250a3cb6f9c800a0429e3e917983ff60a020ff2",
+      "app/direction_media.py": "03229f9ae92b86357bddd87bf4b8028f50293f44eb504615df36bd736203d4b0",
+      "app/foundation.py": "1d58dbd5eb6347d685014524c5cb2665dfd88c9be6f3061dd292db8718d2c676",
+      "app/foundation_cli.py": "0c2726d84ca479e17d99ebfeced155de71e5b3b5191121ca70f955b157ba4008",
+      "app/foundation_providers.py": "1d46fa8ec97db20e919ff5a970f6925ae4feafbc21e96686a0a607783d8c625b",
+      "app/foundation_records.py": "bf2e815bf28068795affc69595ecbf2bddb049ff168bb9b3171408172d9d9e1c",
+      "app/foundation_storage.py": "e31eef9232a8bd9091616af0587bc57e8ece6107c80dab422adcbc5496d1d959",
+      "app/foundation_worker.py": "ae0f4a6a179ada442daed498621cdf54148be083f3ef720ee6c02338b7be0b7b",
+      "app/graphics.py": "69aefd12fe44e163abaadc30cad43d41213bedc030bf044c827cf71446d0796f",
+      "app/http_api.py": "3cfcc97e5fb0785160c5c98fd4bc83b468a1d8ac8f51db5ef64b3220411e763a",
+      "app/live_timing.py": "8d64953978e1585fb11c0dbe0d371e1c475da046ebc19e80fc301c92b736682d",
+      "app/media.py": "858e5a2619cc8b5597cc02ee50991059fbc58262df0394c68850dca0a931c2aa",
+      "app/media_provenance.py": "890fde8453f8ee25b8db7856bbc05ea5ddf0cd2e892c5db4f87a984698e25be0",
+      "app/recording_hook.py": "e6079a800e28862de6f0d301d90573d9531a51e569ac3d1659260616a0951e5c",
+      "app/replay.py": "ce46b7f65612a46ee464732b656da6c6d9c50d12878527cb563266f6b218c17a",
+      "app/replay_inputs.py": "ce2619ad9031ec86ee8b9eb022c9d7af64d4da4b3e05065628e476a5cc115952",
+      "app/replay_work.py": "977d0e3ac4b35e2fd3a9449d718e7f70a407a363211d24bc7ca88a8b8fd139c5",
+      "app/studio.py": "965ece34d834bc7ec2974fb10cc6f6c5621a904022379ea40d372bca7e515cc9",
+      "app/web/broadcast.js": "51da8895100f7a6c01e89a665f28fc306f3f23bcdc4e5e2fb377b2f3849d1779",
+      "app/web/common.js": "8ef0add7ad259cdb2e510d6df3eddccdbbc6604d8cec30915d075b4ed5252bd3",
+      "app/web/graphics-ui.js": "d2216cc32ae67f896aa31fce44d850fe9c0e6720ae2f01800c8546a137aa85ab",
+      "app/web/join.js": "510bd49d946e45592e34d803f0ae92fd02d27b98536db996369a017df6e1edc5",
+      "app/web/operator.html": "dfafb4c3ccda6239aae73ef6ecb169d5a91182c9e08b9d2267fae28f4f906fdf",
+      "app/web/operator.js": "d983d5b2a182db93da0fe719ebc80cd2de03d54e0f20831f25b1250ce45a1a37",
+      "config/replay.fixture.json": "4ac682c07bf1cf1907acf5ffb69827f54bc086fd7c7fc3e2cbbb135ae7dd4375",
+      "config/replay.live.json": "72d05e08030a857f4504cf224de70cc2005ea0dd383eda755ca57d60849aafc0",
+      "scripts/studio": "8958961d3d3850845f18b2f608233b2761d29821c884139cf92a1ec7788ae7c9",
+      "tests/browser/recall-check.cjs": "0606df13415f8f2645bc9d29526e58c6e54c5696070f94862c085c68ead1e511",
+      "tests/browser/replay-check.cjs": "91d537ab2826a0b95abbc82d8cbfad77cbaeddb5a52d112f224a22fbc1182373",
+      "tests/fixtures/replay/labels.json": "c393883e111998c489284f974179a14f653cdbf9947fc3d0d408501a7fba8506",
+      "tests/fixtures/replay/manifest.json": "4222385f5d29e66addd14418a71fe2730cbdb7c009808185fc552f164b1c7685",
+      "tests/media/archive_fixture.py": "d5e52901ef097f4dcd6b51a0a2b62647071148ae5590a879cf627b2023f310fc",
+      "tests/media/contract_check.py": "2e87c3d0064545aedd8a3377ee11e0371f9311f07b05505f9b74be867a28d55c",
+      "tests/media/direction_check.py": "fddbe4c0697d986d78cf1c44531e1c4aac060fe2e0f4d961b9054a678da57aeb",
+      "tests/media/foundation_check.py": "72181f8ce581ecc8dff3a5a453ad5fb611e7df9c0f33fbc6c59e97755c9ecdba",
+      "tests/media/multi_camera_check.py": "4bcde156419c3b9cde7419d112a6ffb29ebb063ac7cd300664d75fe100ff5868",
+      "tests/media/replay_check.py": "71ea692ff3f989fa00614d73ae6ea38aa586462292aa5971e4940146b50e03d9",
+      "tests/unit/test_replay_acceptance.py": "68ff2bac5c5816bcca94af11cdd6dd9e9f9d71221bb1a94e234cc3fda07217f1",
+      "tests/unit/test_replay_work.py": "18b782982558cf801b590a97f67e321aff325812ca0b7a67dea225b8970face6"
+    },
+    "handoff_sha256": "4bfe00985fe9e87fbc096a2b9572c867bae07f83d9c6589f5c860f1a0874c1ad",
+    "preserved_user_changes": [
+      "README.md",
+      "docs/07-build-and-demo.md",
+      "docs/08-sources.md",
+      "docs/20-timely-replays-and-broadcast-validation-prd.md"
+    ]
+  },
+  "final_current_checks": {
+    "command": "./scripts/studio replay-check --diagnostic-seconds 12",
+    "report": ".runtime/replay-checks/20261008T050633-d2dd53/report.json",
+    "scope": "Current application hashes match exactly. This is a partial check; its expected exit code is 1.",
+    "unit_count": 158,
+    "unit_passed": true,
+    "browser_passed": true,
+    "decoded_frames": 881,
+    "decode_passed": true,
+    "schemas": ".runtime/replay-checks/20261008T050633-d2dd53/schemas.json",
+    "browser_screenshot": ".runtime/replay-checks/20261008T050633-d2dd53/broadcast/recall.png",
+    "actual_fixture_request": ".runtime/replay-checks/20261008T050633-d2dd53/broadcast/archive-recall.json",
+    "fixture_inputs": ".runtime/replay-checks/20261008T050633-d2dd53/broadcast/archive/fixture.json"
+  },
+  "complete_command_attempt": {
+    "command": "./scripts/studio replay-check",
+    "exit_code": 1,
+    "report": ".runtime/replay-checks/20261008T041049-9f76e2/report.json",
+    "scope": "Complete command executed. Missing conjunctive conditions prevent local-ready. Runtime failures are empty in this attempt.",
+    "app_files_changed_after_this_snapshot": [
+      "app/direction.py",
+      "app/foundation.py",
+      "app/foundation_records.py",
+      "app/replay_inputs.py",
+      "app/replay_work.py"
+    ],
+    "later_change_validation": "The current diagnostic and 158 unit checks cover stricter source/session/receipt/association guards. The sustained and inherited results retain their original snapshot scope.",
+    "one_camera_elapsed_s": 300.9060828350048,
+    "five_source_elapsed_s": 901.2718494080036,
+    "three_software_viewers_passed": true,
+    "viewer_samples": 1214,
+    "decoded_frames": 18546,
+    "decode_passed": true,
+    "program_sha256": "d6830871cd17a8ec5e19fc62ed23ab7cf9288441467faaf4155706d3f37f0e2d",
+    "program": ".runtime/replay-checks/20261008T041049-9f76e2/broadcast/program.mkv",
+    "human_return_application_s": 0.20172933500725776,
+    "fixture_preparation": {
+      "sample_count": 20,
+      "success_count": 20,
+      "failed_count": 0,
+      "p95_s": 0.4205451011657715,
+      "population": "successful attempts, final required chunk finalized to checked asset ready; includes query/planning/queue/render",
+      "within_15s_fraction": 1.0,
+      "target_passed": true,
+      "mode": "distinct local fixture recall preparations; not live provider/editorial usefulness evidence"
+    },
+    "preparation_report": ".runtime/replay-checks/20261008T041049-9f76e2/preparation/report.json",
+    "process_faults": ".runtime/replay-checks/20261008T041049-9f76e2/faults/report.json",
+    "process_faults_passed": true,
+    "load": {
+      "samples": 1092,
+      "sample_start_utc": 1791432733.1505961,
+      "sample_end_utc": 1791434947.4595242,
+      "cpu_peak_percent": 315.63,
+      "container_memory_peak_percent": 65.95,
+      "raw": ".runtime/replay-checks/20261008T041049-9f76e2/host-resources.jsonl",
+      "limits": "Sampling began after startup and used about two-second intervals. Docker NetIO excludes loopback; it is not audience traffic."
+    },
+    "missing_conditions": {
+      "R01": [
+        "legacy_media",
+        "canonical_nondefault",
+        "archive_authority"
+      ],
+      "R02": [
+        "cross_chunk",
+        "developing_wait",
+        "delivery_dedup"
+      ],
+      "R03": [
+        "typed_provider_validation",
+        "all_invalid_results",
+        "six_shots"
+      ],
+      "R04": [
+        "eviction_disconnect_reuse",
+        "public_play_markers",
+        "legacy_lease_rejection"
+      ],
+      "R05": [
+        "reset_variable_nonzero",
+        "rotation_padding",
+        "epoch_discontinuity"
+      ],
+      "R06": [
+        "cut_repeat_markers",
+        "uncertainty",
+        "all_mapping_rejections"
+      ],
+      "R07": [
+        "speeds_crop_duration",
+        "simplification",
+        "all_bad_inputs"
+      ],
+      "R08": [
+        "complete_decode_pts",
+        "labels_all_frames",
+        "muted_historical_audio"
+      ],
+      "R09": [
+        "all_retention_races",
+        "pin_cleanup",
+        "hash_manifest_failure"
+      ],
+      "R10": [
+        "cut_during_render",
+        "prepare_only",
+        "fresh_scheduler_airtime"
+      ],
+      "R11": [
+        "positive_opportunity",
+        "all_skip_reasons",
+        "slow_render_independent"
+      ],
+      "R12": [
+        "delivery_dedup",
+        "actual_airtime_once",
+        "new_human_session"
+      ],
+      "R13": [
+        "scheduler_during_replay",
+        "urgent_boundary",
+        "unknown_mapping",
+        "capture_advances"
+      ],
+      "R14": [
+        "contracts",
+        "current_live_markers_audio",
+        "viewer_return"
+      ],
+      "R15": [
+        "archive_narration",
+        "slow_repeat_context",
+        "future_exclusion",
+        "actual_history"
+      ],
+      "R16": [
+        "all_cue_cancellations",
+        "bad_late_speech",
+        "partial_receipts",
+        "microphone_restore"
+      ],
+      "R17": [
+        "filters_freshness_faults"
+      ],
+      "R18": [
+        "stale_hit_rejections",
+        "idempotency",
+        "simulated_ranking"
+      ],
+      "R19": [
+        "contracts"
+      ],
+      "R20": [
+        "all_resource_saturation",
+        "fairness",
+        "cancel_subprocess_pins",
+        "urgent_controls"
+      ],
+      "R21": [
+        "integrated_fault_cases"
+      ],
+      "R23": [
+        "all_capability_faults",
+        "direction_gate"
+      ]
+    },
+    "inherited_direction_report": ".runtime/replay-checks/20261008T041049-9f76e2/inherited/20261008T043226-071d4c/report.json",
+    "inherited_foundation_passed": true
+  },
+  "failure_and_corrections": [
+    {
+      "failure": "Replay fixture labels initially applied to unrelated recorded sample bytes.",
+      "correction": "Replay labels now bind only to declared media hashes. Unlabeled camera footage reports capability failure.",
+      "report": ".runtime/replay-checks/20261008T024414-ce1540/report.json"
+    },
+    {
+      "failure": "A long run stalled all three viewers and delayed encoder ticks. The VM killed Chromium for memory exhaustion.",
+      "report": ".runtime/replay-checks/20261008T033304-cf01b9/report.json",
+      "kernel": ".runtime/replay-checks/20261008T033304-cf01b9/kernel.log",
+      "viewer_report": ".runtime/replay-checks/20261008T033304-cf01b9/broadcast/browser-report.json",
+      "memory_events": {
+        "oom_kill": 1
+      },
+      "viewer_stalls_ms": [
+        5859.0999999940395,
+        6171.600000008941,
+        5996.899999991059
+      ],
+      "encoder_late_ticks_s": [
+        0.576,
+        5.598
+      ],
+      "correction": "Unit suites and the twenty-preparation measurement now run in separate short-lived processes. Parent preparation memory dropped from about 800 MiB to about 200 MiB. The subsequent complete media phase passed with no viewer stalls.",
+      "limits": "The kernel confirms a Chromium memory kill in that container. The tests do not prove every step in the causal chain."
+    },
+    {
+      "failure": "Inherited multi-camera regression assumed three ready assets.",
+      "correction": "It preserves decoded evidence outside the two-asset pool. Browser waits use asset IDs rather than increasing card count.",
+      "failed_report": ".runtime/direction-checks/20261008T031606-a83d3a/report.json"
+    },
+    {
+      "failure": "An inherited status request timed out during the earlier nested check.",
+      "failed_report": ".runtime/replay-checks/20261008T033304-cf01b9/inherited/20261008T035438-f3e110/report.json",
+      "correction": "Separate unit processes release media allocations before inherited media checks. The later foundation and Studio gate passed."
+    }
+  ],
+  "aborted_development_attempts": [
+    {
+      "folder": ".runtime/replay-checks/20261008T033015-8ce090",
+      "reason": "Stopped to fix waiting recall/candidate requeue. No complete acceptance claim."
+    },
+    {
+      "folder": ".runtime/replay-checks/20261008T040625-301919",
+      "reason": "Stopped after process-memory samples showed preparation measurement allocations retained by the parent. No complete acceptance claim.",
+      "memory_sample": ".runtime/replay-checks/20261008T040625-301919/process-memory.json"
+    }
+  ],
+  "executed_reports": [
+    {
+      "report": ".runtime/replay-checks/20261008T023932-1a766d/report.json",
+      "mode": "partial",
+      "local_ready": false,
+      "unit": {
+        "count": 144,
+        "passed": false
+      },
+      "viewer_passed": null,
+      "failures": [
+        {
+          "type": "AssertionError",
+          "reason": "Unit checks failed"
+        }
+      ],
+      "source_scope": "Use this report's code_hashes and dirty_diff_sha256; older results do not certify newer changes."
+    },
+    {
+      "report": ".runtime/replay-checks/20261008T024021-2be629/report.json",
+      "mode": "partial",
+      "local_ready": false,
+      "unit": {
+        "count": 144,
+        "passed": true
+      },
+      "viewer_passed": null,
+      "failures": [],
+      "source_scope": "Use this report's code_hashes and dirty_diff_sha256; older results do not certify newer changes."
+    },
+    {
+      "report": ".runtime/replay-checks/20261008T024414-ce1540/report.json",
+      "mode": "complete local gate attempt",
+      "local_ready": false,
+      "unit": {
+        "count": 148,
+        "passed": true
+      },
+      "viewer_passed": null,
+      "failures": [
+        {
+          "type": "AssertionError",
+          "reason": ""
+        }
+      ],
+      "source_scope": "Use this report's code_hashes and dirty_diff_sha256; older results do not certify newer changes."
+    },
+    {
+      "report": ".runtime/replay-checks/20261008T024800-b22a68/report.json",
+      "mode": "partial",
+      "local_ready": false,
+      "unit": {
+        "count": 148,
+        "passed": true
+      },
+      "viewer_passed": null,
+      "failures": [],
+      "source_scope": "Use this report's code_hashes and dirty_diff_sha256; older results do not certify newer changes."
+    },
+    {
+      "report": ".runtime/replay-checks/20261008T025026-e58263/report.json",
+      "mode": "complete local gate attempt",
+      "local_ready": false,
+      "unit": {
+        "count": 148,
+        "passed": true
+      },
+      "viewer_passed": null,
+      "failures": [
+        {
+          "type": "AssertionError",
+          "reason": "{\n  \"mode\": \"three software viewers; no physical-device claim\",\n  \"passed\": false,\n  \"checks\": {\n    \"search\": true,\n    \"prepare\": true,\n    \"player_mounted\": "
+        }
+      ],
+      "source_scope": "Use this report's code_hashes and dirty_diff_sha256; older results do not certify newer changes."
+    },
+    {
+      "report": ".runtime/replay-checks/20261008T033304-cf01b9/report.json",
+      "mode": "complete local gate attempt",
+      "local_ready": false,
+      "unit": {
+        "count": 156,
+        "passed": true
+      },
+      "viewer_passed": false,
+      "failures": [
+        {
+          "type": "ViewerContinuityFailure",
+          "reason": "Software viewers did not pass; read broadcast/browser-report.json"
+        }
+      ],
+      "source_scope": "Use this report's code_hashes and dirty_diff_sha256; older results do not certify newer changes."
+    },
+    {
+      "report": ".runtime/replay-checks/20261008T041049-9f76e2/report.json",
+      "mode": "complete local gate attempt",
+      "local_ready": false,
+      "unit": {
+        "count": 156,
+        "passed": true
+      },
+      "viewer_passed": true,
+      "failures": [],
+      "source_scope": "Use this report's code_hashes and dirty_diff_sha256; older results do not certify newer changes."
+    },
+    {
+      "report": ".runtime/replay-checks/20261008T050633-d2dd53/report.json",
+      "mode": "partial",
+      "local_ready": false,
+      "unit": {
+        "count": 158,
+        "passed": true
+      },
+      "viewer_passed": true,
+      "failures": [],
+      "source_scope": "Use this report's code_hashes and dirty_diff_sha256; older results do not certify newer changes."
+    }
+  ],
+  "unresolved_gates": {
+    "local": "R01\u2013R24 subconditions and inherited D01\u2013D19 remain conjunctive. Read the exact missing_conditions in the complete report. Unit contract coverage is not full acceptance.",
+    "live": [
+      "L01",
+      "L02",
+      "L03",
+      "L04",
+      "L05"
+    ],
+    "physical_devices": [
+      "P01",
+      "P02",
+      "P03",
+      "P04",
+      "P05",
+      "P06"
+    ],
+    "provider_access": "Actual VAST/DataEngine, YOLO, Cosmos, semantic search, W&B/CoreWeave and generated speech transports remain unverified. Live mode never substitutes fixture output.",
+    "scope": "Three software browser contexts are not three physical viewer devices. No publication or unrelated infrastructure change was performed."
+  },
+  "static_checks": {
+    "passed": true,
+    "commands": [
+      "python3 -m compileall -q app tests/unit tests/media",
+      "bash -n scripts/studio",
+      "node --check app/web/operator.js",
+      "node --check tests/browser/recall-check.cjs",
+      "node --check tests/browser/replay-check.cjs",
+      "git diff --check"
+    ]
+  },
+  "environment": {
+    "docker_vm": "Ubuntu 24.04.4 LTS, Linux 6.8.0-117-generic, ARM64",
+    "docker_cpus": 4,
+    "docker_memory_bytes": 4093943808,
+    "runtime_versions": {
+      "av": "17.0.1",
+      "pydantic": "2.13.5",
+      "pydantic-ai-slim": "2.54.0",
+      "fastapi": "0.142.2",
+      "uvicorn": "0.54.0",
+      "httpx": "0.28.1"
+    },
+    "resolved_configuration_report": ".runtime/replay-checks/20261008T050633-d2dd53/report.json"
+  }
+}

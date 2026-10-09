@@ -1,0 +1,170 @@
+{
+  "evidence_scope": "documentation checks",
+  "schema_version": "1.0",
+  "scope": "Documentation authoring and restoration only; no implementation or live-service acceptance",
+  "application_commit": "c06e385423c5b619f383b7aaa7b7a3a8f8657660",
+  "restoration": {
+    "source_backup": "hackathon-new-docs-20261009T143520710401Z",
+    "files_restored": 51,
+    "original_hash_manifest": "../restoration-manifest.json",
+    "source_files_with_deliberate_edits": [
+      "01-sketch-review.md",
+      "02-architecture.md",
+      "03-stack-integration.md",
+      "04-agent-instructions.md",
+      "05-context-and-contracts.md",
+      "06-graphics-and-replays.md",
+      "07-build-and-demo.md",
+      "08-sources.md",
+      "09-camera-joining.md",
+      "10-stack-review-and-work-split.md",
+      "11-media-experiment-validation.md",
+      "12-studio.md",
+      "13-graphics-package.md",
+      "14-repository-layout.md",
+      "15-multi-camera-replays.md",
+      "16-autonomous-studio-prd.md",
+      "17-event-understanding-and-provider-adapters-prd.md",
+      "18-event-foundation.md",
+      "19-live-direction-and-commentary-prd.md",
+      "20-timely-replays-and-broadcast-validation-prd.md",
+      "21-timely-replays.md",
+      "evidence/autonomous-studio.json",
+      "evidence/camera-controls.json",
+      "evidence/crew-ux.json",
+      "evidence/docker-experiment.json",
+      "evidence/event-foundation.json",
+      "evidence/live-direction.json",
+      "evidence/media-experiment.json",
+      "evidence/modal-polish.json",
+      "evidence/multi-camera-replay.json",
+      "evidence/prd2-audit.json",
+      "evidence/prd2-fixes.json",
+      "evidence/program-overlay.json",
+      "evidence/replay-controls.json",
+      "evidence/studio-brand.json",
+      "evidence/studio-graphics.json",
+      "evidence/studio-layout.json",
+      "evidence/studio-open-pages.json",
+      "evidence/studio-ui.json",
+      "evidence/timely-replays.json",
+      "evidence/workspace-cleanup.json",
+      "multi-camera-replay-prompt.md"
+    ],
+    "all_other_restored_files_match_original_hashes": true
+  },
+  "checks": [
+    {
+      "name": "restored_files_present",
+      "outcome": "pass",
+      "count": 51
+    },
+    {
+      "name": "docs_json_parse",
+      "outcome": "pass",
+      "count_before_this_record": 26
+    },
+    {
+      "name": "docker_copy_inputs_present",
+      "outcome": "pass",
+      "note": "Static local inputs present; examples now tracked. Actual Docker image build pending because local daemon/Compose are unavailable."
+    },
+    {
+      "name": "markdown_local_links_and_heading_anchors",
+      "outcome": "pass",
+      "documents_checked": 31,
+      "missing_targets": [],
+      "missing_anchors": []
+    },
+    {
+      "name": "replay_example_existing_contract_test",
+      "outcome": "pass",
+      "tests_run": 1,
+      "seconds": 0.83,
+      "command": "BREADCAST_FONT=app/web/fonts/dmsans.ttf PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=app:tests/media:tests/unit uv run --no-project --python 3.13 --with-requirements requirements.lock python -m unittest test_replay.ReplayContracts.test_documented_multi_camera_example_uses_shared_contract",
+      "environment": "Isolated uv environment with repository-pinned requirements; system Python was not modified",
+      "setup_failure_resolved": "First invocation omitted BREADCAST_FONT and ran zero tests. Repeated with the repository font set; test passed."
+    },
+    {
+      "name": "git_diff_whitespace",
+      "outcome": "pass",
+      "note": "Tracked diff checked with git diff --check; new PRDs checked for trailing spaces and balanced fences"
+    },
+    {
+      "name": "markdown_document_update_dates",
+      "outcome": "pass",
+      "date": "2026-10-09",
+      "count": 28
+    }
+  ],
+  "not_run": [
+    {
+      "check": "Docker image build and complete media/browser suites",
+      "reason": "Docker daemon unavailable; documentation-only change"
+    },
+    {
+      "check": "Live provider probes and generated speech",
+      "reason": "Workshop environment and verified speech service unavailable"
+    },
+    {
+      "check": "Physical-phone and viewer rehearsal",
+      "reason": "Requires selected host, network and devices"
+    }
+  ],
+  "new_documents": [
+    {
+      "path": "../22-live-stack-integration-prd.md",
+      "requirements": 10,
+      "acceptance_cases": 22,
+      "external_gates": 9
+    },
+    {
+      "path": "../23-parallel-implementation-plan.md",
+      "packages": 8,
+      "schedule": "one coordinator and up to three workers"
+    },
+    {
+      "path": "../24-provider-verification.md",
+      "all_live_gates_verified": false
+    },
+    {
+      "path": "../26-sprint-delivery-plan.md",
+      "sprints": 7,
+      "implementation_status": "not started"
+    }
+  ],
+  "runtime_application_files_changed": false,
+  "historical_evidence_reused_as_current_acceptance": false,
+  "document_date_update": {
+    "date": "2026-10-09",
+    "markdown_documents": 28,
+    "original_source_hashes_preserved_in_manifest": true,
+    "fixture_timestamps_changed": false
+  },
+  "test_report_date_policy": {
+    "run_date_labels": "omitted",
+    "report_names": "date-free",
+    "historical_scope_preserved": true,
+    "measurements_and_media_timing_preserved": true,
+    "original_artifact_paths_preserved": true,
+    "dependency_versions_preserved": true,
+    "reports_renamed": 21,
+    "calendar_metadata_fields_removed": 44
+  },
+  "sprint_plan_validation": {
+    "scope": "Documentation only; no sprint implemented, no production proof, no code pushed",
+    "documents_checked": [
+      "docs/README.md",
+      "docs/22-live-stack-integration-prd.md",
+      "docs/23-parallel-implementation-plan.md",
+      "docs/26-sprint-delivery-plan.md"
+    ],
+    "local_link_targets": "pass",
+    "fence_balance": "pass",
+    "whitespace": "pass",
+    "delivery_sprints": 7,
+    "test_policy": "Only required tests for changed behavior; production acceptance after each pushed candidate",
+    "runtime_tests_run": false,
+    "documentation_git_policy": "Tracked per latest user instruction; /docs/ removed from ignore rules"
+  }
+}

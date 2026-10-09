@@ -1,0 +1,291 @@
+{
+  "evidence_scope": "historical validation",
+  "image_id": "sha256:be156ede49347e664cfef68ec76b798dea841e57782c47030ba804d4f18a0cb4",
+  "platform": "Linux ARM64 Docker container; Chrome on Apple ARM Mac",
+  "layout": {
+    "app": "app/",
+    "web": "app/web/",
+    "unit_tests": "tests/unit/",
+    "browser_tests": "tests/browser/",
+    "media_checks": "tests/media/",
+    "sample_video": "tests/fixtures/demo.mp4",
+    "launchers": "scripts/",
+    "container_helpers": "docker/",
+    "build": "Root Dockerfile and compose.yaml",
+    "runtime": ".runtime/",
+    "old_folder_removed": true,
+    "historical_evidence_preserved_byte_for_byte": true
+  },
+  "unit_tests": {
+    "passed": true,
+    "count": 14,
+    "command": "docker run --rm --entrypoint python3 breadcast-studio:latest -m unittest discover -s tests/unit -v"
+  },
+  "media": {
+    "mode": "sample media; not physical phones or live provider integration",
+    "checks": [
+      {
+        "name": "one_camera_program",
+        "duration_s": 5.03,
+        "encoder_pid": 47,
+        "normalized_media_age_s": 3.052
+      },
+      {
+        "name": "invalid_revision_type_rejected"
+      },
+      {
+        "name": "designated_live_audio_reaches_program",
+        "normalized_rms": 0.08754067038865976
+      },
+      {
+        "name": "five_active_cameras",
+        "slots": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      {
+        "name": "sixth_join_rejected"
+      },
+      {
+        "name": "uncalibrated_seamless_cut_rejected"
+      },
+      {
+        "name": "direct_unauthorized_publish_rejected"
+      },
+      {
+        "name": "publisher_fenced_and_slot_reused"
+      },
+      {
+        "name": "replay_speed_and_crop_presets",
+        "results": [
+          {
+            "speed": 1,
+            "zoom": 1,
+            "duration_s": 4.0,
+            "render_s": 0.23427847899984044
+          },
+          {
+            "speed": 0.5,
+            "zoom": 1.5,
+            "duration_s": 8.0,
+            "render_s": 0.3309404949995951
+          },
+          {
+            "speed": 2,
+            "zoom": 1,
+            "duration_s": 2.0,
+            "render_s": 0.16852279399972758
+          }
+        ]
+      },
+      {
+        "name": "stale_command_rejected"
+      },
+      {
+        "name": "replay_audio_muted",
+        "normalized_rms": 0.0
+      },
+      {
+        "name": "return_to_current_delayed_live",
+        "control_to_encoder_s": 0.20414626700039662,
+        "source_sequence_before": 365,
+        "source_sequence_after": 405
+      },
+      {
+        "name": "automatic_replay_return"
+      },
+      {
+        "name": "explicit_independent_view_change"
+      },
+      {
+        "name": "five_source_sustained_output",
+        "duration_s": 15.040721852000388,
+        "peak_jpeg_buffer_bytes": 49038818,
+        "encoder_pid": 47
+      },
+      {
+        "name": "primary_source_loss_to_holding"
+      },
+      {
+        "name": "program_output_decodes_with_continuous_timestamps",
+        "frames": 538,
+        "duration_s": 35.800000000000004,
+        "max_frame_gap_s": 0.06700000000000017,
+        "output": "/var/lib/breadcast-studio/evidence/20261006T210921-10c83b/program.mkv"
+      },
+      {
+        "name": "original_camera_segment_decodes",
+        "output": "/var/lib/breadcast-studio/evidence/20261006T210921-10c83b/runtime/recordings/camera/b09983a9f73d4602aea57e565ba9d52f/2026-10-06_21-09-22-688777.mp4"
+      }
+    ],
+    "versions": {
+      "mediamtx": "v1.20.1",
+      "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+      "python": "Python 3.13.16",
+      "package_source": "docker"
+    },
+    "passed": true
+  },
+  "ui": {
+    "passed": true,
+    "browser": "154.0.8037.98",
+    "mode": "Local Docker browser UI without viewer/operator keys; no physical phone scan",
+    "checks": [
+      {
+        "name": "both_pages_and_operator_api_open_without_keys"
+      },
+      {
+        "name": "old_access_fragments_and_saved_keys_are_removed"
+      },
+      {
+        "name": "broadcast_has_video_and_decodable_qr_only",
+        "width": 239,
+        "height": 239,
+        "natural_width": 270,
+        "payload_matches_join_link": true
+      },
+      {
+        "name": "tabs_switch_pages_without_login"
+      },
+      {
+        "name": "operator_rotation_updates_broadcast_qr_and_revokes_old_join_code"
+      },
+      {
+        "name": "mobile_pages_fit_viewport_and_qr_decodes",
+        "width": 268,
+        "height": 268,
+        "natural_width": 270,
+        "payload_matches_join_link": true
+      },
+      {
+        "name": "qr_failure_shows_retry_state_and_recovers"
+      },
+      {
+        "name": "brand_assets_and_fonts_load_without_experiment_labels"
+      }
+    ],
+    "page_errors": []
+  },
+  "browser_media": {
+    "passed": true,
+    "mode": "Chrome fake camera devices; physical phones not tested",
+    "browser": "154.0.8037.98",
+    "checks": [
+      {
+        "name": "one_browser_camera_to_webrtc_viewer",
+        "width": 640,
+        "height": 360,
+        "frames": 61
+      },
+      {
+        "name": "browser_replay_and_return_without_encoder_restart"
+      },
+      {
+        "name": "five_browser_cameras_stream_and_decode",
+        "slots": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      {
+        "name": "sixth_browser_camera_rejected"
+      },
+      {
+        "name": "browser_stop_releases_all_camera_slots"
+      }
+    ],
+    "page_errors": []
+  },
+  "docker_lifecycle": {
+    "image": "breadcast-studio:latest",
+    "checks": [
+      {
+        "name": "default_image_starts_healthy_program",
+        "user": "studio"
+      },
+      {
+        "name": "five_publishers_live_before_stop",
+        "processes": [
+          "tini",
+          "python3",
+          "mediamtx",
+          "ffmpeg",
+          "python3",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg"
+        ]
+      },
+      {
+        "name": "docker_stop_ends_all_container_processes",
+        "exit_code": 0,
+        "stop_s": 4.214,
+        "endpoint_closed": true
+      },
+      {
+        "name": "restart_clears_leases_and_rotates_join_code",
+        "program": "HOLDING"
+      },
+      {
+        "name": "operator_event_end_exits_container",
+        "exit_code": 0
+      }
+    ],
+    "passed": true
+  },
+  "restored_local_studio": {
+    "occupied": 5,
+    "primary_slot": 4,
+    "audio_slot": 1,
+    "actual": "LIVE",
+    "graphics_ready": "breadcast-default-v1",
+    "scores_unknown": true
+  },
+  "other_checks": {
+    "compose_config_valid": true,
+    "python_and_javascript_syntax_valid": true,
+    "launcher_resolves_compose_from_outside_repo": true,
+    "bundled_fonts_and_vendor_files_match_source_hashes": true,
+    "private_runtime_and_node_dependencies_ignored": true
+  },
+  "limits": "Sample media and Chrome fake cameras only. No physical phones, remote deployment, provider integration, or Linux AMD64 execution in this check.",
+  "local_artifacts": ".runtime/layout-review",
+  "source_sha256": {
+    "Dockerfile": "bd72621a543a9f3ff243b127829c96a8cca21fa734f7594dd17c9c2deae21738",
+    ".dockerignore": "2f1c36bed9d354028b5a9eb7d3e0c3f442d655b9a67f3724a13ad87d1cdf97c0",
+    ".gitignore": "16250593af8740a564c9b41f06ea4c3adb300ddc08440b36c56e3b33dfb8dafb",
+    ".gitattributes": "2b84049ce411ac7f042a7913f40e322e3d858ad1ed637bbedf88d0a033d5b33e",
+    "compose.yaml": "8057f2988b497567d24545a42f4018f8edbc2cbee561917887e5504c287dda45",
+    "requirements.lock": "a6ed12436c246caf9a5faf1b99f580c0743c9b28ea6deef0921f6f94e3a28d33",
+    "app/graphics.py": "6c94146e7ac02e1cfd5bb010b9e3ecad84c9d7341ab707b4db4605cb4b78a777",
+    "app/media.py": "038d450f53c55da32d041a7bc12f4c2990976351e02a79f3e0145764d5a55e4d",
+    "app/studio.py": "299dd8f5d69f39f3aaf45a1eff58f89ee4faebe05c22ed72ca777642a809e29b",
+    "docker/healthcheck.py": "0186c7d84bb1cff952e11c87fc720cc6be34118619dc1bfb5f49d5ea0d9ba6ab",
+    "docker/entrypoint.sh": "149531be341a28a7c6123f2c224b0e55d7c147d0c099346a312d2b5517aac238",
+    "scripts/studio": "c9bea4e96fa12455c28b543381f1aabc26603b2be3dc3665269c491908c3da08",
+    "scripts/run-mediamtx.sh": "a4d0fd83c58024159a50a2a17ad5d442f0fbb094cb31892f3cdb90dc12ba1906",
+    "tests/unit/test_graphics.py": "eea8b32b72973842ef1c7dfb34f7fb93bc16bb81c756454b69f1d844184f36a1",
+    "tests/unit/test_leases.py": "1b8a185dd9198f443e2d77f4401a55d1b0614f0cb1dd1ab053f0d8d43d925cc6",
+    "tests/media/docker-check.py": "42c846cb7931c043d0d73ab8705238d02eea86983be02e392aa8af78504fb1da",
+    "tests/media/graphics_check.py": "5b68b83228e5c23cbab7ddf5d04cb8d647c8e7ded67a7018b4bb0c10dd4c9d04",
+    "tests/media/check.py": "bf4473a25914d7ea98d01a8ba9306cc00b75a8195f2233b98ec5656a60eab9b5",
+    "tests/browser/graphics-check.cjs": "959535f78d8b02de318b30c6fca7f56dc1471dcdd91a8efc97c5adb09c3f349b",
+    "tests/browser/ui-check.cjs": "bb3b2c5dcda4403b5fc7fb9866cb5454024d5696ae595b2367b655d18ed53f3b",
+    "tests/browser/browser-check.cjs": "9a4c125905676bdf3e109b30b0f99410b9a44c5d8b3f3e1e845e24e139d64221",
+    "tests/fixtures/demo.mp4": "5e70b96ad27dc8581424be7069ee9de8da9388b716e6fe213d88385f19baf80a"
+  }
+}

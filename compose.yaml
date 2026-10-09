@@ -15,6 +15,10 @@ services:
       - "${BREADCAST_WEBRTC_PORT:-8189}:${BREADCAST_WEBRTC_PORT:-8189}/udp"
     environment:
       BREADCAST_PUBLIC_URL: ${BREADCAST_PUBLIC_URL:?Set BREADCAST_PUBLIC_URL to the reachable browser origin}
+      BREADCAST_PUBLIC_PATH_PREFIX: ${BREADCAST_PUBLIC_PATH_PREFIX:-}
+      BREADCAST_OPERATOR_AUTH: token
+      BREADCAST_OPERATOR_TOKEN_FILE: /run/secrets/operator_token
+      BREADCAST_RUNTIME: /var/lib/breadcast-studio
       BREADCAST_ICE_HOSTS: ${BREADCAST_ICE_HOSTS:-}
       BREADCAST_BIND: ${BREADCAST_BIND:-0.0.0.0}
       BREADCAST_PORT: ${BREADCAST_PORT:-8080}
@@ -26,5 +30,22 @@ services:
       BREADCAST_ICE_SERVERS: ${BREADCAST_ICE_SERVERS:-}
       BREADCAST_TLS_CERT: ${BREADCAST_TLS_CERT:-}
       BREADCAST_TLS_KEY: ${BREADCAST_TLS_KEY:-}
+    secrets:
+      - operator_token
+    volumes:
+      - studio-runtime:/var/lib/breadcast-studio
+      - ./.runtime/tls:/run/breadcast/tls:ro
     stop_grace_period: 60s
     restart: "no"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+secrets:
+  operator_token:
+    file: ${BREADCAST_OPERATOR_TOKEN_SOURCE:-.runtime/operator-token}
+
+volumes:
+  studio-runtime:

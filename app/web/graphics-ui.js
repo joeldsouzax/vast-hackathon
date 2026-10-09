@@ -17,16 +17,16 @@ function graphicInput(preview = false) {
   return data;
 }
 async function updateGraphicPreview() {
-  if (!selectedGraphic) return;
+  if (!selectedGraphic || !operatorAuthorized) return;
   const revision = ++graphicPreviewRevision;
   try {
-    const response = await fetch('/api/graphics/preview', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(graphicInput(true))});
+    const response = await operatorFetch('/api/graphics/preview', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(graphicInput(true))});
     if (!response.ok) {
       if (revision === graphicPreviewRevision) message((await response.json()).error);
       return;
     }
     const blob = await response.blob();
-    if (revision !== graphicPreviewRevision) return;
+    if (revision !== graphicPreviewRevision || !operatorAuthorized) return;
     if (graphicPreviewUrl) URL.revokeObjectURL(graphicPreviewUrl);
     graphicPreviewUrl = URL.createObjectURL(blob); el('graphic-preview').src = graphicPreviewUrl;
   } catch (error) { if (revision === graphicPreviewRevision) message('Cannot load the graphics preview.'); }
@@ -56,7 +56,7 @@ function renderGraphicGallery() {
   el('graphics-gallery').replaceChildren(...graphicsCatalog.filter(spec => graphicsCategory === 'All' || spec.category === graphicsCategory).map(spec => {
     const button = document.createElement('button'); button.type = 'button'; button.className = 'graphic-tile';
     button.setAttribute('aria-pressed', String(selectedGraphic?.id === spec.id));
-    const img = document.createElement('img'); img.src = `/api/graphics/thumbnail/${spec.id}`; img.alt = ''; img.loading = 'lazy';
+    const img = document.createElement('img'); loadProtectedAsset(img, `/api/graphics/thumbnail/${spec.id}`).catch(() => {}); img.alt = ''; img.loading = 'lazy';
     const name = document.createElement('span'); name.textContent = spec.name;
     const category = document.createElement('small'); category.textContent = spec.category;
     button.append(img, name, category); button.onclick = () => selectGraphic(spec); return button;
@@ -110,8 +110,11 @@ el('score-form').onsubmit = async event => {
 for (const id of ['graphic-title', 'graphic-subtitle', 'graphic-duration']) el(id).addEventListener('input', scheduleGraphicPreview);
 for (const id of scoreFields) el(id).addEventListener('input', () => { if (id.startsWith('score-clock')) scoreClockDirty = true; el('score-confirmed').checked = false; if (selectedGraphic?.slot === 'score') scheduleGraphicPreview(); });
 async function loadGraphicsCatalog() {
+  if (!operatorAuthorized) return;
   try {
-    const catalog = await api('/api/graphics/catalog'); graphicsCatalog = catalog.assets;
+    const catalog = await api('/api/graphics/catalog');
+    if (!operatorAuthorized) return;
+    graphicsCatalog = catalog.assets;
     el('graphics-count').textContent = `${graphicsCatalog.length} designs · ready to serve`;
     const categories = ['All', ...new Set(graphicsCatalog.map(spec => spec.category))];
     el('graphics-filters').replaceChildren(...categories.map(category => {
@@ -123,4 +126,11 @@ async function loadGraphicsCatalog() {
     selectGraphic(graphicsCatalog[0]);
   } catch (error) { el('graphics-count').textContent = 'Graphics unavailable'; message(error.message); }
 }
+window.addEventListener('breadcast-operator-ready', loadGraphicsCatalog);
 loadGraphicsCatalog();
+
+window.addEventListener('breadcast-operator-locked', () => {
+  ++graphicPreviewRevision; clearTimeout(graphicPreviewTimer);
+  if (graphicPreviewUrl) {URL.revokeObjectURL(graphicPreviewUrl); graphicPreviewUrl = undefined;}
+  el('graphic-preview').removeAttribute('src');
+});

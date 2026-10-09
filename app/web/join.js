@@ -8,7 +8,7 @@ const joinReady = api('/api/viewer').then(state => {
   updateJoinNavigation(state.join_url);
   if (!code) {
     code = new URL(state.join_url).searchParams.get('code');
-    history.replaceState(null, '', '/join?code=' + encodeURIComponent(code));
+    history.replaceState(null, '', publicPath('/join') + '?code=' + encodeURIComponent(code));
   }
 }).catch(error => {if (!code) throw error;});
 joinReady.catch(() => {});
@@ -58,7 +58,7 @@ startButton.onclick = () => {
   if (!lease || !stream) return;
   startButton.disabled = true; message();
   publisher = new MediaMTXWebRTCPublisher({
-    url: `${location.origin}/media/${lease.source_path}/whip`, token: lease.token, stream,
+    url: `${location.origin}${publicPath(`/media/${lease.source_path}/whip`)}`, token: lease.token, stream,
     videoCodec: 'h264', videoBitrate: 1500, audioCodec: 'opus', audioBitrate: 64, audioVoice: false,
     onConnected: () => { sharingState('sharing'); status.textContent = `Connected as Camera ${lease.slot}`; message(); },
     onError: error => { message(`Connection issue: ${error}. Reconnecting while this slot remains valid.`); },
@@ -83,8 +83,8 @@ setInterval(async () => {
 window.addEventListener('pagehide', () => {
   if (publisher) publisher.close();
   if (stream) stream.getTracks().forEach(track => track.stop());
-  if (lease) fetch(`/api/lease/${lease.lease_id}/release`, {
+  if (lease) operatorFetch(`/api/lease/${lease.lease_id}/release`, {
     method: 'POST', headers: {'Content-Type': 'application/json', Authorization: `Bearer ${lease.token}`},
     body: '{}', keepalive: true,
-  });
+  }, lease.token).catch(() => {});
 });

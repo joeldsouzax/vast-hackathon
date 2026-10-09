@@ -1,0 +1,140 @@
+{
+  "evidence_scope": "historical validation",
+  "environment": "Linux ARM64 Docker Engine through Colima on Apple ARM Mac; host Chrome",
+  "image_id": "sha256:31d2532d4a5dc435e92d3a62eac61b3e2d5c7d1832656ec1ad4ba195798a82fd",
+  "versions": {
+    "mediamtx": "v1.20.1",
+    "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+    "python": "Python 3.13.16",
+    "package_source": "docker"
+  },
+  "pages": {
+    "/": "Broadcast: program video and camera QR; viewer access",
+    "/operator": "Operator: controls and program preview; operator access; no QR",
+    "/broadcast": "Broadcast alias",
+    "/watch": "Broadcast alias",
+    "navigation": "Top Broadcast and Operator tabs; changing tabs does not grant permissions"
+  },
+  "access": "Separate per-run viewer and operator bearer keys, supplied in fragment links and moved into separate sessionStorage entries. No SaaS accounts or identity provider.",
+  "ui": {
+    "passed": true,
+    "browser": "154.0.8037.98",
+    "mode": "Local Docker browser UI and role checks; no physical phone scan or account identity service",
+    "checks": [
+      {
+        "name": "locked_pages_show_login_without_broken_media"
+      },
+      {
+        "name": "operator_login_recovers_from_expired_key_and_hides_qr"
+      },
+      {
+        "name": "broadcast_has_video_and_decodable_qr_only",
+        "width": 221,
+        "height": 221,
+        "natural_width": 270,
+        "payload_matches_join_link": true
+      },
+      {
+        "name": "viewer_cannot_use_operator_apis_or_read_camera_feeds"
+      },
+      {
+        "name": "tabs_preserve_viewer_access_without_granting_admin_access"
+      },
+      {
+        "name": "operator_rotation_updates_broadcast_qr_and_revokes_old_join_code"
+      },
+      {
+        "name": "mobile_pages_fit_viewport_and_qr_decodes",
+        "width": 270,
+        "height": 270,
+        "natural_width": 270,
+        "payload_matches_join_link": true
+      },
+      {
+        "name": "qr_failure_shows_retry_state_and_recovers"
+      }
+    ],
+    "page_errors": []
+  },
+  "browser_media": {
+    "passed": true,
+    "mode": "Chrome fake camera devices; physical phones not tested",
+    "browser": "154.0.8037.98",
+    "checks": [
+      {
+        "name": "one_browser_camera_to_webrtc_viewer",
+        "width": 640,
+        "height": 360,
+        "frames": 61
+      },
+      {
+        "name": "browser_replay_and_return_without_encoder_restart"
+      },
+      {
+        "name": "five_browser_cameras_stream_and_decode",
+        "slots": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      {
+        "name": "sixth_browser_camera_rejected"
+      },
+      {
+        "name": "browser_stop_releases_all_camera_slots"
+      }
+    ],
+    "page_errors": []
+  },
+  "admission_tests": {
+    "passed": true,
+    "count": 7
+  },
+  "artifacts": {
+    "broadcast-fixed.png": "_experiments/studio/.run/ui-review/broadcast-fixed.png",
+    "operator-fixed.png": "_experiments/studio/.run/ui-review/operator-fixed.png"
+  },
+  "additional_artifacts": {
+    "operator-mobile.png": "_experiments/studio/.run/ui-review/operator-mobile.png",
+    "broadcast-mobile.png": "_experiments/studio/.run/ui-review/broadcast-mobile.png"
+  },
+  "fixes": [
+    "Hide media and controls before authorized access; show separate viewer/operator forms.",
+    "Use native QR proportions, a white quiet zone, and pixel rendering; decode displayed QR on desktop and mobile.",
+    "Handle new access-key fragments when navigating to the same page.",
+    "Close error HTTP responses to prevent rejected, unread media request bodies from corrupting the next request.",
+    "Show and recover from a failed QR image request without reverting to login."
+  ],
+  "limits": [
+    "No physical phone QR scan, remote HTTPS hosting, or production account login.",
+    "Camera capture-time synchronization remains unknown; model providers remain unconnected."
+  ],
+  "validation_runs": {
+    "ui": "Separate temporary container on host 18080, media 18189; same built image.",
+    "browser_media": "Main container on host 8080, media 8189; passed before an external Docker stop.",
+    "main_state": "Stopped; left stopped after observed external stop."
+  },
+  "source_sha256": {
+    "_experiments/studio/studio.py": "5fb6314f4b536f5a45ff77c01bc3b4e60394045228156e3696878f17e5c7dafd",
+    "_experiments/studio/check.py": "e89c9cb134fb87c1cafb185c359f933b5e1ff1f2112081652d7d59e6276800e7",
+    "_experiments/studio/tests/ui-check.cjs": "998a68443d5757747a9e5b328b8e30c8dd903d833c3f3aa934632ec2e2665142",
+    "_experiments/studio/tests/browser-check.cjs": "12b3f83babb4df7f4b70b8d12ee7464572c224ae8cf5931d08745ab1e4ed35ac",
+    "_experiments/studio/tests/package.json": "c6e81d0748c5f47774a75e04c23654112c09d45e848f4fad39603f894b22612b",
+    "_experiments/studio/tests/package-lock.json": "97b6bcfc02ece5cd00f012e37e0655f7cffa2f232a75a71e0dd257eb6bfe91a3",
+    "_experiments/studio/web/broadcast.js": "8c2809bb511813cea7a00768116911a088177eba537594dd3b67cac20466cbcc",
+    "_experiments/studio/web/common.js": "b0a4a54c331d8f4ab3ee5c2fb65f1674af098f2226fefc9003f5e29c050d4018",
+    "_experiments/studio/web/join.html": "fe7b24d76c238d69706db126e1573f0a91229f32fa4e2e90bb11d4bb6e0670bd",
+    "_experiments/studio/web/join.js": "4f27c406b4008e8b0d4dc2f97567e4683de31b9e0de2edf5126e89da7637672f",
+    "_experiments/studio/web/operator.html": "9b8d34632d12fb4262af42488edc64c54452f818ab26e976650994a7dbcb45aa",
+    "_experiments/studio/web/operator.js": "da4c36d2af59563d2757488b946df0ba0ae0075567fd99337641788fcd79fb9d",
+    "_experiments/studio/web/style.css": "2c5152d87fda8a48b994eb7de027d089cc3278c20cd52cc95ad17d48563c22ad",
+    "_experiments/studio/web/vendor/LICENSE": "ecae73b0a23185a35a1222edc0aae5245bb9739420bad0125b0c42e935301a80",
+    "_experiments/studio/web/vendor/publisher.js": "ed94a74e13b11398309ef51590495f3d2b9d4fde159f251fbd77d06c9ff335d0",
+    "_experiments/studio/web/vendor/reader.js": "a802f229b803c33713d4c69c4cc0d480108a5bf384947aeee4aaf04268bf85c1",
+    "_experiments/studio/web/vendor/sources.json": "1ee72dd87c4b76bf2e8883997300843a6c85d530dc8c8f9d7f1c0e8642789016",
+    "_experiments/studio/web/watch.html": "11a740dff5c103b7b641475bc60b8f6a401f4434c8303cf7fbcd8d2fdbd5b0e6"
+  }
+}

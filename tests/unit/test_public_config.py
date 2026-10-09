@@ -12,8 +12,8 @@ class PublicConfig(unittest.TestCase):
     def test_blank_optional_deployment_variables_do_not_become_directory_paths(self):
         import studio
         with tempfile.TemporaryDirectory() as directory, \
-             patch.dict('os.environ',{'BREADCAST_PUBLIC_URL':'http://203.0.113.12:8080',
-                 'BREADCAST_BIND':'0.0.0.0','BREADCAST_FOUNDATION_CONFIG':'',
+             patch.dict('os.environ',{'BREADCAST_PUBLIC_URL':'https://203.0.113.12:8080',
+                 'BREADCAST_BIND':'127.0.0.1','BREADCAST_OPERATOR_AUTH':'proxy','BREADCAST_FOUNDATION_CONFIG':'',
                  'BREADCAST_ICE_SERVERS':'','BREADCAST_TLS_CERT':'','BREADCAST_TLS_KEY':''},clear=True), \
              patch('sys.argv',['studio.py','serve','--runtime',directory]), \
              patch.object(studio,'App') as app,patch.object(studio.uvicorn,'Server'), \
@@ -32,7 +32,7 @@ class PublicConfig(unittest.TestCase):
             try:
                 self.assertEqual(app.cfg.public_url,'http://203.0.113.12:9080')
                 self.assertEqual(app.cfg.ice_hosts,('203.0.113.12',))
-                with TestClient(web_api(app,manage_lifecycle=False)) as client:
+                with TestClient(web_api(app,manage_lifecycle=False),client=("127.0.0.1",12345)) as client:
                     expected=app.join_url()
                     self.assertTrue(expected.startswith('http://203.0.113.12:9080/join?code='))
                     self.assertEqual(client.get('/api/viewer').json()['join_url'],expected)

@@ -5,10 +5,29 @@ repo_dir="$(cd -- "$script_dir/.." && pwd)"
 command="${1:-serve}"
 if [[ $# -gt 0 ]]; then shift; fi
 compose=(docker compose --project-directory "$repo_dir" -f "$repo_dir/compose.yaml")
+contract_inputs_sha256() {
+  # Hash the packaged contract definitions and authoritative examples, in order.
+  # The checker recomputes this manifest inside the image before accepting it.
+  (
+    cd -- "$repo_dir"
+    for contract_path in app/foundation_records.py app/replay.py \
+      docs/examples/event-context.example.json docs/examples/observation.example.json \
+      docs/examples/program-proposal.example.json docs/examples/replay-plan.example.json \
+      docs/examples/scene.example.json; do
+      shasum -a 256 "$contract_path"
+    done
+  ) | shasum -a 256 | cut -d ' ' -f 1
+}
 case "$command" in
   serve) exec "${compose[@]}" up --build "$@" studio ;;
   sample) exec "${compose[@]}" exec studio breadcast-studio sample "$@" ;;
   check) exec "${compose[@]}" run --build --rm --no-deps studio check "$@" ;;
+  one-camera-check)
+    output_dir="$repo_dir/.runtime/one-camera-checks"
+    mkdir -p "$output_dir"
+    exec "${compose[@]}" run --build --rm --no-deps \
+      --user "$(id -u):$(id -g)" \
+      -v "$output_dir:/evidence" studio one-camera-check --evidence /evidence "$@" ;;
   foundation-check|direction-check|replay-check)
     output_dir="$repo_dir/.runtime/${command}s"
     mkdir -p "$output_dir"
@@ -24,10 +43,10 @@ case "$command" in
       -e BREADCAST_RUNTIME=/tmp/breadcast-foundation \
       -e BREADCAST_CHECK_COMMIT="$(git -C "$repo_dir" rev-parse HEAD)" \
       -e BREADCAST_CHECK_DIFF_SHA256="$(git -C "$repo_dir" diff --binary HEAD | shasum -a 256 | cut -d ' ' -f 1)" \
-      -e BREADCAST_CHECK_HANDOFF_SHA256="$(shasum -a 256 "$repo_dir/docs/21-timely-replays.md" | cut -d ' ' -f 1)" \
+      -e BREADCAST_CHECK_CONTRACT_SHA256="$(contract_inputs_sha256)" \
       -v "$output_dir:/evidence" breadcast-studio:foundation "$command" --evidence /evidence "$@" ;;
   foundation-capabilities|foundation-query|foundation-worker)
     exec "${compose[@]}" run --rm --no-deps studio "$command" "$@" ;;
   stop|down|logs|build) exec "${compose[@]}" "$command" "$@" ;;
-  *) echo 'Usage: studio [serve|sample|check|foundation-check|direction-check|replay-check|foundation-capabilities|foundation-query|foundation-worker|stop|down|logs|build]' >&2; exit 2 ;;
+  *) echo 'Usage: studio [serve|sample|check|one-camera-check|foundation-check|direction-check|replay-check|foundation-capabilities|foundation-query|foundation-worker|stop|down|logs|build]' >&2; exit 2 ;;
 esac

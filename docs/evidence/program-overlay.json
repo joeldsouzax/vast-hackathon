@@ -1,0 +1,240 @@
+{
+  "evidence_scope": "historical validation",
+  "phase": "Tight program frame and overlay controls",
+  "passed": true,
+  "baseline_commit": "b3a74bf5b5f0b3b8c509fa52cf493e1940e22c32",
+  "changes": [
+    "Program frame matches actual video dimensions; no padded frame or separate visible status row",
+    "Persistent bottom icon groups for urgent actions, assets, local listening, and fullscreen",
+    "Shared keyboard, hover, and tap tooltips explain controls and unavailable actions",
+    "Wider 400\u2013560px desktop Crew column and smaller page gaps",
+    "Local volume changes only this browser; program state remains owned by the controller"
+  ],
+  "validation": {
+    "browser_report": ".runtime/program-overlay/browser-report.json",
+    "checks": [
+      {
+        "id": "UX1",
+        "passed": true
+      },
+      {
+        "id": "PROGRAM_OVERLAY",
+        "passed": true,
+        "geometry": {
+          "video": {
+            "x": 8,
+            "y": 70.5,
+            "width": 820.8125,
+            "height": 461.703125,
+            "bottom": 532.203125,
+            "right": 828.8125
+          },
+          "panel": {
+            "x": 8,
+            "y": 70.5,
+            "width": 820.8125,
+            "height": 461.703125,
+            "bottom": 532.203125,
+            "right": 828.8125
+          },
+          "crew": {
+            "x": 836.8125,
+            "y": 70.5,
+            "width": 435.1875,
+            "height": 721.5,
+            "bottom": 792,
+            "right": 1272
+          },
+          "controls": [
+            {
+              "x": 20,
+              "y": 488.203125,
+              "width": 32,
+              "height": 32,
+              "bottom": 520.203125,
+              "right": 52
+            },
+            {
+              "x": 54,
+              "y": 488.203125,
+              "width": 32,
+              "height": 32,
+              "bottom": 520.203125,
+              "right": 86
+            },
+            {
+              "x": 88,
+              "y": 488.203125,
+              "width": 32,
+              "height": 32,
+              "bottom": 520.203125,
+              "right": 120
+            },
+            {
+              "x": 368.40625,
+              "y": 488.203125,
+              "width": 32,
+              "height": 32,
+              "bottom": 520.203125,
+              "right": 400.40625
+            },
+            {
+              "x": 402.40625,
+              "y": 488.203125,
+              "width": 32,
+              "height": 32,
+              "bottom": 520.203125,
+              "right": 434.40625
+            },
+            {
+              "x": 436.40625,
+              "y": 488.203125,
+              "width": 32,
+              "height": 32,
+              "bottom": 520.203125,
+              "right": 468.40625
+            },
+            {
+              "x": 470.40625,
+              "y": 488.203125,
+              "width": 32,
+              "height": 32,
+              "bottom": 520.203125,
+              "right": 502.40625
+            },
+            {
+              "x": 750.8125,
+              "y": 488.203125,
+              "width": 32,
+              "height": 32,
+              "bottom": 520.203125,
+              "right": 782.8125
+            },
+            {
+              "x": 784.8125,
+              "y": 488.203125,
+              "width": 32,
+              "height": 32,
+              "bottom": 520.203125,
+              "right": 816.8125
+            }
+          ],
+          "nativeControls": false,
+          "statusVisible": false
+        },
+        "tooltip_labels": true,
+        "local_audio_only": true,
+        "fullscreen": true
+      },
+      {
+        "id": "CAMERA_CONTROLS",
+        "passed": true,
+        "filled_preview": true,
+        "controls_above_video": true,
+        "exclusive_microphone": true,
+        "mute_all": true,
+        "tooltip_keyboard_hover_escape": true
+      },
+      {
+        "id": "UX2_G2",
+        "passed": true,
+        "reconnects": 0
+      },
+      {
+        "id": "CREW_UX",
+        "passed": true,
+        "collapsed_history": true,
+        "compact_preview": true,
+        "enter_to_send": true,
+        "shift_enter_newline": true,
+        "server_message_restored": true
+      },
+      {
+        "id": "C2_C6",
+        "passed": true,
+        "two_tabs": true
+      },
+      {
+        "id": "C4",
+        "passed": true,
+        "response_aborted_after_server_execution": true,
+        "action_id": "48e677df-12b7-427d-98f9-cb707586abb5"
+      },
+      {
+        "id": "G1",
+        "passed": true
+      },
+      {
+        "id": "M3",
+        "passed": true,
+        "request_to_controller_observed_ms": 50.55566700000054,
+        "action_created_to_encoder_ms": 19.418567997490754,
+        "request_to_viewer_pixels_ms": 108.4668330000004,
+        "controller_applied_monotonic_s": 21395.843484233,
+        "ack": "encoder frame submission; viewer pixels measured separately"
+      },
+      {
+        "id": "UX3",
+        "passed": true
+      },
+      {
+        "id": "CAMERA_REMOVE",
+        "passed": true,
+        "slot": 5,
+        "mobile_tooltip_fits": true,
+        "encoder_unchanged": true
+      }
+    ],
+    "setup_report": ".runtime/program-overlay/setup.json",
+    "setup": {
+      "passed": true,
+      "one_camera_first": true,
+      "five_camera_admission": true,
+      "encoder_pid": 26,
+      "replay_id": "fe0c14092f474339b45414dcb2011f8e",
+      "mode": "Generated real RTSP fixtures; no providers or physical phones"
+    },
+    "environment": {
+      "host": "Darwin arm64",
+      "container": "Linux arm64",
+      "browser": "154.0.8037.98",
+      "media": "640x360 at 15 fps; real generated RTSP fixtures and WebRTC viewer pixels"
+    },
+    "core_baseline": "docs/evidence/camera-controls.json",
+    "core_changes": false,
+    "static_checks": [
+      "node --check app/web/operator.js",
+      "node --check app/web/graphics-ui.js",
+      "node --check tests/browser/studio-check.cjs",
+      "git diff --check"
+    ],
+    "final_review": "Fullscreen tooltip wording checked after the browser pass; no playback or action code changed."
+  },
+  "artifacts": {
+    "screenshots": [
+      ".runtime/program-overlay/studio-1440.png",
+      ".runtime/program-overlay/studio-1280.png",
+      ".runtime/program-overlay/studio-390.png"
+    ],
+    "action_trace": ".runtime/program-overlay/runtime/program-history.jsonl",
+    "replay_directory": ".runtime/program-overlay/runtime/replays",
+    "availability": "Ignored runtime artifacts remain in this workspace. Actual samples are generated fixtures, not physical phones or provider integration."
+  },
+  "original_broadcast": {
+    "container": "breadcast-studio",
+    "restarted": false
+  },
+  "failures": [],
+  "source_sha256": {
+    "app/web/operator.html": "956ecda795f7d557d94e14717cd8bcf7b87383e7f142babca246c648e6afcc43",
+    "app/web/operator.js": "e7219c205f671a2d0bd805ad8cd2a6b9befc7c118745dc456bc216226eca665a",
+    "app/web/studio.css": "a62a740f83d3a6b26f34bc0c8239fef20f73afcdc9070e4155d75a89df1b0478",
+    "app/web/graphics-ui.js": "a75079edb6875bdf708ed11bd93d7e5e3a096c8d8d5ae8c5f047a17c018046c1",
+    "app/web/vendor/lucide/icons.svg": "7f5bb522e935ed465c2c3598c137e53bfb5f7aa2964678c4a839ba5adb78b5f3",
+    "tests/browser/studio-check.cjs": "6a775d46d822bc46d145efe39b8658758b6994df43347a8b82176fc46d73772e"
+  },
+  "report_sha256": {
+    ".runtime/program-overlay/browser-report.json": "fe9ba9f139c169f43e05635975c840448d30d34dc968244e77a11020d62e1ea6",
+    ".runtime/program-overlay/setup.json": "f0dae3e7c652b4886cd1f94dfb593b0c7c049ed11587481b92eb8bf0bdc1af6d"
+  }
+}

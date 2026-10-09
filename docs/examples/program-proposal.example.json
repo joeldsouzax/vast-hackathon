@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "fixture": true,
+  "event_id": "demo-soccer-001",
+  "context_revision": 1,
+  "proposal_id": "proposal-replay-001",
+  "command_id": "command-replay-001",
+  "expected_program_revision": 7,
+  "action": "play_replay",
+  "target_asset_id": "asset-replay-demo-001",
+  "program_start_ms": 32000,
+  "latest_start_ms": 33000,
+  "duration_ms": 9000,
+  "return_policy": "current_delayed_live",
+  "reason_code": "quiet_window_replay_ready",
+  "evidence_ids": ["observation-001"],
+  "scene_id": "scene-shot-001",
+  "scene_revision": 1
+}

@@ -25,6 +25,7 @@ def main():
     parser.add_argument('--output', type=Path, default=Path('.runtime/multi-camera-replay'))
     parser.add_argument('--browser', action='store_true', help='Wait up to 60s for browser-done after media checks')
     args = parser.parse_args()
+    run_started=time.monotonic()
     folder = args.output.resolve(); folder.mkdir(parents=True, exist_ok=True)
     runtime = folder / 'runtime'; runtime.mkdir(exist_ok=True)
     cfg = Config(runtime, 'http://localhost:21080', bind='0.0.0.0', port=21080, offset=1000, print_access=False)
@@ -42,8 +43,7 @@ def main():
                            'No verified YOLO model/version or per-epoch tracker access.',
                            'No verified semantic-search endpoint, index revision, or media resolver.',
                            'No verified W&B/CoreWeave endpoint, model ID, SDK, or structured-output limits.',
-                           'No physical phones or shared-marker calibration measured on live phone media.'],
-              'started_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime())}
+                           'No physical phones or shared-marker calibration measured on live phone media.']}
     def record(name, **extra):
         report['checks'].append({'name':name, **extra}); print(name, flush=True)
     def call(path, data=None):
@@ -240,7 +240,7 @@ def main():
         stop.set()
         app.close()
         for thread in pumps: thread.join(timeout=1)
-        report['finished_utc']=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime())
+        report['elapsed_s']=time.monotonic()-run_started
         (folder/'validation.json').write_text(json.dumps(report,indent=2)+'\n')
         print(folder/'validation.json',flush=True)
 

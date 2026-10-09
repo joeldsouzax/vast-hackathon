@@ -1,0 +1,170 @@
+{
+  "evidence_scope": "historical validation",
+  "phase": "Crew UX refinement after docs/16-autonomous-studio-prd.md",
+  "passed": true,
+  "baseline_commit": "df7bd4ff41e503a636e05328cf362899cba27458",
+  "changes": [
+    "Wider Crew column and familiar message bubbles",
+    "Exact submitted chat text restored from server action records",
+    "Completed activity folded into Recent activity",
+    "Replay attachments load only when opened, at most 260 by 146 pixels",
+    "One compact composer toolbar with Lucide icons; Enter sends, Shift+Enter adds a line",
+    "Grouped event and urgent controls; compact asset tabs and camera buttons"
+  ],
+  "validation": {
+    "unit_tests": 61,
+    "unit_report": ".runtime/crew-ux-unit-tests.txt",
+    "browser_report": ".runtime/crew-ux/browser-report.json",
+    "browser_checks": [
+      {
+        "id": "UX1",
+        "passed": true
+      },
+      {
+        "id": "UX2_G2",
+        "passed": true,
+        "reconnects": 0
+      },
+      {
+        "id": "CREW_UX",
+        "passed": true,
+        "collapsed_history": true,
+        "compact_preview": true,
+        "enter_to_send": true,
+        "shift_enter_newline": true,
+        "server_message_restored": true
+      },
+      {
+        "id": "C2_C6",
+        "passed": true,
+        "two_tabs": true
+      },
+      {
+        "id": "C4",
+        "passed": true,
+        "response_aborted_after_server_execution": true,
+        "action_id": "a7d5e781-9545-4792-8168-55950923235c"
+      },
+      {
+        "id": "G1",
+        "passed": true
+      },
+      {
+        "id": "M3",
+        "passed": true,
+        "request_to_controller_observed_ms": 49.985875000000306,
+        "action_created_to_encoder_ms": 15.158999001869233,
+        "request_to_viewer_pixels_ms": 109.3159169999999,
+        "controller_applied_monotonic_s": 18660.683275896,
+        "ack": "encoder frame submission; viewer pixels measured separately"
+      },
+      {
+        "id": "UX3",
+        "passed": true
+      }
+    ],
+    "media_report": ".runtime/crew-ux/validation.json",
+    "media_sample": {
+      "name": "M2",
+      "encoded_duration_s": 122.44699999999999,
+      "frames": 1837,
+      "black_frames": 0,
+      "max_frame_gap_s": 0.11299999999999999,
+      "encoder_pid": 21,
+      "artifact": "/work/.runtime/crew-ux/program.mkv"
+    },
+    "five_minute_baseline": "docs/evidence/autonomous-studio.json",
+    "limits": "This refinement uses a two-minute real-media check. The earlier five-minute acceptance record remains a historical result for its recorded source hashes.",
+    "visual_review": {
+      "passed": true,
+      "metrics": {
+        "#crew-panel": {
+          "x": 1008.40625,
+          "y": 84.5,
+          "width": 417.59375,
+          "height": 801.5,
+          "bottom": 886
+        },
+        "#chat-form": {
+          "x": 1021.40625,
+          "y": 763,
+          "width": 391.59375,
+          "height": 110,
+          "bottom": 873
+        },
+        "#crew-actions": {
+          "x": 1021.40625,
+          "y": 196.09375,
+          "width": 391.59375,
+          "height": 219.140625,
+          "bottom": 415.234375
+        },
+        "#program": {
+          "x": 32,
+          "y": 102.5,
+          "width": 944.40625,
+          "height": 446.421875,
+          "bottom": 548.921875
+        },
+        "#takeover": {
+          "x": 15,
+          "y": 809.5,
+          "width": 119.6875,
+          "height": 34,
+          "bottom": 843.5
+        }
+      },
+      "desktop": {
+        "width": 1440,
+        "height": 900
+      },
+      "mobile": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    "visual_review_report": ".runtime/crew-ux/visual-review.json"
+  },
+  "artifacts": {
+    "directory": ".runtime/crew-ux",
+    "screenshots": [
+      ".runtime/crew-ux/crew-desktop.png",
+      ".runtime/crew-ux/crew-mobile.png"
+    ],
+    "program": ".runtime/crew-ux/program.mkv",
+    "trace": ".runtime/crew-ux/runtime/program-history.jsonl",
+    "availability": "Ignored runtime artifacts remain in the local workspace. Replace /work report paths with the repository root on the host."
+  },
+  "icons": {
+    "library": "Lucide",
+    "mode": "Vendored static SVG sprite; no runtime CDN or frontend framework",
+    "sources": "app/web/vendor/lucide/sources.json",
+    "license": "app/web/vendor/lucide/LICENSE"
+  },
+  "provider_state": "AI not connected; no scene or language inference added.",
+  "original_broadcast": {
+    "container": "breadcast-studio",
+    "restarted": false
+  },
+  "failures_and_resolutions": [
+    {
+      "kind": "fixture",
+      "failure": "The visual-review publisher was launched before access.json was ready.",
+      "resolution": "Wait for the server access file before starting sample publishers."
+    }
+  ],
+  "source_sha256": {
+    "app/control.py": "0fabd02980c1854c7f5703fdc4ebcf228744c46a242d70edbccdcf18e64cfbb4",
+    "app/web/operator.html": "1cca46da92861a34c7c6ba6496a2b296c8818038e19408f7296edebbfc61fb5a",
+    "app/web/operator.js": "df143fd759767c2ea1bfe5c4dae26ec10879e51afbf929373ccde7ee0c2d0d9d",
+    "app/web/studio.css": "58b3f453d2731c08a7ee564936a890df4b867acd116dda8979ee45f646084865",
+    "app/web/vendor/lucide/icons.svg": "4b963f77ef4adbd1473a79c5c42a6d7af17249f0ecb69f5087e2baad191e5259",
+    "tests/browser/studio-check.cjs": "c69b0413dbf4cdac2df2d0f92aeb953201d7a8cded7bf501493bc74a6cd3b834",
+    "tests/unit/test_control.py": "b4499d026cc047997e3e3c2da25bd7ca2c6a60e76aa051bd243ef0a716ab4c2a"
+  },
+  "report_sha256": {
+    ".runtime/crew-ux/browser-report.json": "ad45d9a17ef82e228dfd352bcdda88c7544b15ca975120af3f5ac738385b90cc",
+    ".runtime/crew-ux/validation.json": "bea73c7b4af1b7f838d011aa95230a16c5071fa2fd8df9cdc80db5315741f53c",
+    ".runtime/crew-ux-unit-tests.txt": "d334bd96e2dca8eee72357c4c298fbd37277cc6e80034321c18a9d95bc88a203"
+  }
+}

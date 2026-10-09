@@ -1,0 +1,232 @@
+{
+  "schema_version": "1.0",
+  "restored_on": "2026-10-09",
+  "source_backup": "hackathon-new-docs-20261009T143520710401Z",
+  "purpose": "Restore missing design documents, examples, diagrams, and historical evidence. Historical results do not verify the current checkout or live services.",
+  "files": [
+    {
+      "path": "01-sketch-review.md",
+      "sha256": "7b9dc4e2fa6b1a6ed13027e92e551972a42c1d60529b490a7d8d48f2c03a094a"
+    },
+    {
+      "path": "02-architecture.md",
+      "sha256": "5c6bc1ff272643ae9660b1a3fea53da28e1c3cfcda4e37b6280e0699ab113a44"
+    },
+    {
+      "path": "03-stack-integration.md",
+      "sha256": "3c460cf29a537ab323e4366c01d3cd21964061d3f4136c7357873891024ff0b8"
+    },
+    {
+      "path": "04-agent-instructions.md",
+      "sha256": "ce3accac2115559df845711f3b2e3660a75309ac9d66774ad3d5b450eab0639e"
+    },
+    {
+      "path": "05-context-and-contracts.md",
+      "sha256": "793b5c1c23d809d1d7c118cfca29acbbf51b4a4bbf1de9507e654cb6370a498f"
+    },
+    {
+      "path": "06-graphics-and-replays.md",
+      "sha256": "d31320ff6676df2cfdc62e3c6fa09ba049ef906012970625da9e10574e6a23ba"
+    },
+    {
+      "path": "07-build-and-demo.md",
+      "sha256": "7545bbd2b48905294ff774fcfb6961c94c0e19e591932c06eeacdb78042228e5"
+    },
+    {
+      "path": "08-sources.md",
+      "sha256": "4c943a041854986882cc0d1ea770f0e7fd26409f3cf0c91e2f11250d9afd93da"
+    },
+    {
+      "path": "09-camera-joining.md",
+      "sha256": "9f6aef2800ca3768442ddcdc50b0386eb5e20a3334663103a8e8ffa4af8bec44"
+    },
+    {
+      "path": "10-stack-review-and-work-split.md",
+      "sha256": "571959ba00366b6d23a17f96d19d88b274dbaf8028329ff371ab05a5a0cb2cfe"
+    },
+    {
+      "path": "11-media-experiment-validation.md",
+      "sha256": "556866bfa650106afbbf4fb28fa9a8b5b90892c9bd167d102e5dc46a67f29a92"
+    },
+    {
+      "path": "12-studio.md",
+      "sha256": "03bb090e7986b99b8a76c37d4987bfffc63c8f6b1f1c3f797c61067e9c1fd4b3"
+    },
+    {
+      "path": "13-graphics-package.md",
+      "sha256": "e05e99d08fd31c348c26402b3338c733c38baf1fbe5da314c191e639970128a8"
+    },
+    {
+      "path": "14-repository-layout.md",
+      "sha256": "2be1e1548649ee93c851952568390da75c290dfcae83dddcd9fca976b6556109"
+    },
+    {
+      "path": "15-multi-camera-replays.md",
+      "sha256": "d18f6fe3e708e0213e8aa808934a683e753736ce678320dfad3d182c31f50914"
+    },
+    {
+      "path": "16-autonomous-studio-prd.md",
+      "sha256": "8c1161d84259ea12208639138891c006d949a8b8dcd6d667846e923c3ba2067b"
+    },
+    {
+      "path": "17-event-understanding-and-provider-adapters-prd.md",
+      "sha256": "026fd9c3193a03cf2357284457f9887a23cbe4c047d7b7ad2ed64b4d037cfc8e"
+    },
+    {
+      "path": "18-event-foundation.md",
+      "sha256": "f1c8e8c5ecdf4fbed32166c809629a750834e5316d796c8077024a84203eb5fd"
+    },
+    {
+      "path": "19-live-direction-and-commentary-prd.md",
+      "sha256": "9727c8dd29c5e3219a3e73f66214ad5a2f095236088382b8a3a779f7dec2c1a0"
+    },
+    {
+      "path": "20-timely-replays-and-broadcast-validation-prd.md",
+      "sha256": "7a6ddd0780c0ad02f5949850169250f2cc798ab9144d48758e4796c06f302557"
+    },
+    {
+      "path": "21-timely-replays.md",
+      "sha256": "4bfe00985fe9e87fbc096a2b9572c867bae07f83d9c6589f5c860f1a0874c1ad"
+    },
+    {
+      "path": "diagrams/architecture.svg",
+      "sha256": "4dc34b61bf270e0f9c047588d67d02bc502a47b6452f0f1acd650cf5f037f80d"
+    },
+    {
+      "path": "diagrams/breadcast-graphics-package.png",
+      "sha256": "3d32aceeaf17df712a07be895fbd6d911e7c98e20dd02d86e8beb4435f1b9f87"
+    },
+    {
+      "path": "diagrams/graphics-board.svg",
+      "sha256": "ef8a05806cbd14530707c0a890b6d20e23b88e97c6e5b72a1ec34721f222241c"
+    },
+    {
+      "path": "espn.svg",
+      "sha256": "f1ad4132cb3f1780c134ba4d44a29ca889cc0727772ce81e0a3e19bb5d15f1be"
+    },
+    {
+      "path": "evidence/autonomous-studio-2026-10-06.json",
+      "sha256": "977bb8fe3b6ba448a5d2124002b0b04e64005424785fd0cb2299b182d00fc108",
+      "restored_path": "evidence/autonomous-studio.json"
+    },
+    {
+      "path": "evidence/camera-controls-2026-10-06.json",
+      "sha256": "163cfc2daf4066b6d7050e77a110840d5d146d53c58906b560b18bfa9c33831f",
+      "restored_path": "evidence/camera-controls.json"
+    },
+    {
+      "path": "evidence/crew-ux-2026-10-06.json",
+      "sha256": "fb1cb0f9cfa80fc8e5ed54bac0071b471e6c74e75bceca2ddf5b1fe5c1cd0707",
+      "restored_path": "evidence/crew-ux.json"
+    },
+    {
+      "path": "evidence/docker-experiment-2026-10-06.json",
+      "sha256": "6eca3c2d2ee25b6f59715f987bf28476a2123985582b7f2cd8c059f65d8e109b",
+      "restored_path": "evidence/docker-experiment.json"
+    },
+    {
+      "path": "evidence/event-foundation-2026-10-07.json",
+      "sha256": "5998df65b1d8d09ed98025c384a801f7d5d8ef19c2c3c302a66c77f13211d565",
+      "restored_path": "evidence/event-foundation.json"
+    },
+    {
+      "path": "evidence/live-direction-2026-10-07.json",
+      "sha256": "9bcb223bb958256608ba0d6e081cf0e80eab434a08bc6baaeecd8d1d133ea471",
+      "restored_path": "evidence/live-direction.json"
+    },
+    {
+      "path": "evidence/media-experiment-2026-10-06.json",
+      "sha256": "97c7ae1f0a5e1185b6eed2989e4980e59ddc49f958544bdfa1ead451016aa0a1",
+      "restored_path": "evidence/media-experiment.json"
+    },
+    {
+      "path": "evidence/modal-polish-2026-10-06.json",
+      "sha256": "dc4608f9b3f489954ad24d2cadd4b2d3864420083298b708de087df8679eeff2",
+      "restored_path": "evidence/modal-polish.json"
+    },
+    {
+      "path": "evidence/multi-camera-replay-2026-10-06.json",
+      "sha256": "a88a8f6dec6cf915c8f9d2e28ed444e9f6db41960787c2d5fdbfe4d6655bbdf3",
+      "restored_path": "evidence/multi-camera-replay.json"
+    },
+    {
+      "path": "evidence/prd2-audit-2026-10-07.json",
+      "sha256": "635145acf254d96080b0892f2742048a06bfc644c1b55f62f3889f39af81d5e8",
+      "restored_path": "evidence/prd2-audit.json"
+    },
+    {
+      "path": "evidence/prd2-fixes-2026-10-07.json",
+      "sha256": "93a0c6fb258d6a6ef5c1e0dfa8476e5732ac504d08939feeed632c2adc209b29",
+      "restored_path": "evidence/prd2-fixes.json"
+    },
+    {
+      "path": "evidence/program-overlay-2026-10-06.json",
+      "sha256": "42d593db049f861e0453604c82c68d69a02dab012fe4f2fa60f0a1502799920c",
+      "restored_path": "evidence/program-overlay.json"
+    },
+    {
+      "path": "evidence/replay-controls-2026-10-06.json",
+      "sha256": "0cfedfa0a915c51ba7bacee5273010e8ef3e528b682cae82373d4f1072acff1d",
+      "restored_path": "evidence/replay-controls.json"
+    },
+    {
+      "path": "evidence/studio-brand-2026-10-06.json",
+      "sha256": "264ab448b702c59e605e70f6dd18b862c046482522e63b299f4c465d198a8e1a",
+      "restored_path": "evidence/studio-brand.json"
+    },
+    {
+      "path": "evidence/studio-graphics-2026-10-06.json",
+      "sha256": "c9dab1a8939ed877f90fe347e4b3beedb13d47296a836545f0b131cf4a42c13a",
+      "restored_path": "evidence/studio-graphics.json"
+    },
+    {
+      "path": "evidence/studio-layout-2026-10-06.json",
+      "sha256": "8971b6b1bc72779d2beb9be1a59903d82aa65ffea4b7bbda3fd4a85c6929b0f3",
+      "restored_path": "evidence/studio-layout.json"
+    },
+    {
+      "path": "evidence/studio-open-pages-2026-10-06.json",
+      "sha256": "18418c8528febae9f6e1a1d70f57699204e130c8b35295ae9a0fb88b5b5db1e9",
+      "restored_path": "evidence/studio-open-pages.json"
+    },
+    {
+      "path": "evidence/studio-ui-2026-10-06.json",
+      "sha256": "9688c3878c519dccff0863e6b4ded1a9db2e6701dce86b3f8d6338f31e07dffc",
+      "restored_path": "evidence/studio-ui.json"
+    },
+    {
+      "path": "evidence/timely-replays-2026-10-07.json",
+      "sha256": "3149b2d26acabbf7873f80bb4e77889d82f9d81a1701a20a02d94c37371da340",
+      "restored_path": "evidence/timely-replays.json"
+    },
+    {
+      "path": "evidence/workspace-cleanup-2026-10-06.json",
+      "sha256": "2f4186781ad041c50498db02762b8b5254194b95798d55d5c29be14905103b37",
+      "restored_path": "evidence/workspace-cleanup.json"
+    },
+    {
+      "path": "examples/event-context.example.json",
+      "sha256": "e4d4e6689b5e7db643ae1d44552dd1e3d5b7d24e00c64347656a21a223410f57"
+    },
+    {
+      "path": "examples/observation.example.json",
+      "sha256": "664cc19d75912ad2f9db33d4c8ad7d1c7a2543a1d97c1ce063290ba4df8e51ea"
+    },
+    {
+      "path": "examples/program-proposal.example.json",
+      "sha256": "92c080046ac4bb93e7d00ed6a576bf6841da768b8d54a6c8521663109c872732"
+    },
+    {
+      "path": "examples/replay-plan.example.json",
+      "sha256": "8ce5569529b3c0cfffdd33f711d31cbb900d7f22b24ad6cfcf3b66d05c6c6954"
+    },
+    {
+      "path": "examples/scene.example.json",
+      "sha256": "c133f7138dd515abc9a52ee5e1926c95fffc576c09c8c5539eaee35bcd93f655"
+    },
+    {
+      "path": "multi-camera-replay-prompt.md",
+      "sha256": "3ec83b5e1538c227b08e3ab14e3e677aca1b81191c3850cbc5ee451d023755b9"
+    }
+  ]
+}

@@ -6,7 +6,7 @@ async function loadQR(joinUrl) {
   image.hidden = true; status.hidden = false; status.textContent = 'Loading join code…';
   let candidate;
   try {
-    const response = await fetch('/api/qr');
+    const response = await operatorFetch('/api/qr');
     if (!response.ok) throw new Error('QR unavailable');
     candidate = URL.createObjectURL(await response.blob()); image.src = candidate; await image.decode();
     if (qrUrl) URL.revokeObjectURL(qrUrl);
@@ -17,7 +17,7 @@ async function loadQR(joinUrl) {
   }
 }
 async function loadPoster() {
-  const response = await fetch('/api/preview/program');
+  const response = await operatorFetch('/api/preview/program');
   if (!response.ok) return;
   posterUrl = URL.createObjectURL(await response.blob()); document.querySelector('#program').poster = posterUrl;
 }

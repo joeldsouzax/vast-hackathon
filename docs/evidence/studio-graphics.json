@@ -1,0 +1,737 @@
+{
+  "evidence_scope": "historical validation",
+  "image_id": "sha256:2bfe7d9b9a79d7013e6a13b4d9c0a2bdf08c5c5ffc5cf96ee1c4225772a5e01e",
+  "platform": "Linux ARM64 Docker container; Chrome on Apple ARM Mac",
+  "scope": "Prepared neutral graphics and local manual controls. Physical phones, remote hosting, event-specific branding, provider models, and production fact/message schemas not integrated or verified.",
+  "versions": {
+    "mediamtx": "v1.20.1",
+    "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+    "python": "Python 3.13.16",
+    "package_source": "docker"
+  },
+  "package": {
+    "schema_version": 1,
+    "package_id": "breadcast-default-v1",
+    "ready": true,
+    "width": 640,
+    "height": 360,
+    "context_revision": null,
+    "context": "neutral Breadcast defaults; event context not bound",
+    "score_authority": "unknown until operator confirmation",
+    "resources": {
+      "fonts/outfit.ttf": "fc7287273e66929776e2ba54f144fe699080bec29f61bf649d70d871468aeade",
+      "fonts/dmsans.ttf": "8cd08d97e89c24d0aa92edd2f0f4c8ee6195eee9b7c9f154865a58b02f0c1c0d",
+      "brand/breadcast-mark.png": "42e740adbfc39c5302847763523be75d686aded307ae8f8bff5f67307b8a652c"
+    },
+    "assets": [
+      {
+        "id": "opening",
+        "name": "Fresh opening",
+        "category": "Screens",
+        "slot": "screen",
+        "title": "Welcome to breadcast.",
+        "subtitle": "Fresh perspectives. Served live.",
+        "motion": "rise",
+        "preview_sha256": "7cbd7d5fd2167e53fecb00fd17420308f7cfb4316ecb4a100111c6389e800759",
+        "bindings": [
+          "title",
+          "subtitle"
+        ]
+      },
+      {
+        "id": "countdown",
+        "name": "Countdown",
+        "category": "Screens",
+        "slot": "screen",
+        "title": "Almost out of the oven.",
+        "subtitle": "Your broadcast starts soon.",
+        "motion": "countdown",
+        "preview_sha256": "774ef734e3663a36dfb374a1060b6709c8734e61967db6bfe35ea356cf145320",
+        "bindings": [
+          "title",
+          "subtitle"
+        ]
+      },
+      {
+        "id": "break",
+        "name": "Back in a crumb",
+        "category": "Screens",
+        "slot": "screen",
+        "title": "Back in a crumb.",
+        "subtitle": "A little break. A lot more to come.",
+        "motion": "float",
+        "preview_sha256": "b691919f7b302bd0bc7fb2277d1ebefe99288642866b6f89ff7b2388e92ec891",
+        "bindings": [
+          "title",
+          "subtitle"
+        ]
+      },
+      {
+        "id": "closing",
+        "name": "That\u2019s a wrap",
+        "category": "Screens",
+        "slot": "screen",
+        "title": "That\u2019s a wrap.",
+        "subtitle": "Thanks for sharing the view.",
+        "motion": "confetti",
+        "preview_sha256": "4c6d06489e8b962e4ca713f7140f600c7264304f72cac91a3eb65aa32901acbb",
+        "bindings": [
+          "title",
+          "subtitle"
+        ]
+      },
+      {
+        "id": "spotlight",
+        "name": "Spotlight card",
+        "category": "Screens",
+        "slot": "screen",
+        "title": "A fresh perspective.",
+        "subtitle": "Take a closer look.",
+        "motion": "spotlight",
+        "preview_sha256": "4f0d02b8dc22e63abfbc64aadca480957a9e0b100e524a3bb13aa5721051f375",
+        "bindings": [
+          "title",
+          "subtitle"
+        ]
+      },
+      {
+        "id": "matchup",
+        "name": "Matchup card",
+        "category": "Screens",
+        "slot": "screen",
+        "title": "Two sides. One stage.",
+        "subtitle": "Ready for the next chapter.",
+        "motion": "split",
+        "preview_sha256": "322b0123d01f836fa48c181d2bc0fb16bef013e54a44fc00d7b69e11fec630d4",
+        "bindings": [
+          "title",
+          "subtitle"
+        ]
+      },
+      {
+        "id": "lower-classic",
+        "name": "Classic name bar",
+        "category": "Name bars",
+        "slot": "lower",
+        "title": "Now on Breadcast",
+        "subtitle": "Good views. Freshly served.",
+        "motion": "slide",
+        "preview_sha256": "e1bed18ee9dcc827771fbc7a45a8aab9576cce4a8fde50b85792e01badf3646a",
+        "bindings": [
+          "title",
+          "subtitle"
+        ]
+      },
+      {
+        "id": "lower-pill",
+        "name": "Rounded name bar",
+        "category": "Name bars",
+        "slot": "lower",
+        "title": "A fresh perspective",
+        "subtitle": "Stay in the mix.",
+        "motion": "pop",
+        "preview_sha256": "4ed21684fb8528af3fb089dc39844be85e528dbcd07c3434a779cf5e76087c6d",
+        "bindings": [
+          "title",
+          "subtitle"
+        ]
+      },
+      {
+        "id": "lower-split",
+        "name": "Split name bar",
+        "category": "Name bars",
+        "slot": "lower",
+        "title": "In the spotlight",
+        "subtitle": "A closer look.",
+        "motion": "split",
+        "preview_sha256": "71e45d2ca3037c7bbdb252c136f17c122469212551ddf544dbe0438be4860c27",
+        "bindings": [
+          "title",
+          "subtitle"
+        ]
+      },
+      {
+        "id": "lower-portrait",
+        "name": "Toast name bar",
+        "category": "Name bars",
+        "slot": "lower",
+        "title": "The freshest view",
+        "subtitle": "Made to be shared.",
+        "motion": "rise",
+        "preview_sha256": "5e3d4819f717b4180eb4ff7ea2a55b4c83639815cc50b89b7bc3073a207ae2fe",
+        "bindings": [
+          "title",
+          "subtitle"
+        ]
+      },
+      {
+        "id": "caption",
+        "name": "Caption card",
+        "category": "Name bars",
+        "slot": "lower",
+        "title": "Good things deserve a closer look.",
+        "subtitle": "",
+        "motion": "fade",
+        "preview_sha256": "e3ccf2258249a7e941b78ca782d60b4fde5af7d7be8538671b255f47945152ae",
+        "bindings": [
+          "title",
+          "subtitle"
+        ]
+      },
+      {
+        "id": "ticker",
+        "name": "Rolling ticker",
+        "category": "Banners",
+        "slot": "ticker",
+        "title": "Good bread. Great broadcasts.  \u2022  Fresh perspectives, served live.",
+        "subtitle": "",
+        "motion": "scroll",
+        "preview_sha256": "f9a0c6819d253fa37055e187a7794e2542f8a3e84ed8efb8a194b25746b65159",
+        "bindings": [
+          "title",
+          "subtitle"
+        ]
+      },
+      {
+        "id": "headline",
+        "name": "Headline ribbon",
+        "category": "Banners",
+        "slot": "banner",
+        "title": "A fresh take.",
+        "subtitle": "You\u2019re watching Breadcast.",
+        "motion": "slide",
+        "preview_sha256": "762048aceb4fb47fc7e6097382963f48bf18b9807ded95825ede7bb7acd9f9a6",
+        "bindings": [
+          "title",
+          "subtitle"
+        ]
+      },
+      {
+        "id": "toast-note",
+        "name": "Toast notification",
+        "category": "Banners",
+        "slot": "banner",
+        "title": "A little something fresh.",
+        "subtitle": "Stay for the good stuff.",
+        "motion": "pop",
+        "preview_sha256": "d41021e0e9ea730f7875fb6290ed4d9294eccac787fc369475f38a7419311f23",
+        "bindings": [
+          "title",
+          "subtitle"
+        ]
+      },
+      {
+        "id": "wide-banner",
+        "name": "Full-width banner",
+        "category": "Banners",
+        "slot": "banner",
+        "title": "Made to be shared.",
+        "subtitle": "Good views bring people together.",
+        "motion": "rise",
+        "preview_sha256": "fbb82952895f63872a1870343e619cb9f77aa1289aa62a6cb445886656968ebb",
+        "bindings": [
+          "title",
+          "subtitle"
+        ]
+      },
+      {
+        "id": "brand-bug",
+        "name": "Breadcast corner logo",
+        "category": "Corner marks",
+        "slot": "bug",
+        "title": "breadcast.",
+        "subtitle": "",
+        "motion": "fade",
+        "preview_sha256": "35f76d79bdef53c75cc09fa4a8d4046ff9fba3fe972b9e964ab039cc54f9d8a6",
+        "bindings": [
+          "title",
+          "subtitle"
+        ]
+      },
+      {
+        "id": "status-bug",
+        "name": "Program status badge",
+        "category": "Corner marks",
+        "slot": "bug",
+        "title": "breadcast.",
+        "subtitle": "",
+        "motion": "pop",
+        "preview_sha256": "212accf5d3359a9c93d4cb55449a7034cdc2e4ff8232b242b46846bd3038f354",
+        "bindings": [
+          "title",
+          "subtitle"
+        ]
+      },
+      {
+        "id": "corner-label",
+        "name": "Corner label",
+        "category": "Corner marks",
+        "slot": "bug",
+        "title": "Fresh perspectives",
+        "subtitle": "",
+        "motion": "slide",
+        "preview_sha256": "9d82d61fd594bcdfaf8a8d87773946900dd8182a2dab23b68648ceea9d3339a0",
+        "bindings": [
+          "title",
+          "subtitle"
+        ]
+      },
+      {
+        "id": "score-compact",
+        "name": "Compact scoreboard",
+        "category": "Scoreboards",
+        "slot": "score",
+        "title": "Scoreboard",
+        "subtitle": "",
+        "motion": "flip",
+        "preview_sha256": "d8509625045c6009085ead141eb397b9029fd46afc6b88718a7462260e08c449",
+        "bindings": [
+          "home",
+          "away",
+          "home_score",
+          "away_score",
+          "period",
+          "clock_seconds"
+        ]
+      },
+      {
+        "id": "score-wide",
+        "name": "Wide scoreboard",
+        "category": "Scoreboards",
+        "slot": "score",
+        "title": "Scoreboard",
+        "subtitle": "",
+        "motion": "split",
+        "preview_sha256": "913f61c169ead11bc670e6264a40c17670863e42647f9ea928828c3b53f8425f",
+        "bindings": [
+          "home",
+          "away",
+          "home_score",
+          "away_score",
+          "period",
+          "clock_seconds"
+        ]
+      },
+      {
+        "id": "toast-wipe",
+        "name": "Toast wipe",
+        "category": "Stingers",
+        "slot": "stinger",
+        "title": "breadcast.",
+        "subtitle": "",
+        "motion": "wipe",
+        "preview_sha256": "394cc92d9b6fe713ae78683b624b307c270031fdf212b8e487a04c6e8cfebca7",
+        "bindings": [
+          "title",
+          "subtitle"
+        ]
+      },
+      {
+        "id": "ribbon-sweep",
+        "name": "Ribbon sweep",
+        "category": "Stingers",
+        "slot": "stinger",
+        "title": "Freshly served.",
+        "subtitle": "",
+        "motion": "ribbons",
+        "preview_sha256": "d1f201b6456e85eb79c209b1294122f8389a871c39f62719021240b1dc4541a4",
+        "bindings": [
+          "title",
+          "subtitle"
+        ]
+      },
+      {
+        "id": "crumb-burst",
+        "name": "Crumb confetti",
+        "category": "Stingers",
+        "slot": "stinger",
+        "title": "Good views.",
+        "subtitle": "",
+        "motion": "confetti",
+        "preview_sha256": "c4ad5e245380a625ccb988aa1b6aad56bcf77aaae3361784fb6943109799926d",
+        "bindings": [
+          "title",
+          "subtitle"
+        ]
+      },
+      {
+        "id": "iris-reveal",
+        "name": "Iris reveal",
+        "category": "Stingers",
+        "slot": "stinger",
+        "title": "breadcast.",
+        "subtitle": "",
+        "motion": "iris",
+        "preview_sha256": "81936ef2a6a88e29f25274d69248bdf5710ca33b3681f17ef802e9f593948e1b",
+        "bindings": [
+          "title",
+          "subtitle"
+        ]
+      }
+    ]
+  },
+  "contract_tests": {
+    "passed": true,
+    "count": 14,
+    "command": "docker run --rm --entrypoint python3 breadcast-studio:experiment -m unittest -v test_graphics test_leases",
+    "output": "test_all_prepared_presets_animate_and_preserve_output_format (test_graphics.GraphicsContracts.test_all_prepared_presets_animate_and_preserve_output_format) ... ok\ntest_layers_expire_exit_and_report_full_coverage (test_graphics.GraphicsContracts.test_layers_expire_exit_and_report_full_coverage) ... ok\ntest_only_controller_commits_with_current_revision (test_graphics.GraphicsContracts.test_only_controller_commits_with_current_revision) ... ok\ntest_preview_does_not_commit_unconfirmed_facts (test_graphics.GraphicsContracts.test_preview_does_not_commit_unconfirmed_facts) ... ok\ntest_replay_hides_current_facts_and_keeps_brand (test_graphics.GraphicsContracts.test_replay_hides_current_facts_and_keeps_brand) ... ok\ntest_score_clock_and_update_animation (test_graphics.GraphicsContracts.test_score_clock_and_update_animation) ... ok\ntest_score_requires_explicit_confirmation_and_valid_fields (test_graphics.GraphicsContracts.test_score_requires_explicit_confirmation_and_valid_fields) ... ok\ntest_concurrent_retries_reuse_one_lease (test_leases.AdmissionTests.test_concurrent_retries_reuse_one_lease) ... ok\ntest_connected_publisher_without_media_stays_reserved (test_leases.AdmissionTests.test_connected_publisher_without_media_stays_reserved) ... ok\ntest_failed_fence_keeps_capacity_occupied (test_leases.AdmissionTests.test_failed_fence_keeps_capacity_occupied) ... ok\ntest_ignored_permission_expires_reservation (test_leases.AdmissionTests.test_ignored_permission_expires_reservation) ... ok\ntest_last_slot_race_has_one_winner (test_leases.AdmissionTests.test_last_slot_race_has_one_winner) ... ok\ntest_reconnect_holds_capacity_and_starts_new_epoch (test_leases.AdmissionTests.test_reconnect_holds_capacity_and_starts_new_epoch) ... ok\ntest_release_denies_old_token_and_reuses_slot (test_leases.AdmissionTests.test_release_denies_old_token_and_reuses_slot) ... ok\n\n----------------------------------------------------------------------\nRan 14 tests in 0.403s\n\nOK\n"
+  },
+  "first_camera_before_five": {
+    "first_ready_camera_count": 1,
+    "decoded_frames": 67,
+    "live_command_revision": 2
+  },
+  "ui": {
+    "passed": true,
+    "browser": "154.0.8037.98",
+    "mode": "Local Docker browser UI without viewer/operator keys; no physical phone scan",
+    "checks": [
+      {
+        "name": "both_pages_and_operator_api_open_without_keys"
+      },
+      {
+        "name": "old_access_fragments_and_saved_keys_are_removed"
+      },
+      {
+        "name": "broadcast_has_video_and_decodable_qr_only",
+        "width": 239,
+        "height": 239,
+        "natural_width": 270,
+        "payload_matches_join_link": true
+      },
+      {
+        "name": "tabs_switch_pages_without_login"
+      },
+      {
+        "name": "operator_rotation_updates_broadcast_qr_and_revokes_old_join_code"
+      },
+      {
+        "name": "mobile_pages_fit_viewport_and_qr_decodes",
+        "width": 268,
+        "height": 268,
+        "natural_width": 270,
+        "payload_matches_join_link": true
+      },
+      {
+        "name": "qr_failure_shows_retry_state_and_recovers"
+      },
+      {
+        "name": "brand_assets_and_fonts_load_without_experiment_labels"
+      }
+    ],
+    "page_errors": []
+  },
+  "graphics_browser": {
+    "passed": true,
+    "browser": "154.0.8037.98",
+    "mode": "Five labeled sample publishers; actual WebRTC viewer pixels; TEST scores are fixtures",
+    "checks": [
+      {
+        "name": "catalog_contains_24_prepared_designs_and_unknown_initial_scores"
+      },
+      {
+        "name": "preview_and_invalid_updates_cannot_commit_scores"
+      },
+      {
+        "name": "long_text_non_ascii_names_and_unknown_values_render_at_program_size"
+      },
+      {
+        "name": "edited_name_bar_reaches_actual_webrtc_pixels",
+        "request_to_observed_pixels_ms": 575
+      },
+      {
+        "name": "score_only_updates_preserve_running_clock"
+      },
+      {
+        "name": "operator_confirms_scores_and_starts_stops_display_clock"
+      },
+      {
+        "name": "replay_keeps_marker_and_brand_hides_current_score_then_restores_live"
+      },
+      {
+        "name": "all_24_presets_cued_with_continuous_viewer_playback",
+        "frames_submitted_ack_ms": [
+          109,
+          152,
+          47,
+          47,
+          46,
+          47,
+          46,
+          46,
+          46,
+          46,
+          46,
+          45,
+          46,
+          48,
+          47,
+          49,
+          150,
+          45,
+          51,
+          150,
+          46,
+          46,
+          45,
+          47
+        ],
+        "max_ack_ms": 152
+      },
+      {
+        "name": "countdown_and_stinger_expire_return_to_live_clears_full_screen"
+      },
+      {
+        "name": "five_cameras_remain_active_no_encoder_restart_no_page_errors_mobile_fits"
+      }
+    ],
+    "page_errors": []
+  },
+  "graphics_media": {
+    "passed": true,
+    "mode": "Five generated camera fixtures and labeled test tones; real RTSP H264/Opus output",
+    "checks": [
+      {
+        "file": "/var/lib/breadcast-studio/graphics-evidence/live.mkv",
+        "decoded_video_frames": 41,
+        "max_video_gap_s": 0.067,
+        "first_video_gap_s": 0.054,
+        "max_steady_video_gap_s": 0.067,
+        "audio_samples": 144000,
+        "middle_audio_rms": 2895.6
+      },
+      {
+        "file": "/var/lib/breadcast-studio/graphics-evidence/opening.mkv",
+        "decoded_video_frames": 39,
+        "max_video_gap_s": 0.067,
+        "first_video_gap_s": 0.067,
+        "max_steady_video_gap_s": 0.067,
+        "audio_samples": 144000,
+        "middle_audio_rms": 0.0
+      },
+      {
+        "file": "/var/lib/breadcast-studio/graphics-evidence/restored.mkv",
+        "decoded_video_frames": 43,
+        "max_video_gap_s": 0.067,
+        "first_video_gap_s": 0.067,
+        "max_steady_video_gap_s": 0.067,
+        "audio_samples": 144000,
+        "middle_audio_rms": 2894.154
+      },
+      {
+        "file": "/var/lib/breadcast-studio/graphics-evidence/replay.mkv",
+        "decoded_video_frames": 38,
+        "max_video_gap_s": 0.067,
+        "first_video_gap_s": 0.067,
+        "max_steady_video_gap_s": 0.067,
+        "audio_samples": 144000,
+        "middle_audio_rms": 0.0
+      }
+    ],
+    "encoder_pid_unchanged": true,
+    "physical_phone_tested": false
+  },
+  "continuous_program_recording": {
+    "passed": true,
+    "decoded_video_frames": 1788,
+    "duration_s": 119.133,
+    "first_video_gap_s": 0.067,
+    "max_video_gap_s": 0.067,
+    "max_steady_video_gap_s": 0.067,
+    "file": "/var/lib/breadcast-studio/graphics-evidence/all-presets-program.mkv",
+    "sha256": "51c72271a6b0a719d1bf9da50c6a287ba7e69631a02be4e4b9fa816c7d831971"
+  },
+  "core_media_regression": {
+    "mode": "sample media; not physical phones or live provider integration",
+    "checks": [
+      {
+        "name": "one_camera_program",
+        "duration_s": 5.03,
+        "encoder_pid": 45,
+        "normalized_media_age_s": 3.017
+      },
+      {
+        "name": "invalid_revision_type_rejected"
+      },
+      {
+        "name": "designated_live_audio_reaches_program",
+        "normalized_rms": 0.0875476682278831
+      },
+      {
+        "name": "five_active_cameras",
+        "slots": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      {
+        "name": "sixth_join_rejected"
+      },
+      {
+        "name": "uncalibrated_seamless_cut_rejected"
+      },
+      {
+        "name": "direct_unauthorized_publish_rejected"
+      },
+      {
+        "name": "publisher_fenced_and_slot_reused"
+      },
+      {
+        "name": "replay_speed_and_crop_presets",
+        "results": [
+          {
+            "speed": 1,
+            "zoom": 1,
+            "duration_s": 4.0,
+            "render_s": 0.22557131799931085
+          },
+          {
+            "speed": 0.5,
+            "zoom": 1.5,
+            "duration_s": 8.0,
+            "render_s": 0.3497376830000576
+          },
+          {
+            "speed": 2,
+            "zoom": 1,
+            "duration_s": 2.0,
+            "render_s": 0.1816396980002537
+          }
+        ]
+      },
+      {
+        "name": "stale_command_rejected"
+      },
+      {
+        "name": "replay_audio_muted",
+        "normalized_rms": 0.0
+      },
+      {
+        "name": "return_to_current_delayed_live",
+        "control_to_encoder_s": 0.2039554439998028,
+        "source_sequence_before": 399,
+        "source_sequence_after": 438
+      },
+      {
+        "name": "automatic_replay_return"
+      },
+      {
+        "name": "explicit_independent_view_change"
+      },
+      {
+        "name": "five_source_sustained_output",
+        "duration_s": 15.052191646999745,
+        "peak_jpeg_buffer_bytes": 51445699,
+        "encoder_pid": 45
+      },
+      {
+        "name": "primary_source_loss_to_holding"
+      },
+      {
+        "name": "program_output_decodes_with_continuous_timestamps",
+        "frames": 575,
+        "duration_s": 38.267,
+        "max_frame_gap_s": 0.06700000000000017,
+        "output": "/var/lib/breadcast-studio/evidence/20261006T204955-b62a90/program.mkv"
+      },
+      {
+        "name": "original_camera_segment_decodes",
+        "output": "/var/lib/breadcast-studio/evidence/20261006T204955-b62a90/runtime/recordings/camera/9f05ef124fde4fe2a687916d4fb4a713/2026-10-06_20-49-57-608574.mp4"
+      }
+    ],
+    "versions": {
+      "mediamtx": "v1.20.1",
+      "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+      "python": "Python 3.13.16",
+      "package_source": "docker"
+    },
+    "passed": true
+  },
+  "docker_lifecycle": {
+    "image": "breadcast-studio:experiment",
+    "checks": [
+      {
+        "name": "default_image_starts_healthy_program",
+        "user": "studio"
+      },
+      {
+        "name": "five_publishers_live_before_stop",
+        "processes": [
+          "tini",
+          "python3",
+          "mediamtx",
+          "ffmpeg",
+          "python3",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg"
+        ]
+      },
+      {
+        "name": "docker_stop_ends_all_container_processes",
+        "exit_code": 0,
+        "stop_s": 1.522,
+        "endpoint_closed": true
+      },
+      {
+        "name": "restart_clears_leases_and_rotates_join_code",
+        "program": "HOLDING"
+      },
+      {
+        "name": "operator_event_end_exits_container",
+        "exit_code": 0
+      }
+    ],
+    "passed": true
+  },
+  "restored_local_studio": {
+    "occupied": 5,
+    "primary_slot": 4,
+    "audio_slot": 1,
+    "actual": "LIVE",
+    "scores_unknown": true
+  },
+  "checks_found_and_corrected": [
+    "Initial media checker assumed the first RTSP video interval always matched one 15-fps frame. A trial interval was 0.114 seconds. The checker now records session startup separately and checks steady intervals. Final recorded program maximum interval was 0.067 seconds.",
+    "Initial replay marker pixel check used RGB tolerance 15. Compressed text had only 0.00113 matching pixels by area, versus 0.06958 at tolerance 40. The check now uses tolerance 40 for the amber marker and passed. Actual viewer frames were inspected.",
+    "Score-only edits originally reset the display clock anchor. Clock fields now carry explicit reset intent; omitted clock fields preserve the running clock. Unit and Operator/browser checks passed.",
+    "Visual review found the status badge overlapping its wordmark. Its label now has a separate line. Preview backgrounds now show the edges of pale transparent overlays."
+  ],
+  "measurements_note": "Control acknowledgements are complete frame submissions, measured with API polling. The 575-ms name-bar observation is one local request-to-WebRTC-pixel result, including animation. It is not camera-to-player latency or a percentile guarantee.",
+  "manual_visual_checks": [
+    "Prepared 24-design contact sheet",
+    "Operator desktop and 390px mobile graphics controls",
+    "Actual WebRTC name bar, scoreboard, full-screen opening, and replay marker frames"
+  ],
+  "artifacts": {
+    "preview_sheet": "docs/diagrams/breadcast-graphics-package.png",
+    "local_detail_folder": "_experiments/studio/.run/graphics-review",
+    "local_runtime_backup": "_experiments/studio/.run/before-graphics"
+  },
+  "source_sha256": {
+    "_experiments/studio/graphics.py": "6c94146e7ac02e1cfd5bb010b9e3ecad84c9d7341ab707b4db4605cb4b78a777",
+    "_experiments/studio/media.py": "038d450f53c55da32d041a7bc12f4c2990976351e02a79f3e0145764d5a55e4d",
+    "_experiments/studio/studio.py": "55cf04d3a9fc3530c1ed964481419ef765059cca77471412272a3f07a722f2ee",
+    "_experiments/studio/test_graphics.py": "eea8b32b72973842ef1c7dfb34f7fb93bc16bb81c756454b69f1d844184f36a1",
+    "_experiments/studio/graphics_check.py": "5b68b83228e5c23cbab7ddf5d04cb8d647c8e7ded67a7018b4bb0c10dd4c9d04",
+    "_experiments/studio/tests/graphics-check.cjs": "113015f2fb7c4abc06babf2f26ea27e1c767948396a29c9ac1e0d3df2fb4d084",
+    "_experiments/studio/web/graphics-ui.js": "6150656dcf62d94fb9ade8780f1800ebcc44e51261324d1982be3ef51b0853b5",
+    "_experiments/studio/web/operator.js": "ee829029061128baa2ea964fc2ce104f3bc4b3b372bb81f2efb12bd5797e99db",
+    "_experiments/studio/web/operator.html": "0b60e508f474366bbd8b0b29a8534f885a919a9d9ddcb640d6f830e111ad937f",
+    "_experiments/studio/web/style.css": "0245c4f8b1cc573387086b61a36acb24e898ef6a4afac83f7b47ab623641c304",
+    "_experiments/studio/web/brand/breadcast-mark.png": "42e740adbfc39c5302847763523be75d686aded307ae8f8bff5f67307b8a652c",
+    "_experiments/studio/Dockerfile": "0a0ab32a8f44ba9eda092a60f5269b76419fbaf36740d476ffa8e67cbd786f57",
+    "_experiments/studio/requirements.lock": "a6ed12436c246caf9a5faf1b99f580c0743c9b28ea6deef0921f6f94e3a28d33",
+    "docs/diagrams/breadcast-graphics-package.png": "3d32aceeaf17df712a07be895fbd6d911e7c98e20dd02d86e8beb4435f1b9f87"
+  }
+}

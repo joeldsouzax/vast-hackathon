@@ -16,7 +16,8 @@ def main():
     parser.add_argument("--report", type=Path, default=Path(__file__).resolve().parents[2] / ".runtime" / "docker-lifecycle.json")
     args = parser.parse_args()
     name = "breadcast-lifecycle-" + uuid.uuid4().hex[:8]
-    report = {"image": args.image, "checks": [], "started_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
+    run_started = time.monotonic()
+    report = {"image": args.image, "checks": []}
 
     def docker(*command):
         return subprocess.check_output(["docker", *command], text=True).strip()
@@ -127,6 +128,7 @@ def main():
     finally:
         subprocess.run(["docker", "rm", "-f", name], check=False, stdout=subprocess.DEVNULL)
         args.report.parent.mkdir(parents=True, exist_ok=True)
+        report['elapsed_s'] = time.monotonic() - run_started
         args.report.write_text(json.dumps(report, indent=2) + "\n")
         print("Evidence:", args.report)
 

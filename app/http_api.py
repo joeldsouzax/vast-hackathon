@@ -2,6 +2,7 @@
 from contextlib import asynccontextmanager
 import functools
 import hmac
+import html
 import io
 import json
 import mimetypes
@@ -113,6 +114,43 @@ def web_api(app, *, manage_lifecycle=True):
     api=FastAPI(lifespan=lifespan,docs_url=None,redoc_url=None,openapi_url=None)
     errors(api)
 
+    def bearer(request):
+        scheme, _, value = request.headers.get('Authorization', '').partition(' ')
+        return value if scheme.lower() == 'bearer' else ''
+
+    def operator_allowed(request):
+        mode = app.cfg.operator_auth
+        if mode == 'token':
+            token = bearer(request)
+            return bool(token and app.cfg.operator_token and
+                hmac.compare_digest(token.encode('utf-8'), app.cfg.operator_token.encode('ascii')))
+        # Proxy mode requires a verified authenticated proxy and a closed backend.
+        # No client-supplied identity or forwarded header grants this privilege.
+        return bool(request.client and request.client.host in ('127.0.0.1', '::1'))
+
+    @api.middleware('http')
+    async def access(request, call_next):
+        prefix = app.cfg.public_path_prefix
+        path = request.scope['path']
+        if prefix and path == prefix:
+            return send(307, b'', headers={'Location': prefix + '/'})
+        if prefix and path.startswith(prefix + '/'):
+            path = path[len(prefix):]
+            request.scope['path'] = path
+            request.scope['raw_path'] = path.encode('utf-8')
+        allowed = operator_allowed(request)
+        request.scope['operator_allowed'] = allowed
+        public = {'/healthz', '/api/viewer', '/api/qr', '/api/preview/program'}
+        lease_route = bool(re.fullmatch(r'/api/lease/[a-f0-9]{32}(?:/release)?', path))
+        join = path == '/api/leases' and request.method == 'POST'
+        if (path.startswith('/api/') or path.startswith('/internal/')) and path not in public and not lease_route and not join:
+            if not allowed:
+                return send(403, {'error': 'Operator access is required'})
+        # Unknown mutations fail closed, including ones outside /api/.
+        if request.method not in ('GET', 'HEAD', 'OPTIONS') and not (allowed or join or lease_route or path.startswith('/media/')):
+            return send(403, {'error': 'Operator access is required'})
+        return await call_next(request)
+
     @api.get('/healthz')
     def health():
         alive=app.gateway_process and app.gateway_process.poll() is None
@@ -176,12 +214,12 @@ def web_api(app, *, manage_lifecycle=True):
 
     @api.get('/api/lease/{lease_id}')
     def lease(lease_id:str,request:Request):
-        row=app.leases.authenticated(lease_id,request.headers.get('Authorization','').removeprefix('Bearer '))
+        row=app.leases.authenticated(lease_id,bearer(request))
         program=app.program.status()
         return send(200,{'state':row['state'],'slot':row['slot'],'on_air':program['actual']=='LIVE' and
             not program['graphics']['applied']['covers_camera'] and program['actual_target'].get('source_path')==row['path']})
 
-    def post(path,data,token=''):
+    def post(path,data,token='',operator=False):
         if app.stop.is_set():raise PermissionError('This event has ended')
         if path=='/api/leases':
             if not isinstance(data.get('code'),str) or not hmac.compare_digest(data['code'],app.join_code) or time.monotonic()>=app.join_expires:
@@ -189,8 +227,11 @@ def web_api(app, *, manage_lifecycle=True):
             return send(200,app.leases.reserve(data.get('client')))
         if path.startswith('/api/lease/') and path.endswith('/release'):
             lease_id=path.split('/')[3]
-            if token:app.leases.authenticated(lease_id,token)
+            app.leases.authenticated(lease_id,token)
             app.release(lease_id);return send(200,{})
+        if path.startswith('/api/cameras/') and path.endswith('/remove'):
+            if not operator:raise PermissionError('Operator access is required')
+            app.release(path.split('/')[3]);return send(200,{})
         if path=='/api/event/end':
             if data!={'confirm':'End broadcast','run_id':app.control.run_id}:raise ValueError('Confirm End broadcast for the current run: all cameras and viewers will disconnect')
             app.control.submit({'id':uuid.uuid4().hex,'op':'takeover','args':{}});app.stop.set();return send(200,{})
@@ -234,13 +275,14 @@ def web_api(app, *, manage_lifecycle=True):
         if path in functions:return send(200,functions[path](data))
         return send(404,{'error':'Not found'})
 
-    paths=('/api/leases','/api/lease/{lease_id}/release','/api/event/end','/api/join/rotate','/api/actions',
+    paths=('/api/leases','/api/lease/{lease_id}/release','/api/cameras/{lease_id}/remove','/api/event/end','/api/join/rotate','/api/actions',
         '/api/chat','/api/replays','/api/replay-cancel','/api/replay-validate','/api/graphics/preview','/api/program',
         '/api/replay-calibrations','/api/replay-evidence','/api/replay-window','/api/replay-select','/internal/context','/api/setup')
     async def post_endpoint(request:Request):
-        if request.url.path.startswith('/internal/') and request.client.host not in ('127.0.0.1','::1'):raise PermissionError('Internal interface requires local access')
+        path=request.scope['path']
+        if path.startswith('/internal/') and request.client.host not in ('127.0.0.1','::1'):raise PermissionError('Internal interface requires local access')
         data=await object_body(request)
-        return await run_in_threadpool(post,request.url.path,data,request.headers.get('Authorization','').removeprefix('Bearer '))
+        return await run_in_threadpool(post,path,data,bearer(request),request.scope['operator_allowed'])
     for path in paths:api.add_api_route(path,post_endpoint,methods=['POST'])
 
     @api.api_route('/media/{media_path:path}',methods=['POST','PATCH','DELETE','OPTIONS','GET'])
@@ -262,7 +304,7 @@ def web_api(app, *, manage_lifecycle=True):
             with response:
                 forwarded={k:v for k,v in response.headers.items() if k.lower() in ('location','etag','link','accept-patch','access-control-expose-headers')}
                 for key in list(forwarded):
-                    if key.lower()=='location':forwarded[key]='/media'+urllib.parse.urlsplit(urllib.parse.urljoin(upstream,forwarded[key])).path
+                    if key.lower()=='location':forwarded[key]=app.cfg.public_path('/media')+urllib.parse.urlsplit(urllib.parse.urljoin(upstream,forwarded[key])).path
                 return send(response.status,response.read(),response.headers.get('Content-Type','application/sdp'),forwarded)
         return await run_in_threadpool(proxy)
 
@@ -271,5 +313,19 @@ def web_api(app, *, manage_lifecycle=True):
         name={'':'watch.html','broadcast':'watch.html','operator':'operator.html','join':'join.html','watch':'watch.html'}.get(path,path)
         file=(ROOT/'web'/name).resolve()
         if not file.is_relative_to((ROOT/'web').resolve()) or not file.is_file():return send(404,{'error':'Not found'})
-        return send(200,file.read_bytes(),mimetypes.guess_type(str(file))[0] or 'application/octet-stream')
+        data=file.read_bytes()
+        if file.suffix in ('.html', '.css'):
+            text=data.decode('utf-8')
+            # Rewrite only local absolute asset URLs. Leave external URLs intact.
+            if app.cfg.public_path_prefix:
+                text=re.sub(r'''((?:href|src|action)=["'])/(?!/)''',
+                    lambda m:m.group(1)+app.cfg.public_path('/'),text)
+                text=re.sub(r'''(url\(["']?)/(?!/)''',
+                    lambda m:m.group(1)+app.cfg.public_path('/'),text)
+            if file.suffix=='.html':
+                meta=(f'<meta name="breadcast-prefix" content="{html.escape(app.cfg.public_path_prefix, quote=True)}">'
+                    f'<meta name="breadcast-operator-auth" content="{app.cfg.operator_auth}">')
+                text=text.replace('</head>',meta+'</head>',1)
+            data=text.encode('utf-8')
+        return send(200,data,mimetypes.guess_type(str(file))[0] or 'application/octet-stream')
     return api

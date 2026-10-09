@@ -524,10 +524,11 @@ def main():
     parser=argparse.ArgumentParser();parser.add_argument('--evidence',type=Path,default=Path('/evidence'))
     parser.add_argument('--offline',action='store_true',help='Partial file-only checks; cannot establish local-ready and returns nonzero')
     parser.add_argument('--diagnostic-seconds',type=int,help='Short isolated media diagnostics; skip regression acceptance and never claim local-ready')
-    args=parser.parse_args();folder=args.evidence/(time.strftime('%Y%m%dT%H%M%S')+'-'+uuid.uuid4().hex[:6]);folder.mkdir(parents=True)
+    run_started=time.monotonic()
+    args=parser.parse_args();folder=args.evidence/uuid.uuid4().hex;folder.mkdir(parents=True)
     if args.diagnostic_seconds is not None and not 0<args.diagnostic_seconds<300:parser.error('Diagnostic seconds must be 1–299; normal acceptance uses at least 300')
     report={'prd':'19','local_ready':False,'live_verified':False,'mode':'labeled fixtures with real media',
-        'started_utc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),'coverage':{},'failures':[],
+        'coverage':{},'failures':[],
         'versions':{name:importlib.metadata.version(name) for name in ('av','pydantic','pydantic-ai-slim','fastapi','uvicorn')},
         'open_live_gates':['Verified VAST, YOLO, Cosmos, search, W&B and speech adapters','L01-L03 and listening review','Physical phones and venue/audience validation in Task 3']}
     os.environ['PYDANTIC_AI_NO_BANNER']='1'
@@ -579,6 +580,7 @@ def main():
         report['failures'].append({'type':type(error).__name__,'reason':str(error),'traceback':traceback.format_exc()});return 1
     finally:
         socket.socket.connect=original
+        report['elapsed_s']=time.monotonic()-run_started
         (folder/'report.json').write_text(json.dumps(report,indent=2)+'\n');print('Direction report: '+str(folder/'report.json'),flush=True)
 
 

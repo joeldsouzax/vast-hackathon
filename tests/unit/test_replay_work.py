@@ -35,7 +35,7 @@ class ReplayContracts(unittest.TestCase):
         self.f=self.app.foundation;self.work=self.app.replay_work
         self.record=retained_action(self.app,self.root/'input');self.plan=ReplayPlan12.model_validate(self.record['plan'])
         self.scene=self.work.scene(self.record['scene_id'],self.record['scene_revision'])
-        self.client=TestClient(web_api(self.app,manage_lifecycle=False))
+        self.client=TestClient(web_api(self.app,manage_lifecycle=False),client=("127.0.0.1",12345))
 
     def tearDown(self):self.app.close();self.folder.cleanup()
 

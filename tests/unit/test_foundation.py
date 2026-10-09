@@ -461,7 +461,7 @@ class FoundationHTTP(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             app=App(Config(Path(directory),'http://localhost'))
             try:
-                with TestClient(web_api(app,manage_lifecycle=False)) as client:
+                with TestClient(web_api(app,manage_lifecycle=False),client=("127.0.0.1",12345)) as client:
                     self.assertEqual(client.get('/api/status').status_code,200)
                     self.assertEqual(client.get('/operator').status_code,200)
                     self.assertEqual(client.post('/api/chat',json={'id':'x','text':'x','run_id':2}).status_code,409)

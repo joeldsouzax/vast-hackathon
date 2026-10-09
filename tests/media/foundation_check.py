@@ -149,9 +149,10 @@ def main():
     parser.add_argument('--sustained-seconds',type=int,default=300)
     args=parser.parse_args()
     if args.sustained_seconds<300:parser.error('E15 requires at least 300 seconds')
-    folder=args.evidence/(time.strftime('%Y%m%dT%H%M%S')+'-'+uuid.uuid4().hex[:6]);folder.mkdir(parents=True)
+    run_started=time.monotonic()
+    folder=args.evidence/uuid.uuid4().hex;folder.mkdir(parents=True)
     report={'prd':'17','local_ready':False,'live_verified':False,'mode':'fixture providers and real encoded media',
-            'started_utc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),'coverage':{},'failures':[],
+            'coverage':{},'failures':[],
             'provider_gaps':['VAST tenant storage/trigger, YOLO, Cosmos, semantic search, W&B, and speech access are unverified'],
             'phone_gaps':['Physical phones and venue playback remain separate gates'],
             'versions':{n:importlib.metadata.version(n) for n in ('av','pydantic','pydantic-settings','pydantic-ai-slim','fastapi','uvicorn','httpx','boto3')}}
@@ -237,6 +238,7 @@ def main():
         report['failures'].append({'type':type(error).__name__,'reason':str(error)});return 1
     finally:
         socket.socket.connect=connect
+        report['elapsed_s']=time.monotonic()-run_started
         (folder/'report.json').write_text(json.dumps(report,indent=2)+'\n')
         print(f'Foundation report: {folder / "report.json"}',flush=True)
 

@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "fixture": true,
+  "event_id": "demo-soccer-001",
+  "context_revision": 1,
+  "scene_id": "scene-shot-001",
+  "scene_revision": 1,
+  "kind": "shot_attempt",
+  "status": "candidate",
+  "event_start_ms": 14000,
+  "event_end_ms": 17000,
+  "evidence_ids": ["observation-001"],
+  "official_fact_ref": null,
+  "unknowns": ["official outcome", "player identity"]
+}

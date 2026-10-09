@@ -8,6 +8,7 @@ import json
 import math
 import os
 from pathlib import Path
+import re
 import socket
 import subprocess
 import sys
@@ -49,8 +50,26 @@ REQUIRED={
  'R21':('one_camera_300s','five_sources_900s','three_viewers','complete_decode_continuity','integrated_fault_cases'),
  'R22':('encoder_failure','gateway_failure','holding_new_run','end_cleanup'),
  'R23':('contracts','no_provider_traffic','all_capability_faults','foundation_gate','direction_gate'),
- 'R24':('complete_command','missing_nonzero','artifacts','cleanup','matching_handoff'),
+ 'R24':('complete_command','missing_nonzero','artifacts','cleanup','matching_contract_inputs'),
 }
+
+
+def contract_provenance(root=ROOT, environment=None):
+    """Bind the report to contract bytes actually present in the tested image."""
+    environment=os.environ if environment is None else environment
+    paths=('app/foundation_records.py','app/replay.py',
+        'docs/examples/event-context.example.json','docs/examples/observation.example.json',
+        'docs/examples/program-proposal.example.json','docs/examples/replay-plan.example.json',
+        'docs/examples/scene.example.json')
+    hashes={path:hashlib.sha256((root/path).read_bytes()).hexdigest() for path in paths}
+    manifest=''.join(f'{digest}  {path}\n' for path,digest in hashes.items())
+    actual=hashlib.sha256(manifest.encode()).hexdigest()
+    expected=environment.get('BREADCAST_CHECK_CONTRACT_SHA256')
+    commit=environment.get('BREADCAST_CHECK_COMMIT','')
+    diff=environment.get('BREADCAST_CHECK_DIFF_SHA256','')
+    return {'input_sha256':actual,'expected_input_sha256':expected,'file_sha256':hashes,
+        'matched':actual==expected and re.fullmatch(r'[0-9a-f]{40}|[0-9a-f]{64}',commit) is not None
+            and re.fullmatch(r'[0-9a-f]{64}',diff) is not None}
 
 
 def coverage(conditions):
@@ -72,7 +91,7 @@ def preparation_measurements(folder, count=20):
             fixture=retained_action(app,root/'archive')
             finalized=max(m['finalized_utc'] for m in fixture['manifests'])
             app.foundation.start();app.replay_work.start()
-            client=TestClient(web_api(app,manage_lifecycle=False))
+            client=TestClient(web_api(app,manage_lifecycle=False),client=("127.0.0.1",12345))
             query={'id':'measure','run_id':app.control.run_id,'text':'yellow ball'}
             response=client.post('/api/search',json=query);assert response.status_code==200,response.text
             hit=response.json()['hits'][0]
@@ -271,7 +290,8 @@ def main():
     parser.add_argument('--diagnostic-seconds',type=int,help='Partial development run; always returns nonzero')
     args=parser.parse_args()
     if args.diagnostic_seconds is not None and not 1<=args.diagnostic_seconds<300:parser.error('Diagnostic seconds must be 1–299')
-    folder=args.evidence/(time.strftime('%Y%m%dT%H%M%S')+'-'+uuid.uuid4().hex[:6]);folder.mkdir(parents=True)
+    run_started=time.monotonic()
+    folder=args.evidence/uuid.uuid4().hex;folder.mkdir(parents=True)
     report={'prd':'20','local_ready':False,'live_verified':False,'device_ready':False,'complete_broadcast':False,
         'mode':'partial' if args.diagnostic_seconds else 'complete local gate attempt','coverage':{},'failures':[],
         'configuration':json.loads((ROOT/'config/replay.fixture.json').read_text()),
@@ -287,8 +307,13 @@ def main():
     pydantic_ai.models.ALLOW_MODEL_REQUESTS=False
     try:
         from foundation_records import ReplayPlan12,SegmentorResult,PublicSearchRequest,PublicSearchResult,FoundationSettings
-        (folder/'schemas.json').write_text(json.dumps({model.__name__:model.model_json_schema() for model in
-            (ReplayPlan12,SegmentorResult,PublicSearchRequest,PublicSearchResult,FoundationSettings)},indent=2)+'\n')
+        schemas={model.__name__:model.model_json_schema() for model in
+            (ReplayPlan12,SegmentorResult,PublicSearchRequest,PublicSearchResult,FoundationSettings)}
+        (folder/'schemas.json').write_text(json.dumps(schemas,indent=2)+'\n')
+        report['runtime_schema_sha256']=hashlib.sha256(json.dumps(schemas,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+        report['contract_provenance']=contract_provenance()
+        conditions['R24']['matching_contract_inputs']=report['contract_provenance']['matched']
+        if not report['contract_provenance']['matched']:raise AssertionError('Contract inputs or revision provenance do not match')
         tests=run_units(folder);report['unit']=tests
         if not tests['passed']:raise AssertionError('Unit checks failed')
         for criterion in REQUIRED:
@@ -321,8 +346,7 @@ def main():
             conditions['R19']['studio_regressions']=previous.get('regressions',{}).get('passed',False)
             conditions['R24']['complete_command']=True
         conditions['R23']['no_provider_traffic']=True
-        conditions['R24'].update(missing_nonzero=True,artifacts=True,cleanup=True,
-            matching_handoff=bool(os.environ.get('BREADCAST_CHECK_HANDOFF_SHA256')))
+        conditions['R24'].update(missing_nonzero=True,artifacts=True,cleanup=True)
     except BaseException as error:
         report['failures'].append({'type':type(error).__name__,'reason':str(error),'traceback':traceback.format_exc()})
     finally:
@@ -331,8 +355,7 @@ def main():
         report['local_ready']=not args.diagnostic_seconds and not report['failures'] and all(r['passed'] for r in report['coverage'].values())
         report['source_commit']=os.environ.get('BREADCAST_CHECK_COMMIT')
         report['dirty_diff_sha256']=os.environ.get('BREADCAST_CHECK_DIFF_SHA256')
-        report['handoff_sha256']=os.environ.get('BREADCAST_CHECK_HANDOFF_SHA256')
-        report['finished_utc']=time.time()
+        report['elapsed_s']=time.monotonic()-run_started
         (folder/'report.json').write_text(json.dumps(report,indent=2)+'\n')
         print('Replay report: '+str(folder/'report.json'),flush=True)
     return 0 if report['local_ready'] else 1

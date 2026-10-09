@@ -247,3 +247,5 @@
 #end-confirm p { margin: 12px 0 20px; line-height: 1.6; }
 .studio-page #end-confirm button { width: 100%; margin-top: 8px; border-radius: 9px; }
 .studio-page #end-confirm .danger { background: #f9eae5; border-color: #e8cec2; }
+
+.operator-login{max-width:28rem;margin:3rem auto;padding:1.5rem}.operator-login input{width:100%}.operator-login button{margin-top:1rem}.operator-lock{position:fixed;right:1rem;top:5rem;z-index:20}

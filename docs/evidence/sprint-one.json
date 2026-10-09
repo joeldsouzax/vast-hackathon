@@ -1,0 +1,74 @@
+{
+  "sprint": "S01",
+  "release_tag": "breadcast-s01-r01",
+  "status": "implementation checks passed; production pending",
+  "evidence_scope": "Precommit local validation; exact tagged commit is checked again in a clean worktree before push",
+  "unit_checks": {
+    "passed": true,
+    "count": 13,
+    "elapsed_s": 1.204,
+    "scope": "Access, public configuration, contract provenance, documented replay example"
+  },
+  "media_check": {
+    "sprint": "S01",
+    "passed": true,
+    "physical_phone_verified": false,
+    "scope": "One labeled synthetic RTSP camera through real local MediaMTX and FFmpeg; no browser, physical-phone, or provider proof",
+    "checks": [
+      {
+        "name": "starts_in_holding_until_human_start",
+        "encoder_pid": 5817
+      },
+      {
+        "name": "camera_arrival_does_not_start_program",
+        "occupied": 1
+      },
+      {
+        "name": "explicit_human_start_applies_live",
+        "application_s": 0.2079575000097975
+      },
+      {
+        "name": "decoded_live_video_advances",
+        "frames": 75,
+        "source_color_frames": 75,
+        "decoded_duration_s": 4.992,
+        "max_frame_gap_s": 0.125,
+        "encoder_pid": 5817
+      },
+      {
+        "name": "source_test_tone_reaches_program",
+        "decoded_samples": 240000,
+        "normalized_rms": 0.06149300927110717
+      }
+    ],
+    "failure": null,
+    "versions": {
+      "mediamtx": "v1.20.1",
+      "ffmpeg": "ffmpeg version 9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
+      "python": "Python 3.13.13",
+      "package_source": "local"
+    },
+    "cleanup_passed": true,
+    "elapsed_s": 11.563329790951684
+  },
+  "artifacts": {
+    "report": ".runtime/one-camera-checks/3b6b85be7307415d8f980ba5d65d0614/report.json",
+    "report_sha256": "65417ffcad3ac7681751e798f5d0f6f7ac680ab31cc743f8b4c593aff72d660f",
+    "program": ".runtime/one-camera-checks/3b6b85be7307415d8f980ba5d65d0614/program.mkv",
+    "program_sha256": "c2e6466db4e0a03dfb12b555a17840cdc29f8a40e4bd2f067e1706eea6f5a4be"
+  },
+  "not_run": [
+    {
+      "check": "Docker image build and Compose configuration",
+      "reason": "Local daemon and Compose plugin unavailable; production build required"
+    },
+    {
+      "check": "Trusted host root and /app WebRTC routing, physical phone five-minute run and restart",
+      "reason": "Production host and devices required"
+    }
+  ],
+  "live_services_verified": false,
+  "physical_rehearsal_passed": false,
+  "calendar_run_labels": "omitted",
+  "historical_results_used_as_current_acceptance": false
+}

@@ -1,0 +1,1011 @@
+{
+  "evidence_scope": "historical validation",
+  "elapsed_s": 71.0,
+  "passed": true,
+  "mode": "Synthetic staged ball action, encoded five views. Local fixture selection only.",
+  "physical_phone_sync_validated": false,
+  "live_provider_analysis_validated": false,
+  "checks": [
+    {
+      "name": "five_fixture_sources_and_live_program",
+      "occupied": 5
+    },
+    {
+      "name": "decoded_camera_order_and_clock_markers",
+      "max_clock_marker_error_ms": 33.333333333333485,
+      "continuous_cut_event_ms": 3500,
+      "combined_alignment_bound_ms": 139.33333333333425
+    },
+    {
+      "name": "continuous_cut_no_gap_or_duplicate_action",
+      "clock_step_ms": 66.66666666666667
+    },
+    {
+      "name": "repeat_and_mixed_speed_crop",
+      "repeat_duration_s": 6.0,
+      "mixed_duration_s": 6.266667,
+      "repeat_cue": "ALTERNATE ANGLE baked throughout repeated shot; browser frame checks below"
+    },
+    {
+      "name": "bounded_timestamped_visual_context",
+      "frames": 24
+    },
+    {
+      "name": "five_view_fixture_selection_rejects_obscured_angles"
+    },
+    {
+      "name": "simulated_segmentor_timeout_and_malformed_response_abstain"
+    },
+    {
+      "name": "malformed_plan_leaves_live_running"
+    },
+    {
+      "name": "unknown_mapping_and_reconnect_rejected"
+    },
+    {
+      "name": "weak_alternate_angle_falls_back",
+      "reason": "Fallback: only one view adds supported information. camera-2: No usable fixture evidence for the complete action; camera-3: No usable fixture evidence for the complete action; camera-4: No usable fixture evidence for the complete action; camera-5: No usable fixture evidence for the complete action"
+    },
+    {
+      "name": "missing_packet_across_join_rejected"
+    },
+    {
+      "name": "worker_timeout_leaves_live_running",
+      "error": "Command 'fixture-worker-timeout' timed out after 1 seconds",
+      "encoder_pid_unchanged": true
+    },
+    {
+      "name": "cancellation_releases_pins"
+    },
+    {
+      "name": "repeat_cue_current_speed_audio_muted_and_immediate_return",
+      "normalized_audio_rms": 0.0
+    },
+    {
+      "name": "automatic_return_to_live"
+    },
+    {
+      "name": "ready_replay_retraction_rejects_playback"
+    },
+    {
+      "name": "single_camera_compatibility_uses_shared_worker"
+    },
+    {
+      "name": "sixth_camera_rejected"
+    }
+  ],
+  "samples": [
+    {
+      "path": "runtime/replays/7f5e3a8aafea4874bb774ec9772e9906.mp4",
+      "report": "runtime/replays/7f5e3a8aafea4874bb774ec9772e9906.json",
+      "plan_hash": "1952c038894f6743a863f662315d09c8603a447443bad469ddee1bb2e4380299",
+      "camera_order": [
+        "camera-1",
+        "camera-2"
+      ],
+      "render_s": 0.3510435000007419,
+      "duration_s": 5.0,
+      "planned_duration_s": 5.0,
+      "sha256": "97e4667e0a63e6ef4420dc1894a94f81799b99c039ccc695c1826a2555f0b7f6",
+      "source_map": [
+        {
+          "source_id": "camera-1",
+          "source_epoch": 1,
+          "event_start_ms": 1000,
+          "event_end_ms": 3500,
+          "speed": 1,
+          "crop_normalized": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "evidence_ids": [
+            "view-1"
+          ],
+          "reason": "The wide view establishes the visible ball path and lead-in.",
+          "edit": "continuous",
+          "mapping_revision": 1,
+          "source_start_ms": 1000.0,
+          "source_end_ms": 3500.0,
+          "output_start_ms": 0.0,
+          "output_end_ms": 2500.0,
+          "retained_media": {
+            "source_path": "camera/b8e3a8a48fbd4826a85aa3a0c9de9a95",
+            "sequence": [
+              16,
+              54
+            ],
+            "pts": [
+              15360,
+              53248
+            ],
+            "time_base": "1/15360",
+            "sha256": "3eb98c0bcd7d003d83fd4db0cb27e408289bf0155f87a5be343643bcffe703e9"
+          },
+          "orientation_transform": "FFmpeg autorotate, fit and pad to program dimensions before crop",
+          "combined_alignment_bound_ms": 139.33333333333425,
+          "output_frame_start": 0,
+          "output_frame_end": 38,
+          "actual_output_start_ms": 0.0,
+          "actual_output_end_ms": 2533.3333333333335,
+          "crop_transform": {
+            "input_space": "oriented normalized program frame",
+            "input_dimensions": [
+              640,
+              360
+            ],
+            "crop_pixels_ltrb": [
+              0,
+              0,
+              640,
+              360
+            ],
+            "output_dimensions": [
+              640,
+              360
+            ]
+          }
+        },
+        {
+          "source_id": "camera-2",
+          "source_epoch": 1,
+          "event_start_ms": 3500,
+          "event_end_ms": 6000,
+          "speed": 1,
+          "crop_normalized": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "evidence_ids": [
+            "view-2"
+          ],
+          "reason": "The closer view shows the same ball movement and aftermath.",
+          "edit": "continuous",
+          "mapping_revision": 1,
+          "source_start_ms": 3500.0,
+          "source_end_ms": 6000.0,
+          "output_start_ms": 2500.0,
+          "output_end_ms": 5000.0,
+          "retained_media": {
+            "source_path": "camera/23021bbcb94e417ba8e614947574ed84",
+            "sequence": [
+              53,
+              91
+            ],
+            "pts": [
+              53248,
+              91136
+            ],
+            "time_base": "1/15360",
+            "sha256": "29b66d71a67af7bd695b9896dcedd31bc51cbd9b82af43522b468c25a119ef76"
+          },
+          "orientation_transform": "FFmpeg autorotate, fit and pad to program dimensions before crop",
+          "combined_alignment_bound_ms": 139.33333333333425,
+          "output_frame_start": 38,
+          "output_frame_end": 75,
+          "actual_output_start_ms": 2533.3333333333335,
+          "actual_output_end_ms": 5000.0,
+          "crop_transform": {
+            "input_space": "oriented normalized program frame",
+            "input_dimensions": [
+              640,
+              360
+            ],
+            "crop_pixels_ltrb": [
+              0,
+              0,
+              640,
+              360
+            ],
+            "output_dimensions": [
+              640,
+              360
+            ]
+          }
+        }
+      ],
+      "decode_passed": true,
+      "continuous_pts": true,
+      "boundary_image_mean_errors": {
+        "0": 2.1547135416666667,
+        "37": 2.193572048611111,
+        "38": 2.3893836805555555,
+        "74": 2.390763888888889
+      }
+    },
+    {
+      "path": "runtime/replays/502afebfde034303a4e865e278bf9836.mp4",
+      "report": "runtime/replays/502afebfde034303a4e865e278bf9836.json",
+      "plan_hash": "063ee3653bee7b76ac391e32394fb0829be5bc65eecb2989efeb40eb4396cf34",
+      "camera_order": [
+        "camera-1",
+        "camera-2"
+      ],
+      "render_s": 0.38846021400058817,
+      "duration_s": 6.0,
+      "planned_duration_s": 6.0,
+      "sha256": "1f9ed37323f7751530144189e25d40477b960f9cbdf3d41da6d5cea204c2ca8b",
+      "source_map": [
+        {
+          "source_id": "camera-1",
+          "source_epoch": 1,
+          "event_start_ms": 1000,
+          "event_end_ms": 3000,
+          "speed": 1,
+          "crop_normalized": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "evidence_ids": [
+            "view-1"
+          ],
+          "reason": "The wide view establishes the visible ball path and lead-in.",
+          "edit": "continuous",
+          "mapping_revision": 1,
+          "source_start_ms": 1000.0,
+          "source_end_ms": 3000.0,
+          "output_start_ms": 0.0,
+          "output_end_ms": 2000.0,
+          "retained_media": {
+            "source_path": "camera/b8e3a8a48fbd4826a85aa3a0c9de9a95",
+            "sequence": [
+              16,
+              46
+            ],
+            "pts": [
+              15360,
+              45056
+            ],
+            "time_base": "1/15360",
+            "sha256": "40fe8545539ccb2ac2998a4950125a7c5e2427b3c017424cde12bfe99e19ee3e"
+          },
+          "orientation_transform": "FFmpeg autorotate, fit and pad to program dimensions before crop",
+          "combined_alignment_bound_ms": 139.33333333333425,
+          "output_frame_start": 0,
+          "output_frame_end": 30,
+          "actual_output_start_ms": 0.0,
+          "actual_output_end_ms": 2000.0,
+          "crop_transform": {
+            "input_space": "oriented normalized program frame",
+            "input_dimensions": [
+              640,
+              360
+            ],
+            "crop_pixels_ltrb": [
+              0,
+              0,
+              640,
+              360
+            ],
+            "output_dimensions": [
+              640,
+              360
+            ]
+          }
+        },
+        {
+          "source_id": "camera-2",
+          "source_epoch": 1,
+          "event_start_ms": 1000,
+          "event_end_ms": 3000,
+          "speed": 0.5,
+          "crop_normalized": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "evidence_ids": [
+            "view-2"
+          ],
+          "reason": "The closer view shows the same ball movement and aftermath.",
+          "edit": "repeat",
+          "mapping_revision": 1,
+          "source_start_ms": 1000.0,
+          "source_end_ms": 3000.0,
+          "output_start_ms": 2000.0,
+          "output_end_ms": 6000.0,
+          "retained_media": {
+            "source_path": "camera/23021bbcb94e417ba8e614947574ed84",
+            "sequence": [
+              16,
+              46
+            ],
+            "pts": [
+              15360,
+              45056
+            ],
+            "time_base": "1/15360",
+            "sha256": "7c325bd36d1da4c8d6fb759261d64cfc6aabeeaf2449007f76207abc615608d4"
+          },
+          "orientation_transform": "FFmpeg autorotate, fit and pad to program dimensions before crop",
+          "combined_alignment_bound_ms": 139.33333333333425,
+          "output_frame_start": 30,
+          "output_frame_end": 90,
+          "actual_output_start_ms": 2000.0,
+          "actual_output_end_ms": 6000.0,
+          "crop_transform": {
+            "input_space": "oriented normalized program frame",
+            "input_dimensions": [
+              640,
+              360
+            ],
+            "crop_pixels_ltrb": [
+              0,
+              0,
+              640,
+              360
+            ],
+            "output_dimensions": [
+              640,
+              360
+            ]
+          }
+        }
+      ],
+      "decode_passed": true,
+      "continuous_pts": true,
+      "boundary_image_mean_errors": {
+        "0": 2.1547135416666667,
+        "29": 2.189140625,
+        "30": 2.9772569444444446,
+        "89": 2.813806423611111
+      }
+    },
+    {
+      "path": "runtime/replays/eec73fc4e5b54c4bae07d1a6767187dc.mp4",
+      "report": "runtime/replays/eec73fc4e5b54c4bae07d1a6767187dc.json",
+      "plan_hash": "5ef7bc097ecc8ed9c9d1fa18d6b3b2fff0d9a6cd83bf9749f63c924022cc93ca",
+      "camera_order": [
+        "camera-1",
+        "camera-2"
+      ],
+      "render_s": 0.4132972850002261,
+      "duration_s": 6.266667,
+      "planned_duration_s": 6.25,
+      "sha256": "90d6efc2ccb4ca2765e7638049820a119e1ddc2d0573de2c1cbbc03d0403c0b3",
+      "source_map": [
+        {
+          "source_id": "camera-1",
+          "source_epoch": 1,
+          "event_start_ms": 1000,
+          "event_end_ms": 3500,
+          "speed": 0.5,
+          "crop_normalized": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "evidence_ids": [
+            "view-1"
+          ],
+          "reason": "The wide view establishes the visible ball path and lead-in.",
+          "edit": "continuous",
+          "mapping_revision": 1,
+          "source_start_ms": 1000.0,
+          "source_end_ms": 3500.0,
+          "output_start_ms": 0.0,
+          "output_end_ms": 5000.0,
+          "retained_media": {
+            "source_path": "camera/b8e3a8a48fbd4826a85aa3a0c9de9a95",
+            "sequence": [
+              16,
+              54
+            ],
+            "pts": [
+              15360,
+              53248
+            ],
+            "time_base": "1/15360",
+            "sha256": "3eb98c0bcd7d003d83fd4db0cb27e408289bf0155f87a5be343643bcffe703e9"
+          },
+          "orientation_transform": "FFmpeg autorotate, fit and pad to program dimensions before crop",
+          "combined_alignment_bound_ms": 139.33333333333425,
+          "output_frame_start": 0,
+          "output_frame_end": 75,
+          "actual_output_start_ms": 0.0,
+          "actual_output_end_ms": 5000.0,
+          "crop_transform": {
+            "input_space": "oriented normalized program frame",
+            "input_dimensions": [
+              640,
+              360
+            ],
+            "crop_pixels_ltrb": [
+              0,
+              0,
+              640,
+              360
+            ],
+            "output_dimensions": [
+              640,
+              360
+            ]
+          }
+        },
+        {
+          "source_id": "camera-2",
+          "source_epoch": 1,
+          "event_start_ms": 3500,
+          "event_end_ms": 6000,
+          "speed": 2,
+          "crop_normalized": [
+            0.16666666666666666,
+            0.16666666666666666,
+            0.6666666666666666,
+            0.6666666666666666
+          ],
+          "evidence_ids": [
+            "view-2"
+          ],
+          "reason": "The closer view shows the same ball movement and aftermath.",
+          "edit": "continuous",
+          "mapping_revision": 1,
+          "source_start_ms": 3500.0,
+          "source_end_ms": 6000.0,
+          "output_start_ms": 5000.0,
+          "output_end_ms": 6250.0,
+          "retained_media": {
+            "source_path": "camera/23021bbcb94e417ba8e614947574ed84",
+            "sequence": [
+              53,
+              91
+            ],
+            "pts": [
+              53248,
+              91136
+            ],
+            "time_base": "1/15360",
+            "sha256": "29b66d71a67af7bd695b9896dcedd31bc51cbd9b82af43522b468c25a119ef76"
+          },
+          "orientation_transform": "FFmpeg autorotate, fit and pad to program dimensions before crop",
+          "combined_alignment_bound_ms": 139.33333333333425,
+          "output_frame_start": 75,
+          "output_frame_end": 94,
+          "actual_output_start_ms": 5000.0,
+          "actual_output_end_ms": 6266.666666666667,
+          "crop_transform": {
+            "input_space": "oriented normalized program frame",
+            "input_dimensions": [
+              640,
+              360
+            ],
+            "crop_pixels_ltrb": [
+              107,
+              60,
+              533,
+              300
+            ],
+            "output_dimensions": [
+              640,
+              360
+            ]
+          }
+        }
+      ],
+      "decode_passed": true,
+      "continuous_pts": true,
+      "boundary_image_mean_errors": {
+        "0": 2.220004340277778,
+        "74": 2.2380598958333335,
+        "75": 2.6359461805555555,
+        "93": 2.5817578125
+      }
+    }
+  ],
+  "target_alignment_tolerance_ms": 150.0,
+  "blockers": [
+    "No verified VAST endpoint, credentials, SDK, or immutable-object access.",
+    "No verified Cosmos endpoint, model ID, SDK, or video-window contract.",
+    "No verified YOLO model/version or per-epoch tracker access.",
+    "No verified semantic-search endpoint, index revision, or media resolver.",
+    "No verified W&B/CoreWeave endpoint, model ID, SDK, or structured-output limits.",
+    "No physical phones or shared-marker calibration measured on live phone media."
+  ],
+  "measured_clock_marker_error_ms": 33.333333333333485,
+  "browser": {
+    "passed": true,
+    "browser": "154.0.8037.98",
+    "mode": "Injected synthetic encoded media; no physical phone or provider analysis",
+    "checks": [
+      "review_shows_order_intervals_speeds_reasons_and_fixture_label",
+      "rendering_does_not_start_playback_and_live_frames_advance",
+      "encoded_preview_decodes_in_browser",
+      "manual_playback_and_immediate_return",
+      "changed_plan_requires_review_and_invalid_cut_explains_rejection",
+      "mobile_replay_editor_fits_viewport"
+    ],
+    "page_errors": []
+  },
+  "artifact_root": ".runtime/multi-camera-replay",
+  "versions": {
+    "mediamtx": "v1.20.1",
+    "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+    "python": "Python 3.13.16",
+    "package_source": "docker"
+  },
+  "unit_tests": {
+    "passed": true,
+    "count": 35,
+    "command": "python3 -m unittest discover -s tests/unit",
+    "scope": "Admission, graphics, calibration, ReplayPlan, evidence, timing, and one-camera translation",
+    "additional_checks": [
+      "Visual windows keep event time unknown outside the calibration interval.",
+      "A replaced source lease cannot expose the previous lease mapping or evidence IDs."
+    ]
+  },
+  "source_calibrations": [
+    {
+      "source_id": "camera-1",
+      "source_epoch": 1,
+      "source_path": "camera/b8e3a8a48fbd4826a85aa3a0c9de9a95",
+      "revision": 1,
+      "origin_pts": 0,
+      "time_base": "1/15360",
+      "offset_ms": 0.0,
+      "rate_correction": 1.0,
+      "uncertainty_ms": 3.0000000000004547,
+      "calibration_interval_ms": [
+        0.0,
+        7933.333333333334
+      ],
+      "markers": [
+        {
+          "pts": 0,
+          "event_ms": 0.0,
+          "label": "Shared visible clock 0.000s"
+        },
+        {
+          "pts": 61440,
+          "event_ms": 4000.0,
+          "label": "Shared visible clock 4.000s"
+        },
+        {
+          "pts": 121856,
+          "event_ms": 7933.333333333334,
+          "label": "Shared visible clock 7.933s"
+        }
+      ],
+      "measured_residual_ms": 4.547473508864641e-13,
+      "timestamp_basis": "normalized proxy PTS; original capture PTS are not available in the local buffer"
+    },
+    {
+      "source_id": "camera-2",
+      "source_epoch": 1,
+      "source_path": "camera/23021bbcb94e417ba8e614947574ed84",
+      "revision": 1,
+      "origin_pts": 0,
+      "time_base": "1/15360",
+      "offset_ms": 0.0,
+      "rate_correction": 1.0,
+      "uncertainty_ms": 3.0000000000004547,
+      "calibration_interval_ms": [
+        0.0,
+        7933.333333333334
+      ],
+      "markers": [
+        {
+          "pts": 0,
+          "event_ms": 0.0,
+          "label": "Shared visible clock 0.000s"
+        },
+        {
+          "pts": 61440,
+          "event_ms": 4000.0,
+          "label": "Shared visible clock 4.000s"
+        },
+        {
+          "pts": 121856,
+          "event_ms": 7933.333333333334,
+          "label": "Shared visible clock 7.933s"
+        }
+      ],
+      "measured_residual_ms": 4.547473508864641e-13,
+      "timestamp_basis": "normalized proxy PTS; original capture PTS are not available in the local buffer"
+    },
+    {
+      "source_id": "camera-3",
+      "source_epoch": 1,
+      "source_path": "camera/c13f944fb4ba46439e9f9397b376cd4d",
+      "revision": 1,
+      "origin_pts": 0,
+      "time_base": "1/15360",
+      "offset_ms": 0.0,
+      "rate_correction": 1.0,
+      "uncertainty_ms": 3.0000000000004547,
+      "calibration_interval_ms": [
+        0.0,
+        7933.333333333334
+      ],
+      "markers": [
+        {
+          "pts": 0,
+          "event_ms": 0.0,
+          "label": "Shared visible clock 0.000s"
+        },
+        {
+          "pts": 61440,
+          "event_ms": 4000.0,
+          "label": "Shared visible clock 4.000s"
+        },
+        {
+          "pts": 121856,
+          "event_ms": 7933.333333333334,
+          "label": "Shared visible clock 7.933s"
+        }
+      ],
+      "measured_residual_ms": 4.547473508864641e-13,
+      "timestamp_basis": "normalized proxy PTS; original capture PTS are not available in the local buffer"
+    },
+    {
+      "source_id": "camera-4",
+      "source_epoch": 1,
+      "source_path": "camera/97b0541cb82442bc89184f95ecaf1e6a",
+      "revision": 1,
+      "origin_pts": 0,
+      "time_base": "1/15360",
+      "offset_ms": 0.0,
+      "rate_correction": 1.0,
+      "uncertainty_ms": 3.0000000000004547,
+      "calibration_interval_ms": [
+        0.0,
+        7933.333333333334
+      ],
+      "markers": [
+        {
+          "pts": 0,
+          "event_ms": 0.0,
+          "label": "Shared visible clock 0.000s"
+        },
+        {
+          "pts": 61440,
+          "event_ms": 4000.0,
+          "label": "Shared visible clock 4.000s"
+        },
+        {
+          "pts": 121856,
+          "event_ms": 7933.333333333334,
+          "label": "Shared visible clock 7.933s"
+        }
+      ],
+      "measured_residual_ms": 4.547473508864641e-13,
+      "timestamp_basis": "normalized proxy PTS; original capture PTS are not available in the local buffer"
+    },
+    {
+      "source_id": "camera-5",
+      "source_epoch": 1,
+      "source_path": "camera/764daf0c120b428ab3f9c50be21b9bb4",
+      "revision": 1,
+      "origin_pts": 0,
+      "time_base": "1/15360",
+      "offset_ms": 0.0,
+      "rate_correction": 1.0,
+      "uncertainty_ms": 3.0000000000004547,
+      "calibration_interval_ms": [
+        0.0,
+        7933.333333333334
+      ],
+      "markers": [
+        {
+          "pts": 0,
+          "event_ms": 0.0,
+          "label": "Shared visible clock 0.000s"
+        },
+        {
+          "pts": 61440,
+          "event_ms": 4000.0,
+          "label": "Shared visible clock 4.000s"
+        },
+        {
+          "pts": 121856,
+          "event_ms": 7933.333333333334,
+          "label": "Shared visible clock 7.933s"
+        }
+      ],
+      "measured_residual_ms": 4.547473508864641e-13,
+      "timestamp_basis": "normalized proxy PTS; original capture PTS are not available in the local buffer"
+    }
+  ],
+  "evidence_records": [
+    {
+      "evidence_id": "view-1",
+      "revision": 1,
+      "event_id": "local-studio",
+      "scene_id": "staged-ball",
+      "scene_revision": 1,
+      "source_id": "camera-1",
+      "source_epoch": 1,
+      "mapping_revision": 1,
+      "event_start_ms": 0,
+      "event_end_ms": 7800,
+      "action": "A yellow ball moves across the frame",
+      "claim_kind": "observation",
+      "subject_visible": true,
+      "quality": "usable",
+      "adds": "Wide view establishes the path",
+      "origin": "fixture",
+      "status": "active",
+      "expires_at": 1791324845.0804448
+    },
+    {
+      "evidence_id": "view-2",
+      "revision": 1,
+      "event_id": "local-studio",
+      "scene_id": "staged-ball",
+      "scene_revision": 1,
+      "source_id": "camera-2",
+      "source_epoch": 1,
+      "mapping_revision": 1,
+      "event_start_ms": 0,
+      "event_end_ms": 7800,
+      "action": "A yellow ball moves across the frame",
+      "claim_kind": "observation",
+      "subject_visible": true,
+      "quality": "usable",
+      "adds": "Closer side view shows the ball movement",
+      "origin": "fixture",
+      "status": "active",
+      "expires_at": 1791324845.0837505
+    },
+    {
+      "evidence_id": "view-3",
+      "revision": 1,
+      "event_id": "local-studio",
+      "scene_id": "staged-ball",
+      "scene_revision": 1,
+      "source_id": "camera-3",
+      "source_epoch": 1,
+      "mapping_revision": 1,
+      "event_start_ms": 0,
+      "event_end_ms": 7800,
+      "action": "The action is hidden by a panel",
+      "claim_kind": "observation",
+      "subject_visible": false,
+      "quality": "obscured",
+      "adds": "Closer side view shows the ball movement",
+      "origin": "fixture",
+      "status": "active",
+      "expires_at": 1791324845.087111
+    },
+    {
+      "evidence_id": "view-4",
+      "revision": 1,
+      "event_id": "local-studio",
+      "scene_id": "staged-ball",
+      "scene_revision": 1,
+      "source_id": "camera-4",
+      "source_epoch": 1,
+      "mapping_revision": 1,
+      "event_start_ms": 0,
+      "event_end_ms": 7800,
+      "action": "The action is hidden by a panel",
+      "claim_kind": "observation",
+      "subject_visible": false,
+      "quality": "obscured",
+      "adds": "Closer side view shows the ball movement",
+      "origin": "fixture",
+      "status": "active",
+      "expires_at": 1791324845.0904653
+    },
+    {
+      "evidence_id": "view-5",
+      "revision": 1,
+      "event_id": "local-studio",
+      "scene_id": "staged-ball",
+      "scene_revision": 1,
+      "source_id": "camera-5",
+      "source_epoch": 1,
+      "mapping_revision": 1,
+      "event_start_ms": 0,
+      "event_end_ms": 7800,
+      "action": "The action is hidden by a panel",
+      "claim_kind": "observation",
+      "subject_visible": false,
+      "quality": "obscured",
+      "adds": "Closer side view shows the ball movement",
+      "origin": "fixture",
+      "status": "active",
+      "expires_at": 1791324845.0940218
+    }
+  ],
+  "existing_media_regression": {
+    "passed": true,
+    "report": ".runtime/replay-regression/20261006T213635-bba59e/report.json",
+    "checks": [
+      {
+        "name": "one_camera_program",
+        "duration_s": 5.04,
+        "encoder_pid": 47,
+        "normalized_media_age_s": 3.033
+      },
+      {
+        "name": "invalid_revision_type_rejected"
+      },
+      {
+        "name": "designated_live_audio_reaches_program",
+        "normalized_rms": 0.0875476682278831
+      },
+      {
+        "name": "five_active_cameras",
+        "slots": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      {
+        "name": "sixth_join_rejected"
+      },
+      {
+        "name": "uncalibrated_seamless_cut_rejected"
+      },
+      {
+        "name": "direct_unauthorized_publish_rejected"
+      },
+      {
+        "name": "publisher_fenced_and_slot_reused"
+      },
+      {
+        "name": "replay_speed_and_crop_presets",
+        "results": [
+          {
+            "speed": 1,
+            "zoom": 1,
+            "duration_s": 4.0,
+            "render_s": 0.34399050699903455
+          },
+          {
+            "speed": 0.5,
+            "zoom": 1.5,
+            "duration_s": 8.0,
+            "render_s": 0.752854803999071
+          },
+          {
+            "speed": 2,
+            "zoom": 1,
+            "duration_s": 2.0,
+            "render_s": 0.24969830000009097
+          }
+        ]
+      },
+      {
+        "name": "stale_command_rejected"
+      },
+      {
+        "name": "replay_audio_muted",
+        "normalized_rms": 0.0
+      },
+      {
+        "name": "return_to_current_delayed_live",
+        "control_to_encoder_s": 0.20524638400092954,
+        "source_sequence_before": 421,
+        "source_sequence_after": 465
+      },
+      {
+        "name": "automatic_replay_return"
+      },
+      {
+        "name": "explicit_independent_view_change"
+      },
+      {
+        "name": "five_source_sustained_output",
+        "duration_s": 15.041143652000756,
+        "peak_jpeg_buffer_bytes": 54408444,
+        "encoder_pid": 47
+      },
+      {
+        "name": "primary_source_loss_to_holding"
+      },
+      {
+        "name": "program_output_decodes_with_continuous_timestamps",
+        "frames": 598,
+        "duration_s": 39.800000000000004,
+        "max_frame_gap_s": 0.06700000000000017,
+        "output": "/work/.runtime/replay-regression/20261006T213635-bba59e/program.mkv"
+      },
+      {
+        "name": "original_camera_segment_decodes",
+        "output": "/work/.runtime/replay-regression/20261006T213635-bba59e/runtime/recordings/camera/cc21867d1bc84e94863d04f4f34d1b96/2026-10-06_21-36-36-622368.mp4"
+      }
+    ]
+  },
+  "existing_browser_regression": {
+    "ui": {
+      "report": ".runtime/replay-browser-regression/ui-report.json",
+      "passed": true,
+      "browser": "154.0.8037.98",
+      "mode": "Local Docker browser UI without viewer/operator keys; no physical phone scan",
+      "checks": [
+        {
+          "name": "both_pages_and_operator_api_open_without_keys"
+        },
+        {
+          "name": "old_access_fragments_and_saved_keys_are_removed"
+        },
+        {
+          "name": "broadcast_has_video_and_decodable_qr_only",
+          "width": 239,
+          "height": 239,
+          "natural_width": 270,
+          "payload_matches_join_link": true
+        },
+        {
+          "name": "tabs_switch_pages_without_login"
+        },
+        {
+          "name": "operator_rotation_updates_broadcast_qr_and_revokes_old_join_code"
+        },
+        {
+          "name": "mobile_pages_fit_viewport_and_qr_decodes",
+          "width": 268,
+          "height": 268,
+          "natural_width": 270,
+          "payload_matches_join_link": true
+        },
+        {
+          "name": "qr_failure_shows_retry_state_and_recovers"
+        },
+        {
+          "name": "brand_assets_and_fonts_load_without_experiment_labels"
+        }
+      ],
+      "page_errors": []
+    },
+    "media": {
+      "report": ".runtime/replay-browser-regression/browser-report.json",
+      "passed": true,
+      "mode": "Chrome fake camera devices; physical phones not tested",
+      "browser": "154.0.8037.98",
+      "checks": [
+        {
+          "name": "one_browser_camera_to_webrtc_viewer",
+          "width": 640,
+          "height": 360,
+          "frames": 61
+        },
+        {
+          "name": "browser_replay_and_return_without_encoder_restart"
+        },
+        {
+          "name": "five_browser_cameras_stream_and_decode",
+          "slots": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "name": "sixth_browser_camera_rejected"
+        },
+        {
+          "name": "browser_stop_releases_all_camera_slots"
+        }
+      ],
+      "page_errors": []
+    }
+  },
+  "corrected_failures": [
+    {
+      "failure": "The initial encoder retained JPEG full color range, so the declared yuv420p format check rejected it.",
+      "fix": "Explicit limited-range conversion and format validation now pass."
+    },
+    {
+      "failure": "The initial timestamp reset repeated one source instant at a fractional output cut.",
+      "fix": "Use half-open shot intervals and the continuous output clock. The encoded marker check now shows a single-frame forward step at the cut."
+    }
+  ],
+  "manual_encoded_frame_check": {
+    "path": ".runtime/multi-camera-replay/repeat-program.jpg",
+    "observed": "REPLAY 0.5x and ALTERNATE ANGLE are visible over synthetic view 2. No score or clock overlay is present."
+  }
+}

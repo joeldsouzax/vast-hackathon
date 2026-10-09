@@ -1,0 +1,384 @@
+{
+  "evidence_scope": "historical validation",
+  "environment": "Linux ARM64 Docker Engine in isolated Colima breadcast-experiment VM on Apple ARM Mac",
+  "docker": {
+    "Client": {
+      "Platform": {
+        "Name": "Docker Engine - Community"
+      },
+      "Version": "29.8.2",
+      "ApiVersion": "1.54",
+      "DefaultAPIVersion": "1.56",
+      "GitCommit": "7fc2dff9bc",
+      "GoVersion": "go1.27.1",
+      "Os": "darwin",
+      "Arch": "arm64",
+      "BuildTime": "Wed Sep 23 09:45:10 2026",
+      "Context": "colima-breadcast-experiment"
+    },
+    "Server": {
+      "Platform": {
+        "Name": "Docker Engine - Community"
+      },
+      "Version": "29.5.2",
+      "ApiVersion": "1.54",
+      "MinAPIVersion": "1.40",
+      "Os": "linux",
+      "Arch": "arm64",
+      "Components": [
+        {
+          "Name": "Engine",
+          "Version": "29.5.2",
+          "Details": {
+            "ApiVersion": "1.54",
+            "Arch": "arm64",
+            "BuildTime": "Wed May 20 14:39:25 2026",
+            "Experimental": "false",
+            "GitCommit": "568f755",
+            "GoVersion": "go1.26.3",
+            "KernelVersion": "6.8.0-117-generic",
+            "MinAPIVersion": "1.40",
+            "Module": "github.com/moby/moby/v2",
+            "ModuleVersion": "v2.0.0+unknown",
+            "Os": "linux"
+          }
+        },
+        {
+          "Name": "containerd",
+          "Version": "v2.2.4",
+          "Details": {
+            "GitCommit": "193637f7ee8ae5f5aa5248f49e7baa3e6164966e"
+          }
+        },
+        {
+          "Name": "runc",
+          "Version": "1.3.5",
+          "Details": {
+            "GitCommit": "v1.3.5-0-g488fc13e"
+          }
+        },
+        {
+          "Name": "docker-init",
+          "Version": "0.19.0",
+          "Details": {
+            "GitCommit": "de40ad0"
+          }
+        }
+      ],
+      "GitCommit": "568f755",
+      "GoVersion": "go1.26.3",
+      "KernelVersion": "6.8.0-117-generic",
+      "BuildTime": "2026-05-20T14:39:25.000000000+00:00"
+    }
+  },
+  "compose": "Docker Compose version 5.5.1",
+  "buildx": "github.com/docker/buildx v0.37.2 Homebrew",
+  "image": {
+    "name": "breadcast-studio:experiment",
+    "id": "sha256:d3141af27778c02443e8fe071fd2efaf81b3c60dbef00acd3505e148dbc7ed4e",
+    "architecture": "arm64",
+    "os": "linux",
+    "reported_size_bytes": 286775059,
+    "user": "studio",
+    "entrypoint": [
+      "/usr/bin/tini",
+      "--",
+      "/usr/local/bin/breadcast-studio"
+    ],
+    "command": [
+      "serve"
+    ]
+  },
+  "inputs": {
+    "python": "python:3.13-slim-trixie@sha256:bf44cdfcb76cd3b41e879bc058fc37ec5872002ccfde7fcb765e218cde0cd79c",
+    "mediamtx": "bluenviron/mediamtx:1.20.1@sha256:1b029d11049be75630e9b73bb0d5f47b08a7db4eaee89a80bf8f53bc40e56414",
+    "debian_snapshot": "20261006T000000Z",
+    "python_lock": "_experiments/studio/requirements.lock"
+  },
+  "python_dependencies": {
+    "av": "17.0.1",
+    "pillow": "12.3.0",
+    "qrcode": "8.2",
+    "av_libraries": {
+      "libavutil": [
+        60,
+        8,
+        100
+      ],
+      "libavcodec": [
+        62,
+        11,
+        100
+      ],
+      "libavformat": [
+        62,
+        3,
+        100
+      ],
+      "libavdevice": [
+        62,
+        1,
+        100
+      ],
+      "libavfilter": [
+        11,
+        4,
+        100
+      ],
+      "libswscale": [
+        9,
+        1,
+        100
+      ],
+      "libswresample": [
+        6,
+        1,
+        100
+      ]
+    }
+  },
+  "admission_tests": {
+    "count": 7,
+    "passed": true
+  },
+  "media": {
+    "mode": "sample media; not physical phones or live provider integration",
+    "checks": [
+      {
+        "name": "one_camera_program",
+        "duration_s": 5.07,
+        "encoder_pid": 46,
+        "normalized_media_age_s": 3.019
+      },
+      {
+        "name": "invalid_revision_type_rejected"
+      },
+      {
+        "name": "designated_live_audio_reaches_program",
+        "normalized_rms": 0.08753949013017656
+      },
+      {
+        "name": "five_active_cameras",
+        "slots": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      {
+        "name": "sixth_join_rejected"
+      },
+      {
+        "name": "uncalibrated_seamless_cut_rejected"
+      },
+      {
+        "name": "direct_unauthorized_publish_rejected"
+      },
+      {
+        "name": "publisher_fenced_and_slot_reused"
+      },
+      {
+        "name": "replay_speed_and_crop_presets",
+        "results": [
+          {
+            "speed": 1,
+            "zoom": 1,
+            "duration_s": 4.0,
+            "render_s": 0.248536831000024
+          },
+          {
+            "speed": 0.5,
+            "zoom": 1.5,
+            "duration_s": 8.0,
+            "render_s": 0.3348155950000091
+          },
+          {
+            "speed": 2,
+            "zoom": 1,
+            "duration_s": 2.0,
+            "render_s": 0.168812929000012
+          }
+        ]
+      },
+      {
+        "name": "stale_command_rejected"
+      },
+      {
+        "name": "replay_audio_muted",
+        "normalized_rms": 0.0
+      },
+      {
+        "name": "return_to_current_delayed_live",
+        "control_to_encoder_s": 0.2037978339999995,
+        "source_sequence_before": 377,
+        "source_sequence_after": 422
+      },
+      {
+        "name": "automatic_replay_return"
+      },
+      {
+        "name": "explicit_independent_view_change"
+      },
+      {
+        "name": "five_source_sustained_output",
+        "duration_s": 60.25649891300003,
+        "peak_jpeg_buffer_bytes": 82661682,
+        "encoder_pid": 46
+      },
+      {
+        "name": "primary_source_loss_to_holding"
+      },
+      {
+        "name": "program_output_decodes_with_continuous_timestamps",
+        "frames": 1237,
+        "duration_s": 82.39999999999999,
+        "max_frame_gap_s": 0.06700000000000728,
+        "output": "_experiments/studio/.run/docker-evidence/20261006T190739-50f046/program.mkv"
+      },
+      {
+        "name": "original_camera_segment_decodes",
+        "output": "_experiments/studio/.run/docker-evidence/20261006T190739-50f046/runtime/recordings/camera/ec09527d779d4c4a8a90065428c67032/2026-10-06_19-07-41-082886.mp4"
+      }
+    ],
+    "versions": {
+      "mediamtx": "v1.20.1",
+      "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+      "python": "Python 3.13.16",
+      "package_source": "docker"
+    },
+    "passed": true
+  },
+  "browser": {
+    "passed": true,
+    "mode": "Chrome fake camera devices; physical phones not tested",
+    "browser": "154.0.8037.98",
+    "checks": [
+      {
+        "name": "one_browser_camera_to_webrtc_viewer",
+        "width": 640,
+        "height": 360,
+        "frames": 61
+      },
+      {
+        "name": "browser_replay_and_return_without_encoder_restart"
+      },
+      {
+        "name": "five_browser_cameras_stream_and_decode",
+        "slots": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      {
+        "name": "sixth_browser_camera_rejected"
+      },
+      {
+        "name": "browser_stop_releases_all_camera_slots"
+      }
+    ],
+    "page_errors": []
+  },
+  "lifecycle": {
+    "image": "breadcast-studio:experiment",
+    "checks": [
+      {
+        "name": "default_image_starts_healthy_program",
+        "user": "studio"
+      },
+      {
+        "name": "five_publishers_live_before_stop",
+        "processes": [
+          "tini",
+          "python3",
+          "mediamtx",
+          "ffmpeg",
+          "python3",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg"
+        ]
+      },
+      {
+        "name": "docker_stop_ends_all_container_processes",
+        "exit_code": 0,
+        "stop_s": 4.137,
+        "endpoint_closed": true
+      },
+      {
+        "name": "restart_clears_leases_and_rotates_access",
+        "program": "HOLDING"
+      },
+      {
+        "name": "operator_event_end_exits_container",
+        "exit_code": 0
+      }
+    ],
+    "passed": true
+  },
+  "compose_stop": {
+    "five_exec_sample_publishers_buffer_ready": true,
+    "status": "exited",
+    "exit_code": 0,
+    "container_pid": 0,
+    "endpoint_closed": true
+  },
+  "failures_corrected": [
+    {
+      "failure": "Initial Linux program stalled at one submitted frame; media and browser checks timed out at startup.",
+      "cause": "Default raw audio probing waited for data while the frame producer blocked on the video pipe.",
+      "change": "Explicit raw formats now use probesize 32 and analyzeduration 1. Health requires advancing frames.",
+      "recheck": "Full media, browser, and lifecycle checks passed."
+    }
+  ],
+  "host_setup": {
+    "tools_installed": "Homebrew docker, docker-compose, docker-buildx, colima (and lima dependency). No login service enabled.",
+    "vm_profile": "breadcast-experiment; other VM profiles were not started or stopped",
+    "state_at_completion": "Experiment containers stopped; Docker VM remains running for subsequent docker compose commands"
+  },
+  "limits": [
+    "Samples and Chrome fake cameras; no physical phone validation.",
+    "Linux ARM64 was executed; AMD64 inputs exist but AMD64 execution was not tested.",
+    "No remote HTTPS deployment or STUN/TURN test.",
+    "No provider integration, multitenant SaaS, calibrated capture-time synchronization, or viewer playout acknowledgements.",
+    "Frame-submission latency and local render times are single-run measurements, not end-to-end latency or p95 guarantees."
+  ],
+  "source_sha256": {
+    "compose.yaml": "54b0be7eaf1f7282067b354a0d3ace3234f067e0e03db7eb717033108d83ecab",
+    "_experiments/.dockerignore": "0bfa3edd4a3b66bebd48d6fa5e0f185ea90537b3aa5b3d10dc4c3ff10b171b83",
+    "_experiments/studio/Dockerfile": "0a0ab32a8f44ba9eda092a60f5269b76419fbaf36740d476ffa8e67cbd786f57",
+    "_experiments/studio/container-entrypoint.sh": "ad29ccf4eb3b185f3da95488428ce0e9929e11029474a5a0ab1230bed9d0142b",
+    "_experiments/studio/container-healthcheck.py": "0186c7d84bb1cff952e11c87fc720cc6be34118619dc1bfb5f49d5ea0d9ba6ab",
+    "_experiments/studio/requirements.lock": "a6ed12436c246caf9a5faf1b99f580c0743c9b28ea6deef0921f6f94e3a28d33",
+    "_experiments/studio/studio": "e2abce7e2b975cfbb82999f1e1ef13457aa02e892956e191ea87d2c7f23a9bfa",
+    "_experiments/studio/studio.py": "8db042a9fd8dc6f970644d8f62e77fe1b5d352555409865e4fedb5182129cf67",
+    "_experiments/studio/media.py": "2bdda0cbf4876a41b0f5875f852a35b975e0fa705fce649139b91fe493596b82",
+    "_experiments/studio/check.py": "19594f1347ada30caddd4b41eeec00ef5ee911ff1bc37c9aa28120a7d4e5b916",
+    "_experiments/studio/test_leases.py": "1b8a185dd9198f443e2d77f4401a55d1b0614f0cb1dd1ab053f0d8d43d925cc6",
+    "_experiments/studio/tests/docker-check.py": "5efbf2df94651bafe5e09f7dcdfb0fd131bcb940cab19456dcf63c0f77d3f98c",
+    "_experiments/studio/tests/browser-check.cjs": "d2629320e639523d675598a4a89fca7a6ff7cdc747d185f980ecba40760a923b",
+    "_experiments/studio/tests/package-lock.json": "745ba0007c3aed8723fb002946eab0c30ca11ba80abd738531bc2a9fb7a3f8cd",
+    "_experiments/studio/web/common.js": "3e5c2d0386bf0036f6d2684f8b088d46adfeb7e78d2a26ce099cd2ef50385908",
+    "_experiments/studio/web/join.html": "fe7b24d76c238d69706db126e1573f0a91229f32fa4e2e90bb11d4bb6e0670bd",
+    "_experiments/studio/web/join.js": "4f27c406b4008e8b0d4dc2f97567e4683de31b9e0de2edf5126e89da7637672f",
+    "_experiments/studio/web/operator.html": "382171428f287afe3faf52d0389593621696c83e9afa05d2a9c1b2297ccfba32",
+    "_experiments/studio/web/operator.js": "b75c143cf4b3060de03b00be9657ee862536d97f5d279be345394ec66ffa8376",
+    "_experiments/studio/web/style.css": "ed34637d3e7b55fe2e90d200cf06b3fc5c45f11db710bb3038aec17a82b9ad43",
+    "_experiments/studio/web/vendor/LICENSE": "ecae73b0a23185a35a1222edc0aae5245bb9739420bad0125b0c42e935301a80",
+    "_experiments/studio/web/vendor/publisher.js": "ed94a74e13b11398309ef51590495f3d2b9d4fde159f251fbd77d06c9ff335d0",
+    "_experiments/studio/web/vendor/reader.js": "a802f229b803c33713d4c69c4cc0d480108a5bf384947aeee4aaf04268bf85c1",
+    "_experiments/studio/web/vendor/sources.json": "1ee72dd87c4b76bf2e8883997300843a6c85d530dc8c8f9d7f1c0e8642789016",
+    "_experiments/studio/web/watch.html": "0c8fd73da129ed728823563520e3ad7547b1714d4b30cd1684f6c6313bcd6c5a"
+  }
+}

@@ -1,0 +1,178 @@
+{
+  "evidence_scope": "historical validation",
+  "phase": "Camera preview controls and exclusive microphone mute",
+  "passed": true,
+  "baseline_commit": "a625e8a43297b3618db5cd0774de1e1c96957ff3",
+  "changes": [
+    "Edge-to-edge 16:9 camera previews with controls above the image",
+    "Green Send for independent live view, red Trash for removal, selected or muted microphone icon",
+    "One small Info button at the top right; tooltip supports hover, focus, tap, and Escape and stays within the viewport",
+    "Server-owned audio_muted retains selected source ownership while silent; choosing another microphone replaces the previous source"
+  ],
+  "contract": "docs/05-context-and-contracts.md#local-studio-actions-and-authority",
+  "guide": "docs/12-studio.md#crew-controls-and-local-rehearsal",
+  "validation": {
+    "unit_tests": 62,
+    "unit_report": ".runtime/camera-controls/unit-tests.txt",
+    "browser_report": ".runtime/camera-controls/browser-report.json",
+    "browser_checks": [
+      {
+        "id": "UX1",
+        "passed": true
+      },
+      {
+        "id": "CAMERA_CONTROLS",
+        "passed": true,
+        "filled_preview": true,
+        "controls_above_video": true,
+        "exclusive_microphone": true,
+        "mute_all": true,
+        "tooltip_keyboard_hover_escape": true
+      },
+      {
+        "id": "UX2_G2",
+        "passed": true,
+        "reconnects": 0
+      },
+      {
+        "id": "CREW_UX",
+        "passed": true,
+        "collapsed_history": true,
+        "compact_preview": true,
+        "enter_to_send": true,
+        "shift_enter_newline": true,
+        "server_message_restored": true
+      },
+      {
+        "id": "C2_C6",
+        "passed": true,
+        "two_tabs": true
+      },
+      {
+        "id": "C4",
+        "passed": true,
+        "response_aborted_after_server_execution": true,
+        "action_id": "a8c1074a-785a-41f2-b798-d4740bb75529"
+      },
+      {
+        "id": "G1",
+        "passed": true
+      },
+      {
+        "id": "M3",
+        "passed": true,
+        "request_to_controller_observed_ms": 52.138833999999406,
+        "action_created_to_encoder_ms": 22.476787002233323,
+        "request_to_viewer_pixels_ms": 163.76008399999955,
+        "controller_applied_monotonic_s": 20103.404957784,
+        "ack": "encoder frame submission; viewer pixels measured separately"
+      },
+      {
+        "id": "UX3",
+        "passed": true
+      },
+      {
+        "id": "CAMERA_REMOVE",
+        "passed": true,
+        "slot": 5,
+        "mobile_tooltip_fits": true,
+        "encoder_unchanged": true
+      }
+    ],
+    "media_report": ".runtime/camera-controls/validation.json",
+    "audio_probe": {
+      "name": "CAMERA_AUDIO",
+      "muted_full_capture_rms": 4.143821903686605e-06,
+      "muted_steady_rms": 0.0,
+      "selected_camera": 2,
+      "fixture_tone_amplitudes": {
+        "1": 2.3796926824732745e-05,
+        "2": 0.12490208860425689,
+        "3": 5.898805982694595e-05,
+        "4": 4.774247998495186e-06,
+        "5": 1.1442637304223615e-05
+      },
+      "second_full_capture_rms": 0.0,
+      "second_muted_steady_rms": 0.0,
+      "restored_rms": 0.0853520460160781,
+      "steady_window": "Latter half of one-second decoded audio capture; initial encoded audio may precede mute"
+    },
+    "encoded_media": {
+      "name": "M2",
+      "encoded_duration_s": 121.91399999999999,
+      "frames": 1829,
+      "black_frames": 0,
+      "max_frame_gap_s": 0.11399999999999988,
+      "encoder_pid": 21,
+      "artifact": "/work/.runtime/camera-controls/program.mkv"
+    },
+    "encoder_unchanged": true,
+    "environment": {
+      "host": "Darwin arm64",
+      "container": "Linux arm64",
+      "browser": "154.0.8037.98",
+      "mediamtx": "v1.20.1",
+      "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+      "python": "Python 3.13.16",
+      "package_source": "docker"
+    },
+    "mode": "Real encoded RTSP sample fixtures and WebRTC browser output. No physical phones or provider-backed inference.",
+    "baseline_five_minute_record": "docs/evidence/autonomous-studio.json",
+    "static_checks": [
+      "git diff --check",
+      "node --check app/web/operator.js",
+      "node --check tests/browser/studio-check.cjs",
+      "node --check tests/browser/browser-check.cjs",
+      "python3 -m py_compile app/control.py app/media.py tests/media/studio_check.py"
+    ]
+  },
+  "artifacts": {
+    "screenshots": [
+      ".runtime/camera-controls/studio-1440.png",
+      ".runtime/camera-controls/studio-1280.png",
+      ".runtime/camera-controls/studio-390.png"
+    ],
+    "program": ".runtime/camera-controls/program.mkv",
+    "action_trace": ".runtime/camera-controls/runtime/program-history.jsonl",
+    "availability": "Ignored runtime artifacts remain in this workspace. Replace /work report paths with the repository root on the host."
+  },
+  "failures_and_resolutions": [
+    {
+      "kind": "fixture",
+      "failure": "An early mute probe included buffered audio from before the mute command. Full-capture RMS was 0.015563765779481315.",
+      "resolution": "Wait for the exact encoder receipt, record full-capture RMS, and test the latter half of decoded one-second audio for steady silence. Final steady RMS is zero for both mutes.",
+      "report": ".runtime/camera-controls-first-attempt/validation.json"
+    },
+    {
+      "kind": "fixture",
+      "failure": "Camera-removal check observed four server leases before the browser removed its old tile.",
+      "resolution": "Wait for both the server admission count and the DOM removal. Final checks pass.",
+      "report": ".runtime/camera-controls-second-attempt/browser-report.json"
+    }
+  ],
+  "limits": [
+    "Microphone selection controls program audio. Original input recordings continue.",
+    "Replay and full-screen graphics still suppress program audio without changing the microphone choice or user mute.",
+    "The audio probe uses distinct labeled fixture tones; it does not measure physical-device mute latency."
+  ],
+  "original_broadcast": {
+    "container": "breadcast-studio",
+    "restarted": false
+  },
+  "source_sha256": {
+    "app/control.py": "be752735edff23e83db6d64383cce69c97fed25b0eb62caa30881cf3a0606539",
+    "app/media.py": "13ea1b8758ada10007d5a69d91121360d842b35a33f52c4250a13dd07cb54ea7",
+    "app/web/operator.html": "0dab51acb6e068a9502fbcd41a11b5f6900d267afedab07296996121a69d7dc1",
+    "app/web/operator.js": "8fea55d79e06e3fc02d72fa1c35d32dafbb8a89f58d71e3c2077d64ef6b1f676",
+    "app/web/studio.css": "c0a7c7bd459f7e08135984e25478c82d43f5cfb3fde25922b379869a4ca103ef",
+    "app/web/vendor/lucide/icons.svg": "b5966443efce7aa379dacbe0fa37f2066eb4d1d6de0d69943a5ed5803538b762",
+    "tests/unit/test_control.py": "c05842cb6cfce98fc2660c1133377e3ebc3232c8e6a991f608aefa06a7ac4b1c",
+    "tests/media/studio_check.py": "1e2b2eae3d863d1e3c7063a67d385b47db40376ff5cce38cb0420c88a905f294",
+    "tests/browser/studio-check.cjs": "84511b16b4a7aca174452da799b051ccd8ca7c5cff4def1d0dfa653f7b6e3819"
+  },
+  "report_sha256": {
+    ".runtime/camera-controls/validation.json": "1bb9ad374455beb27a171025e03624ae1e610ed0425636cca13238f75bcb1834",
+    ".runtime/camera-controls/browser-report.json": "d8074bafc3087073e7ec50d6c9d8be70365b181a3d5d833c09b27d0d22c3e36e",
+    ".runtime/camera-controls/unit-tests.txt": "fcd2285ad1114bb1ab5d14d2b98a52cf58986446dfc0be3023a798b546806ed5"
+  }
+}

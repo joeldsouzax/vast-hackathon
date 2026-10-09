@@ -1,0 +1,533 @@
+{
+  "evidence_scope": "historical validation",
+  "prd": "docs/19-live-direction-and-commentary-prd.md",
+  "audit": "docs/evidence/prd2-audit.json",
+  "status": "Audit code fixes and hosted configuration implemented; targeted unit, media and browser regressions passed. Full PRD acceptance remains incomplete.",
+  "local_ready": false,
+  "live_verified": false,
+  "fixes": [
+    {
+      "finding": "A1",
+      "files": [
+        "app/media.py"
+      ],
+      "change": "Rebase admitted speech to a future frame from sample zero. Keep the original end frame and expiry. Reject complete audio that cannot fit. Require contiguous full PCM submission before recording completed.",
+      "evidence": {
+        "unit_test": "test_D10_late_admission_preserves_complete_audio_and_original_window",
+        "decoded_queue": [
+          {
+            "id": "add533b9b67c41e1b875b284321328ae",
+            "first_sample": 876800,
+            "last_sample": 972800,
+            "input_samples": 96000,
+            "reference": "/evidence/20261007T201027-f67f24/crew-media/queue-signals/0.pcm",
+            "original_start_frame": 273,
+            "admitted_start_frame": 274,
+            "original_end_frame": 305,
+            "original_expiry": 1791403875.0797968,
+            "decoded_alignment": {
+              "correlation": 0.992686381817578,
+              "alignment_error_ms": 0.0,
+              "tolerance_ms": 500,
+              "search_step_ms": 5
+            }
+          },
+          {
+            "id": "8edd52acf6584f7fb84e6e36f6d14aef",
+            "first_sample": 985600,
+            "last_sample": 1081600,
+            "input_samples": 96000,
+            "reference": "/evidence/20261007T201027-f67f24/crew-media/queue-signals/1.pcm",
+            "original_start_frame": 273,
+            "admitted_start_frame": 308,
+            "original_end_frame": 373,
+            "original_expiry": 1791403875.0797968,
+            "decoded_alignment": {
+              "correlation": 0.9927168687261222,
+              "alignment_error_ms": 0.0,
+              "tolerance_ms": 500,
+              "search_step_ms": 5
+            }
+          }
+        ]
+      }
+    },
+    {
+      "finding": "A2",
+      "files": [
+        "app/control.py",
+        "app/direction.py",
+        "app/foundation_providers.py"
+      ],
+      "change": "Track operator-started program per run. Schedule the director during holding only after that start. Keep startup holding protected. Ignore return_live when live is already requested.",
+      "evidence": {
+        "scheduler_recovery_action": "976d2246aeb248ffa547fc38582b1611",
+        "decoded_camera_and_holding": {
+          "director-camera": 2.9987549019607846,
+          "holding": 1.871519607843137
+        },
+        "startup_guard_unit_tests": [
+          "test_D03_holding_schedules_director_only_after_human_start",
+          "test_D03_provider_cannot_start_program_and_human_start_enables_recovery"
+        ]
+      }
+    },
+    {
+      "finding": "A3",
+      "files": [
+        "app/direction.py",
+        "app/foundation.py",
+        "app/foundation_records.py"
+      ],
+      "change": "Reserve pending commentary intent atomically in the shared ledger before speech queue entry. Recheck current pending and delivered text. Cancel replaced, failed, expired and shutdown reservations; transfer prepared intent to speech and caption records.",
+      "evidence": {
+        "unit_tests": [
+          "test_D08_duplicate_is_reserved_before_speech_and_old_context_cannot_repeat",
+          "test_D08_replaced_and_failed_preparation_release_reservation"
+        ]
+      }
+    },
+    {
+      "finding": "A4",
+      "files": [
+        "tests/media/direction_check.py",
+        "tests/unit/test_direction_acceptance.py"
+      ],
+      "change": "Require named observable conditions for each criterion. Unit test names and partial media runs cannot close acceptance. Add normal director scheduler recovery, mixed-speed alternate-angle repeat replay, shared-worker provider timeout injection, active speech storage saturation and history saturation. Keep all untested provider paths open.",
+      "evidence": {
+        "diagnostic_replay": {
+          "speeds": [
+            1,
+            0.5,
+            0.5
+          ],
+          "repeated_angles": [
+            "camera-2"
+          ],
+          "actual_mapped_frames": 94,
+          "decoded_speech_alignment": {
+            "correlation": 0.9987399132689592,
+            "alignment_error_ms": 0.0,
+            "tolerance_ms": 500,
+            "search_step_ms": 5
+          },
+          "local_return_s": 0.20161933000781573
+        },
+        "diagnostic_stress": {
+          "provider_calls": {
+            "commentator": 1,
+            "director": 1,
+            "speech": 1,
+            "analysis": 7
+          },
+          "maximum_role_work": {
+            "active": 2,
+            "pending": 3
+          },
+          "storage_rejection": "Speech preparation cannot reserve its bounded buffer",
+          "history_rejection": "Crew action history capacity reached; human controls remain available",
+          "urgent_return_s": 0.20170112400955986,
+          "frames_advanced": 67
+        },
+        "remaining_fault_scope": "The diagnostic injects faults at llm, speech and combined analysis methods. Storage is saturated. Other boundary-specific provider failures are not proved; all_provider_fault_paths is now a required missing condition."
+      }
+    },
+    {
+      "finding": "Real decoder pipe race",
+      "files": [
+        "app/media.py",
+        "app/media_provenance.py"
+      ],
+      "change": "Capture media receipt timestamps before a bounded 100 ms wait for matching FFmpeg metadata, outside source locks and the program loop. Preserve unknown mapping if metadata does not arrive.",
+      "evidence": {
+        "unit_test": "test_D07_waits_for_delayed_trace_without_inventing_missing_mapping"
+      }
+    },
+    {
+      "finding": "Hosted QR and HTTP EC2 demo",
+      "files": [
+        "app/studio.py",
+        "compose.yaml",
+        ".env.example",
+        ".gitignore",
+        "app/web/broadcast.js",
+        "docs/12-studio.md",
+        "README.md"
+      ],
+      "change": "Require an explicit public URL for Compose and non-loopback CLI binding. Accept remote HTTP demo origins. Generate every public link and QR from that origin. Derive ICE media candidates from its host unless configured separately. Configure HTTP and matching WebRTC ports. Reject remote loopback media configuration. Blank optional path variables remain disabled instead of becoming a directory path through argparse.",
+      "evidence": {
+        "unit_tests": [
+          "test_remote_http_demo_origin_drives_links_qr_and_media_host",
+          "test_https_tunnel_and_direct_media_use_distinct_configured_hosts",
+          "test_invalid_origin_and_remote_loopback_media_fail_visibly",
+          "test_blank_optional_deployment_variables_do_not_become_directory_paths"
+        ],
+        "compose": "Public HTTPS demo origin, separate public media IP, HTTP host port 9080 to container 8080, and matching WebRTC TCP/UDP 9190 validated with docker compose config",
+        "startup_guard": "Non-loopback serve without public URL reports a parser error before startup"
+      },
+      "demo": "Use cloudflared Quick Tunnel for trusted HTTPS pages while EC2 stays HTTP. Set BREADCAST_PUBLIC_URL to tunnel origin and BREADCAST_ICE_HOSTS to EC2 public IP. Open matching WebRTC TCP/UDP port, default 8189. Physical EC2/phone connectivity has not been tested.",
+      "official_sources": [
+        "https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/",
+        "https://developers.cloudflare.com/tunnel/downloads/",
+        "https://mediamtx.org/docs/features/webrtc-specific-features",
+        "https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia"
+      ]
+    }
+  ],
+  "validation": {
+    "unit_tests": {
+      "count": 132,
+      "passed": true,
+      "command": "BREADCAST_FONT=app/web/fonts/dmsans.ttf PYDANTIC_AI_NO_BANNER=1 PYTHONPATH=app .runtime/foundation-venv/bin/python -m unittest discover -s tests/unit -q",
+      "note": "Existing SQLite ResourceWarning; no failed tests"
+    },
+    "static_checks": {
+      "passed": true,
+      "commands": [
+        "git diff --check",
+        "python3 -m compileall -q app tests/unit tests/media/direction_check.py",
+        "bash -n scripts/studio",
+        "node --check app/web/broadcast.js",
+        "node --check app/web/operator.js",
+        "node --check app/web/graphics-ui.js",
+        "node --check tests/browser/studio-check.cjs"
+      ]
+    },
+    "short_media_diagnostic": {
+      "command": "./scripts/studio direction-check --diagnostic-seconds 30",
+      "report": ".runtime/direction-checks/20261007T201027-f67f24/report.json",
+      "decoded_frames": 949,
+      "unexpected_black_frames": 0,
+      "failure": [
+        {
+          "type": "IncompleteAcceptance",
+          "reason": "Diagnostic media duration; full continuity and browser acceptance were not run"
+        }
+      ],
+      "note": "Real five-source RTSP and encoded output with labeled fixtures. Earlier test image preceded added director mute/unmute and the stricter all-provider-fault condition. Exit 1 means intentionally incomplete acceptance."
+    },
+    "sustained_run": {
+      "command": "./scripts/studio direction-check",
+      "report": ".runtime/direction-checks/20261007T201617-efd464/report.json",
+      "state": "Five-minute crew and foundation media passed. Full command failed during the earlier Chromium crash; original report preserved. All browser regressions passed in subsequent isolated runs.",
+      "media_report": ".runtime/direction-checks/20261007T201617-efd464/crew-media/media-report.json",
+      "scope": "Production application media paths with explicit labeled fixture cues; normal scheduler exercised for director holding recovery. No physical phone or live-provider claim.",
+      "five_source_continuity": {
+        "passed": true,
+        "duration_s": 300.2024166140036,
+        "program_frames": 4503,
+        "sources": 5,
+        "encoder_pid": 1911,
+        "command_application_s": 0.20344750200456474,
+        "decoded_frames": 4902,
+        "unexpected_black_frames": 0,
+        "proof": "/evidence/20261007T201617-efd464/crew-media/program.mkv"
+      },
+      "queue_complete_audio": [
+        {
+          "id": "78e38b0b978b441cb4a1bb842419ce5a",
+          "first_sample": 646400,
+          "last_sample": 742400,
+          "input_samples": 96000,
+          "reference": "/evidence/20261007T201617-efd464/crew-media/queue-signals/0.pcm",
+          "original_start_frame": 201,
+          "admitted_start_frame": 202,
+          "original_end_frame": 233,
+          "original_expiry": 1791404220.688294,
+          "decoded_alignment": {
+            "correlation": 0.992695143106228,
+            "alignment_error_ms": 0.0,
+            "tolerance_ms": 500,
+            "search_step_ms": 5
+          }
+        },
+        {
+          "id": "931bfae479e64c9494a50ca556fe4eb8",
+          "first_sample": 755200,
+          "last_sample": 851200,
+          "input_samples": 96000,
+          "reference": "/evidence/20261007T201617-efd464/crew-media/queue-signals/1.pcm",
+          "original_start_frame": 201,
+          "admitted_start_frame": 236,
+          "original_end_frame": 301,
+          "original_expiry": 1791404220.688294,
+          "decoded_alignment": {
+            "correlation": 0.9927080401029591,
+            "alignment_error_ms": 0.0,
+            "tolerance_ms": 500,
+            "search_step_ms": 5
+          }
+        }
+      ],
+      "measured_return_s": 0.2016024960030336,
+      "matching_replay_audio": {
+        "correlation": 0.9989350653563053,
+        "alignment_error_ms": 0.0,
+        "tolerance_ms": 500,
+        "search_step_ms": 5
+      },
+      "stress": {
+        "conditions": {
+          "provider_timeouts": true,
+          "role_queue_bounds": true,
+          "speech_storage_saturation": true,
+          "history_saturation": true,
+          "analysis_progress": true,
+          "media_progress": true,
+          "urgent_human_return": true,
+          "expired_work_dropped": true
+        },
+        "provider_calls": {
+          "director": 1,
+          "commentator": 1,
+          "speech": 1,
+          "analysis": 8
+        },
+        "maximum_role_work": {
+          "active": 2,
+          "pending": 3
+        },
+        "storage_rejection": "Speech preparation cannot reserve its bounded buffer",
+        "history_rejection": "Crew action history capacity reached; human controls remain available",
+        "urgent_return_s": 0.20259253999392968,
+        "frames_advanced": 66
+      },
+      "complete_command_passed": false,
+      "failure": [
+        {
+          "type": "CalledProcessError",
+          "reason": "Command '['/usr/local/bin/python3', '/opt/breadcast/tests/media/foundation_check.py', '--evidence', '/evidence/20261007T201617-efd464/regressions']' returned non-zero exit status 1.",
+          "traceback": "Traceback (most recent call last):\n  File \"/opt/breadcast/tests/media/direction_check.py\", line 567, in main\n    subprocess.run([sys.executable,str(ROOT/'tests/media/foundation_check.py'),'--evidence',str(folder/'regressions')],stdout=log,stderr=subprocess.STDOUT,check=True)\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.13/subprocess.py\", line 578, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['/usr/local/bin/python3', '/opt/breadcast/tests/media/foundation_check.py', '--evidence', '/evidence/20261007T201617-efd464/regressions']' returned non-zero exit status 1.\n"
+        }
+      ],
+      "foundation_media_report": ".runtime/direction-checks/20261007T201617-efd464/regressions/20261007T202222-00d2e0/media/20261007T202244-5b0c23/report.json"
+    },
+    "failed_diagnostic_attempts": [
+      {
+        "report": ".runtime/direction-checks/20261007T193515-ca28ef/report.json",
+        "correction": "Wait outside the source lock for measured metadata from the decoder stderr pipe; missing metadata still stays unknown."
+      },
+      {
+        "report": ".runtime/direction-checks/20261007T195603-520e22/report.json",
+        "correction": "Storage stress retains an active asset so preparation cannot correctly replace an inactive one."
+      },
+      {
+        "report": ".runtime/direction-checks/20261007T200516-4d99b2/report.json",
+        "correction": "Use async fault-injection functions so AsyncMock awaits the intended delay/failure."
+      },
+      {
+        "report": ".runtime/direction-checks/20261007T200720-b39b55/report.json",
+        "correction": "Measure graphic exit silence from submitted graphic frame intervals, rather than controller-polling wall time."
+      },
+      {
+        "report": ".runtime/direction-checks/20261007T201229-90e22b/report.json",
+        "correction": "Automatic commentary correctly fell back when cold model work consumed the original deadline. The first complete-speech media proof now uses an explicit scripted cue through production preparation and controller paths. Normal director scheduling is checked separately; no deadline is renewed."
+      }
+    ],
+    "http_config_smoke": {
+      "passed": true,
+      "mode": "Isolated Docker with --network none; mounted final application files read-only",
+      "public_url": "http://203.0.113.12:8080",
+      "address_scope": "Documentation-only example address; no public server contact",
+      "blank_optional_variables": [
+        "BREADCAST_FOUNDATION_CONFIG",
+        "BREADCAST_ICE_SERVERS"
+      ],
+      "command": "docker exec breadcast-config-smoke python3 /opt/breadcast/container-healthcheck.py",
+      "healthcheck_exit": 0,
+      "cleanup": "Temporary container stopped and removed"
+    },
+    "browser_rerun": {
+      "state": "passed",
+      "script": ".runtime/prd2-browser-regressions-focus.py",
+      "report": ".runtime/direction-checks/browser-rerun-focus-20261007/report.json",
+      "scope": "Extracted existing browser/regression block from tests/media/foundation_check.py. Runs multi-camera, Studio, graphics, modal and QR UI regressions in a new isolated container. Keeps five-minute media evidence from the preceding run.",
+      "container_change": "scripts/studio now gives acceptance containers 512 MiB private shared memory. No host IPC sharing.",
+      "crash_cause": "Resource pressure is a hypothesis; the prior process reported page.evaluate: Target crashed without a page error. The exact cause is not proved.",
+      "reference": "https://playwright.dev/docs/docker#recommended-docker-configuration",
+      "first_rerun_report": ".runtime/direction-checks/browser-rerun-20261007/report.json",
+      "test_correction": {
+        "file": "tests/browser/studio-check.cjs",
+        "reason": "After closing the command dialog, wait for its close handler to reset aria-expanded before entering Shift+Enter. The handler also restores focus; the old test could type before that focus transition. The newline, command, reload and keyboard assertions are unchanged."
+      },
+      "prior_replay_browser_report": ".runtime/direction-checks/browser-rerun-20261007/multi_camera_check/browser-report.json",
+      "studio_browser": {
+        "passed": true,
+        "report": ".runtime/direction-checks/browser-rerun-focus-20261007/studio_check/browser-report.json",
+        "checks": [
+          "UX1",
+          "PROGRAM_OVERLAY",
+          "CAMERA_CONTROLS",
+          "FEATURE_MODALS",
+          "UX2_G2",
+          "CREW_UX",
+          "C2_C6",
+          "C4",
+          "G1",
+          "M3",
+          "UX3",
+          "CAMERA_REMOVE"
+        ],
+        "viewer_return": {
+          "id": "M3",
+          "passed": true,
+          "request_to_controller_observed_ms": 124.5557260000005,
+          "action_created_to_encoder_ms": 70.03458599501755,
+          "request_to_viewer_pixels_ms": 184.0646259999994,
+          "controller_applied_monotonic_s": 93024.615879707,
+          "ack": "encoder frame submission; viewer pixels measured separately"
+        }
+      },
+      "passed": true,
+      "regressions": [
+        {
+          "command": [
+            "/usr/local/bin/python3",
+            "/opt/breadcast/tests/media/studio_check.py",
+            "--output",
+            "/evidence/browser-rerun-focus-20261007/studio_check",
+            "--browser",
+            "--seconds",
+            "10"
+          ],
+          "browser_command": [
+            "node",
+            "/opt/breadcast/tests/browser/studio-check.cjs",
+            "/evidence/browser-rerun-focus-20261007/studio_check"
+          ],
+          "passed": true
+        },
+        {
+          "command": [
+            "/usr/local/bin/python3",
+            "/opt/breadcast/tests/media/graphics_check.py"
+          ],
+          "passed": true
+        },
+        {
+          "command": [
+            "node",
+            "/opt/breadcast/tests/browser/graphics-check.cjs",
+            "/evidence/browser-rerun-focus-20261007/graphics/runtime"
+          ],
+          "passed": true
+        },
+        {
+          "command": [
+            "node",
+            "/opt/breadcast/tests/browser/modal-check.cjs",
+            "/evidence/browser-rerun-focus-20261007/graphics/runtime"
+          ],
+          "passed": true
+        },
+        {
+          "command": [
+            "node",
+            "/opt/breadcast/tests/browser/ui-check.cjs",
+            "/evidence/browser-rerun-focus-20261007/ui"
+          ],
+          "passed": true
+        }
+      ],
+      "cleanup": "Temporary container exited and was removed; temporary private network removed"
+    },
+    "final_observed_coverage": {
+      "proven_criteria": [
+        "D03",
+        "D12",
+        "D14",
+        "D16"
+      ],
+      "missing_conditions": {
+        "D01": [
+          "setup_media",
+          "asset_font_and_text_failures"
+        ],
+        "D02": [
+          "concurrent_edits",
+          "official_effective_time",
+          "failed_replacement"
+        ],
+        "D04": [
+          "crop_and_reset_decoded",
+          "all_source_reset_cases"
+        ],
+        "D05": [
+          "slow_calls_all_dependencies",
+          "missing_and_stale_health"
+        ],
+        "D06": [
+          "lost_response_retry",
+          "all_authority_and_evidence_cases"
+        ],
+        "D07": [
+          "receipt_mapping_decoded",
+          "clock_discontinuity_decoded",
+          "unknown_mapping"
+        ],
+        "D08": [
+          "development_and_callback",
+          "future_fact_exclusion",
+          "preparation_duplicates"
+        ],
+        "D09": [
+          "partial_delivery",
+          "all_invalidation_cases"
+        ],
+        "D10": [
+          "all_invalid_asset_cases"
+        ],
+        "D11": [
+          "microphone_loss_and_reuse"
+        ],
+        "D13": [
+          "caption_and_expiry_decoded",
+          "all_layer_and_footage_cases"
+        ],
+        "D15": [
+          "all_provider_fault_paths"
+        ],
+        "D17": [
+          "restart_and_shutdown",
+          "affected_regressions"
+        ],
+        "D18": [
+          "same_validators",
+          "all_capability_and_retry_failures",
+          "no_provider_traffic"
+        ],
+        "D19": [
+          "complete_evidence_and_handoff"
+        ]
+      },
+      "scope": "Combined observations from preserved unit/media results and subsequent passing browser runs. This is not a green full direction-check command and does not claim complete local acceptance."
+    }
+  },
+  "open_gates": [
+    "Each remaining local PRD condition in the acceptance report",
+    "All boundary-specific provider fault paths",
+    "Verified live supplied-stack and speech providers",
+    "Physical phone and EC2 security-group/network validation",
+    "Listening review and venue/audience validation"
+  ],
+  "preservation": "Existing unrelated working-tree edits were preserved. No actual EC2 deployment, infrastructure change or broadcast publication was performed.",
+  "code_sha256": {
+    "app/media.py": "8ba021bbc7798acb1c92aee9238f330bb9b1a9119770f9f8f6544ba2f12ed059",
+    "app/media_provenance.py": "890fde8453f8ee25b8db7856bbc05ea5ddf0cd2e892c5db4f87a984698e25be0",
+    "app/control.py": "c8284ee48e1a52b84cab89a7193c402a9e0002a32e8857091dd0127d785a0626",
+    "app/direction.py": "5246a641682ccb636486a4efb0606c2967c1f83be703dd9dfa08f7bcacbe08d4",
+    "app/foundation.py": "ce17af41cd5a21f6b0d365cd3242ea4e7601287ee390a28b6c99c4195a4bc8c0",
+    "app/foundation_records.py": "29c38dc285da9e29d8187900c95f8cd4243b5b54acd108454a25b132479cd33a",
+    "app/foundation_providers.py": "aee35b4a3a19bdbd86877e3c2f4012dcf06db9cc04f866c6b9554c68252d60ea",
+    "app/studio.py": "d6ecce5bc3f3e1964ad64940f662a0496df98044b5ff83d880afe6d5436a5d75",
+    "app/web/broadcast.js": "51da8895100f7a6c01e89a665f28fc306f3f23bcdc4e5e2fb377b2f3849d1779",
+    "compose.yaml": "088901b4154d52e864a4e37e340d56a4c40744d40e7815445394153686ae3f65",
+    ".env.example": "71f39cc199f4b1e728bcd6a9037895ae77a47b2b218384f4911d99b12024eedf",
+    "scripts/studio": "3c458754e2118550167c100fbadde18c274a167c9fa49e4f4f31504cfe254dbb",
+    "tests/media/direction_check.py": "064557a8c20e891b4d4f4c27ed3987ebd27f3056e2ebc9385e00350527c24052",
+    "tests/unit/test_direction.py": "fb38ea27a138011c94c39be2194fbc5573b8b5b237f334599f21c772ec7b13c8",
+    "tests/unit/test_direction_acceptance.py": "e7996eb80b0b294648d8a99b866a8829919a342c404fc4cd51d7a7cbd1a1cdc3",
+    "tests/unit/test_public_config.py": "7e35f4653daa4ded5bfd26a5b9ab1a2288810b730a943be02659a5728d80f77e",
+    "tests/browser/studio-check.cjs": "10f6502cd55f85fb6b476ae8b00ce6f80f04483a521744e844b8026b630c35c7"
+  }
+}

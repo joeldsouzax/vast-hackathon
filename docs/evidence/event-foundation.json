@@ -1,0 +1,1737 @@
+{
+  "evidence_scope": "historical validation",
+  "prd": "docs/17-event-understanding-and-provider-adapters-prd.md",
+  "local_ready": true,
+  "live_verified": false,
+  "mode": "Real encoded/decoded media with labeled fixture providers",
+  "command": "./scripts/studio foundation-check",
+  "exit_code": 0,
+  "report": ".runtime/foundation-checks/20261007T050750-1d3d04/report.json",
+  "environment": {
+    "host": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "architecture": "arm64",
+    "container_runtime": "Colima breadcast-experiment; aarch64; Virtualization.Framework; virtiofs",
+    "docker_server": "29.5.2",
+    "acceptance_image": "sha256:8a7c597f0579703d1dbc0581471a35a31e4f4ab0b728022ad9f6d354931469e6",
+    "network": "Temporary internal Docker network; no external route; root process blocks external sockets; Pydantic AI model requests disabled"
+  },
+  "versions": {
+    "libraries": {
+      "av": "17.0.1",
+      "pydantic": "2.13.5",
+      "pydantic-settings": "2.15.0",
+      "pydantic-ai-slim": "2.54.0",
+      "fastapi": "0.142.2",
+      "uvicorn": "0.54.0",
+      "httpx": "0.28.1",
+      "boto3": "1.43.108"
+    },
+    "media": {
+      "mediamtx": "v1.20.1",
+      "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+      "python": "Python 3.13.16",
+      "package_source": "docker"
+    }
+  },
+  "configuration": {
+    "configuration_revision": 1,
+    "event": {
+      "schema_version": "1.0",
+      "event_id": "foundation-fixture",
+      "revision": 1,
+      "title": null,
+      "profile": "community",
+      "participants": [],
+      "branding": {},
+      "editorial_policy": {},
+      "audio_policy": {},
+      "commentary_style": "spicy, funny, witty, and playful; evidence-backed callbacks, varied jokes, expressive delivery, deliberate pauses",
+      "language": "en",
+      "pronunciations": {},
+      "voice_id": null
+    },
+    "storage_directory": "foundation-media",
+    "fixture_file": "/opt/breadcast/tests/fixtures/foundation/labels.json",
+    "providers": {
+      "storage": {
+        "adapter": "fixture",
+        "secret_env": null,
+        "model_id": null,
+        "version": "fixture-1",
+        "protocol": null,
+        "formats": [],
+        "capabilities": [],
+        "storage_location": null,
+        "trigger_filter": null,
+        "worker_resources": {}
+      },
+      "jobs": {
+        "adapter": "fixture",
+        "secret_env": null,
+        "model_id": null,
+        "version": "fixture-1",
+        "protocol": null,
+        "formats": [],
+        "capabilities": [],
+        "storage_location": null,
+        "trigger_filter": null,
+        "worker_resources": {}
+      },
+      "yolo": {
+        "adapter": "fixture",
+        "secret_env": null,
+        "model_id": null,
+        "version": "fixture-1",
+        "protocol": null,
+        "formats": [],
+        "capabilities": [],
+        "storage_location": null,
+        "trigger_filter": null,
+        "worker_resources": {}
+      },
+      "cosmos": {
+        "adapter": "fixture",
+        "secret_env": null,
+        "model_id": null,
+        "version": "fixture-1",
+        "protocol": null,
+        "formats": [],
+        "capabilities": [],
+        "storage_location": null,
+        "trigger_filter": null,
+        "worker_resources": {}
+      },
+      "search": {
+        "adapter": "fixture",
+        "secret_env": null,
+        "model_id": null,
+        "version": "fixture-1",
+        "protocol": null,
+        "formats": [],
+        "capabilities": [],
+        "storage_location": null,
+        "trigger_filter": null,
+        "worker_resources": {}
+      },
+      "llm": {
+        "adapter": "fixture",
+        "secret_env": null,
+        "model_id": null,
+        "version": "fixture-1",
+        "protocol": null,
+        "formats": [],
+        "capabilities": [],
+        "storage_location": null,
+        "trigger_filter": null,
+        "worker_resources": {}
+      },
+      "speech": {
+        "adapter": "fixture",
+        "secret_env": null,
+        "model_id": null,
+        "version": "fixture-1",
+        "protocol": null,
+        "formats": [],
+        "capabilities": [],
+        "storage_location": null,
+        "trigger_filter": null,
+        "worker_resources": {}
+      }
+    },
+    "limits": {
+      "window_s": 6.0,
+      "step_s": 2.0,
+      "concurrency": 2,
+      "call_timeout_s": 10.0,
+      "live_deadline_s": 8.0,
+      "retries": 2,
+      "pending_chunks": 256,
+      "pending_bytes": 1073741824,
+      "archive_seconds": 1800,
+      "archive_bytes": 4294967296,
+      "disk_reserve_bytes": 2147483648,
+      "context_seconds": 60,
+      "context_records": 32,
+      "context_utterances": 20,
+      "context_hits": 5,
+      "context_bytes": 65536,
+      "pin_seconds": 60,
+      "ledger_records": 20000
+    }
+  },
+  "source_hashes": {
+    "Dockerfile": "da7481d2ce3b475139506aa0ec02a12f6d990912065813682522d82b9639440f",
+    "app/control.py": "171c93b79967f712e1469baf2db39739efdb233d52b3f19c2892add034394d5b",
+    "app/foundation.py": "059267cfad4b694822900a2e9d268075d3ff810873170b03c14481190a95461b",
+    "app/foundation_cli.py": "0c2726d84ca479e17d99ebfeced155de71e5b3b5191121ca70f955b157ba4008",
+    "app/foundation_providers.py": "aa2d22b16ff2b35c6dcb0a66dc9f34dd18e1024f0a39d41cc88af3ab7a66d882",
+    "app/foundation_records.py": "cae036588f20928a36a5dd6b949097df1b9b1ec8047a80d727d49737879cd8a7",
+    "app/foundation_storage.py": "e31eef9232a8bd9091616af0587bc57e8ece6107c80dab422adcbc5496d1d959",
+    "app/foundation_worker.py": "ae0f4a6a179ada442daed498621cdf54148be083f3ef720ee6c02338b7be0b7b",
+    "app/graphics.py": "6c94146e7ac02e1cfd5bb010b9e3ecad84c9d7341ab707b4db4605cb4b78a777",
+    "app/http_api.py": "98acee48983ebcf68e13aa6c1567c55ec5b138979be4ef92eb403548708a9c53",
+    "app/media.py": "7fc9c7b3a2e8c6f8d41518e47e85c780bd7bc2f19fc03c0bab30f6ccdb72f16b",
+    "app/media_provenance.py": "fd923d06cf036b4cbd3be175c871480ee3d32457326612947aa5e14e35f95e1f",
+    "app/recording_hook.py": "e6079a800e28862de6f0d301d90573d9531a51e569ac3d1659260616a0951e5c",
+    "app/replay.py": "d0b5ca0dec7d5a01dec813737a5bf329a78722ee624d9828cd061b65413e2762",
+    "app/studio.py": "4e27b9522d8ba4d03bd1bc105d04bae1bd8366d7e4fbabc9abfd32e2259b671f",
+    "config/foundation.fixture.json": "85258f2338f4a16de86ec30476e983d8c550c9c712b24edd69d07f4774a0b36f",
+    "config/foundation.live.json": "53890efa50ce8b8a34b2e96fd07bd0995c3f23254963653d1d8018f5ca62d2f5",
+    "requirements.lock": "acce9d148b5c5970c2364cefcd845819f12e9757475d5f6c665fb67b6a09780c",
+    "scripts/studio": "2468649cb02d52b71931cfaae3c9058bc9a1932699a89794dd7634809a6d1f75",
+    "tests/browser/browser-check.cjs": "12305de3d4775a9a73595ea97011a1e6a7e09fedc5cb0d2097766ac282a11bf1",
+    "tests/browser/graphics-check.cjs": "257a38c18b91064e1efd43fcaa3763e20b54d763dfd67ff8208b2a9d89d27f22",
+    "tests/browser/modal-check.cjs": "02f91bd2217a5238879f9fbc671401e247997c616eac66bd358522a10d3e16e2",
+    "tests/browser/replay-check.cjs": "ad4cf6dfd1c2fa38c3d2ba06ff2aef648f6f75f937448da7ac41c5379597c200",
+    "tests/browser/studio-check.cjs": "a9462d40724dd2f49b43cd560ea4b8ce2f82a4b8d78820e26f9512612e73f589",
+    "tests/browser/ui-check.cjs": "8a8917cded3c00169da0b92ad54b30faae4f295ebb0d3d35fc59cb7cc2e6bab9",
+    "tests/fixtures/demo.mp4": "5e70b96ad27dc8581424be7069ee9de8da9388b716e6fe213d88385f19baf80a",
+    "tests/fixtures/foundation/README.md": "cb44b6ba2411412f1bd14aec47806e7f301b45b1279f66638d5b196dd4a18787",
+    "tests/fixtures/foundation/labels.json": "ed230adf4168bca65a9564e1e924a84734f93a3a4e26b06dad677dd58088d3eb",
+    "tests/fixtures/foundation/speech.wav": "42ce770414fc2b85f519b65dcc5306fb5a241cefb45cf73c8245871935234603",
+    "tests/media/check.py": "c5fa849d510c4f02d3607124dcb3bce2e6bcb3464811af974541a48218ea71b2",
+    "tests/media/docker-check.py": "b8c355549be40f2fcb69ce158b8bb56347e7b217e92cfd5677a331329d0a5104",
+    "tests/media/foundation_check.py": "628cdffbb0eab6dc289596186c34383e14bf1c6f329921bba5bba54147768d1e",
+    "tests/media/graphics_check.py": "3ee13d175e76dc89c2f24cc8126035c6424609e9c849e1d6d3b157f944a99cd0",
+    "tests/media/multi_camera_check.py": "2b5d4a55198b3ee65117a263f6f3cdaffac75ad758a157da511999b7ccadd666",
+    "tests/media/replay_fixture.py": "97f122350d9a12b7bb9faaa53dd13cc53aa40869f5da264f3ae775fb8ac97114",
+    "tests/media/studio_check.py": "91b70ea5916b7c1f78b460c49ea90b66734fd1202e5a8707bc2d7cbce58ed718",
+    "tests/unit/test_control.py": "7741bc2370d63ee5d882dc441e092bdab24d15484d61e1f0d681f933a2777488",
+    "tests/unit/test_foundation.py": "0176b38109d3ce722edd9c83fbd04420c48d96053086c24463f5c9defc7ee265",
+    "tests/unit/test_graphics.py": "fb4e5339704352b0d859788fc5e18d048d933acf9b4d9eae3fba668b41f2f142",
+    "tests/unit/test_leases.py": "1b8a185dd9198f443e2d77f4401a55d1b0614f0cb1dd1ab053f0d8d43d925cc6",
+    "tests/unit/test_replay.py": "85311fa208565ed5e32b7616b5f8de0d24f0fb0d41206f7e060574410724ed68"
+  },
+  "coverage": {
+    "E01": {
+      "passed": true,
+      "tests": [
+        "test_control.ControlContracts.test_E01_human_score_snapshot_survives_its_own_takeover",
+        "test_foundation.FoundationContracts.test_E01_context_facts_revision_authority_unknown",
+        "test_foundation.FoundationContracts.test_E01_supplied_initial_revision_is_authoritative",
+        "test_foundation.FoundationHTTP.test_E01_E17_routes_context_and_lifecycle_guard"
+      ]
+    },
+    "E02": {
+      "passed": true,
+      "tests": [
+        "test_foundation.FoundationContracts.test_E02_readiness_hash_duplicate_changed_partial",
+        "test_foundation.FoundationContracts.test_E02_variable_frame_intervals_use_recorded_duration",
+        "test_foundation.FoundationWorkers.test_E02_segment_native_offset_retains_file_clock"
+      ]
+    },
+    "E04": {
+      "passed": true,
+      "tests": [
+        "test_foundation.FoundationContracts.test_E04_epoch_slot_reset_unknown_mapping"
+      ]
+    },
+    "E05": {
+      "passed": true,
+      "tests": [
+        "test_foundation.FoundationContracts.test_E05_cross_chunk_actions_and_scene_association"
+      ]
+    },
+    "E06": {
+      "passed": true,
+      "tests": [
+        "test_foundation.FoundationContracts.test_E06_duplicate_delayed_malformed_conflicting_results",
+        "test_foundation.FoundationContracts.test_E06_notification_clock_withholds_live_freshness",
+        "test_foundation.FoundationWorkers.test_E06_late_result_archive_only_original_request_required"
+      ]
+    },
+    "E07": {
+      "passed": true,
+      "tests": [
+        "test_foundation.FoundationContracts.test_E07_retraction_context_search_notifications_history"
+      ]
+    },
+    "E08": {
+      "passed": true,
+      "tests": [
+        "test_foundation.FoundationContracts.test_E08_context_no_future_actual_airtime_and_bounds"
+      ]
+    },
+    "E09": {
+      "passed": true,
+      "tests": [
+        "test_foundation.FoundationContracts.test_E09_E14_step_progress_and_shutdown_pins",
+        "test_foundation.FoundationContracts.test_E09_active_pin_wins_over_storage_pressure",
+        "test_foundation.FoundationContracts.test_E09_analysis_continues_after_older_media_expires",
+        "test_foundation.FoundationContracts.test_E09_pin_pressure_disconnect_delete",
+        "test_foundation.FoundationContracts.test_E09_shared_content_upload_and_retention_race"
+      ]
+    },
+    "E10": {
+      "passed": true,
+      "tests": [
+        "test_foundation.FoundationContracts.test_E10_search_filter_versions_deleted_wrong_event"
+      ]
+    },
+    "E11": {
+      "passed": true,
+      "tests": [
+        "test_foundation.FoundationContracts.test_E11_missing_live_config_no_substitution_or_secret_export"
+      ]
+    },
+    "E12": {
+      "passed": true,
+      "tests": [
+        "test_foundation.FoundationContracts.test_E12_typed_llm_preserves_snapshot_speech_decodes"
+      ]
+    },
+    "E13": {
+      "passed": true,
+      "tests": [
+        "test_foundation.ArtifactFailures.test_E13_interrupted_put_leaves_no_ready_manifest",
+        "test_foundation.FoundationContracts.test_E13_restart_missed_dispatch_old_run_partial_unready"
+      ]
+    },
+    "E14": {
+      "passed": true,
+      "tests": [
+        "test_foundation.FoundationContracts.test_E09_E14_step_progress_and_shutdown_pins",
+        "test_foundation.FoundationContracts.test_E14_queue_limits_disk_threshold_per_source_fairness",
+        "test_foundation.FoundationWorkers.test_E14_five_sources_slow_adapter_limits_fairness"
+      ]
+    },
+    "E17": {
+      "passed": true,
+      "tests": [
+        "test_foundation.FoundationContracts.test_E17_total_retry_budget_timeout_permanent_failure",
+        "test_foundation.FoundationHTTP.test_E01_E17_routes_context_and_lifecycle_guard",
+        "test_foundation.FoundationWorkers.test_E17_network_transport_and_sdk_retries_are_explicit"
+      ]
+    },
+    "E03": {
+      "passed": true,
+      "input": "/Users/joel/Code/breadcast/.runtime/foundation-checks/20261007T050750-1d3d04/native-markers.mp4",
+      "proxy": "/Users/joel/Code/breadcast/.runtime/foundation-checks/20261007T050750-1d3d04/proxy-markers.nut",
+      "program": "/Users/joel/Code/breadcast/.runtime/foundation-checks/20261007T050750-1d3d04/program-markers.mkv",
+      "native_proxy_frames": 180,
+      "native_proxy_max_error_ticks": 0,
+      "program_frames_checked": 90,
+      "program_max_error_frames": 0,
+      "tolerance_frames": 1,
+      "uncertainty_ms": 66.66666666666667,
+      "native_time_base": "1/15360",
+      "geometry": {
+        "native_width": 320,
+        "native_height": 180,
+        "rotation": 90,
+        "output_width": 640,
+        "output_height": 360,
+        "scaled_width": 202,
+        "scaled_height": 360,
+        "pad_x": 219,
+        "pad_y": 0
+      },
+      "geometry_max_error_native_pixels": 0.055555555555557135,
+      "geometry_tolerance_native_pixels": 1,
+      "reader_origin": "one decoded marker; later frames evaluated independently"
+    },
+    "E15": {
+      "passed": true,
+      "report": "/Users/joel/Code/breadcast/.runtime/foundation-checks/20261007T050750-1d3d04/media/20261007T050810-da7e1e/report.json"
+    },
+    "E16": {
+      "passed": true,
+      "command": "./scripts/studio foundation-check",
+      "report": "/Users/joel/Code/breadcast/.runtime/foundation-checks/20261007T050750-1d3d04/report.json"
+    }
+  },
+  "unit_tests": {
+    "count": 96,
+    "passed": true,
+    "report": ".runtime/foundation-checks/20261007T050750-1d3d04/unit-tests.log"
+  },
+  "media": {
+    "one_camera_program": {
+      "name": "one_camera_program",
+      "duration_s": 5.09,
+      "encoder_pid": 1578,
+      "command_application_s": 0.21098657100083074,
+      "application_clock": "Local request through encoded-frame acknowledgement; polling bound",
+      "normalized_media_age_s": 3.015
+    },
+    "five_source_sustained_output": {
+      "name": "five_source_sustained_output",
+      "duration_s": 300.3038403210012,
+      "peak_jpeg_buffer_bytes": 83873797,
+      "encoder_pid": 1578
+    },
+    "rtsp_program_output_decodes": {
+      "name": "rtsp_program_output_decodes",
+      "clock": "RTSP reader; distinct from encoder program PTS",
+      "zero_timestamp_steps": 0,
+      "backward_timestamp_steps": 0,
+      "min_frame_gap_s": 0.06599999999997408,
+      "frames": 4855,
+      "duration_s": 323.6,
+      "max_frame_gap_s": 0.06700000000000728,
+      "output": "/Users/joel/Code/breadcast/.runtime/foundation-checks/20261007T050750-1d3d04/media/20261007T050810-da7e1e/program.mkv"
+    },
+    "encoder_program_pts_continuous": {
+      "name": "encoder_program_pts_continuous",
+      "frames": 5130,
+      "duration_s": 341.933,
+      "max_frame_gap_s": 0.06700000000000728,
+      "output": "/Users/joel/Code/breadcast/.runtime/foundation-checks/20261007T050750-1d3d04/media/20261007T050810-da7e1e/encoder-program.mkv",
+      "clock": "Encoded packets before RTSP transport; one encoder"
+    },
+    "encoder_schedule_continuous": {
+      "name": "encoder_schedule_continuous",
+      "late_events": 0,
+      "threshold_s": 0.5
+    },
+    "no_unexpected_black_frames": {
+      "name": "no_unexpected_black_frames",
+      "duration_s": 323.6
+    },
+    "archive_after_disconnect_and_slot_reuse": {
+      "name": "archive_after_disconnect_and_slot_reuse",
+      "source": {
+        "discontinuity": null,
+        "epoch": 1,
+        "event_id": "foundation-fixture",
+        "run_id": "2a3c8d491de544d7a7a068d22d57a24a",
+        "slot": 5,
+        "source_id": "camera/c4dee33b2e0e44c0bdd32b26965a74fe",
+        "time_base": "1/90000"
+      },
+      "native": {
+        "end": 179999,
+        "start": 0
+      },
+      "decoded_frames": 30
+    }
+  },
+  "archive": {
+    "ready_chunks": 819,
+    "post_shutdown_jobs": {
+      "completed": 566,
+      "expired": 2,
+      "skipped": 4
+    },
+    "post_shutdown_pins": 0,
+    "retained_bytes_at_capture": 253156902,
+    "sources_at_capture": [
+      {
+        "source": {
+          "event_id": "foundation-fixture",
+          "run_id": "2a3c8d491de544d7a7a068d22d57a24a",
+          "source_id": "camera/a1d7ae80941c4b57b432e944ee3dc5b6",
+          "epoch": 1,
+          "slot": 1,
+          "time_base": "1/90000",
+          "discontinuity": null
+        },
+        "gaps": [],
+        "watermark_pts": 30347831
+      },
+      {
+        "source": {
+          "event_id": "foundation-fixture",
+          "run_id": "2a3c8d491de544d7a7a068d22d57a24a",
+          "source_id": "camera/9a6eae0bcb5a40c09adf8188c3f7451f",
+          "epoch": 1,
+          "slot": 2,
+          "time_base": "1/90000",
+          "discontinuity": null
+        },
+        "gaps": [],
+        "watermark_pts": 28980000
+      },
+      {
+        "source": {
+          "event_id": "foundation-fixture",
+          "run_id": "2a3c8d491de544d7a7a068d22d57a24a",
+          "source_id": "camera/c36c33590d0e4d01b861528ed5d6edf8",
+          "epoch": 1,
+          "slot": 3,
+          "time_base": "1/90000",
+          "discontinuity": null
+        },
+        "gaps": [],
+        "watermark_pts": 28619841
+      },
+      {
+        "source": {
+          "event_id": "foundation-fixture",
+          "run_id": "2a3c8d491de544d7a7a068d22d57a24a",
+          "source_id": "camera/a73673999b754f53bc003b5cf6687924",
+          "epoch": 1,
+          "slot": 4,
+          "time_base": "1/90000",
+          "discontinuity": null
+        },
+        "gaps": [],
+        "watermark_pts": 28979839
+      },
+      {
+        "source": {
+          "event_id": "foundation-fixture",
+          "run_id": "2a3c8d491de544d7a7a068d22d57a24a",
+          "source_id": "camera/07f592b2cdef4137ad8184b69d006389",
+          "epoch": 1,
+          "slot": 5,
+          "time_base": "1/90000",
+          "discontinuity": null
+        },
+        "gaps": [
+          {
+            "native": {
+              "start": 1980000,
+              "end": 2520000
+            },
+            "state": "skipped",
+            "reason": "Superseded pending interval"
+          },
+          {
+            "native": {
+              "start": 2160000,
+              "end": 2700000
+            },
+            "state": "skipped",
+            "reason": "Superseded pending interval"
+          },
+          {
+            "native": {
+              "start": 1800000,
+              "end": 2340000
+            },
+            "state": "expired",
+            "reason": "TimeoutError"
+          },
+          {
+            "native": {
+              "start": 2520000,
+              "end": 3060000
+            },
+            "state": "skipped",
+            "reason": "Superseded pending interval"
+          },
+          {
+            "native": {
+              "start": 2700000,
+              "end": 3240000
+            },
+            "state": "skipped",
+            "reason": "Superseded pending interval"
+          },
+          {
+            "native": {
+              "start": 2340000,
+              "end": 2880000
+            },
+            "state": "expired",
+            "reason": "TimeoutError"
+          }
+        ],
+        "watermark_pts": 2160000
+      }
+    ]
+  },
+  "latency": {
+    "clock": "Local processing; fixture model output. No capture-time or live provider performance claim.",
+    "notification_to_ready_manifest": {
+      "samples": 819,
+      "p50_s": 1.9163672924041748,
+      "p95_s": 3.402477264404297,
+      "max_s": 5.7184367179870605
+    },
+    "recorded_video_duration": {
+      "samples": 819,
+      "p50_s": 1.999988888888889,
+      "p95_s": 2.0,
+      "max_s": 2.0
+    },
+    "recent_stages": {
+      "validation": {
+        "samples": 40,
+        "p50_s": 0.015258073806762695,
+        "p95_s": 0.03290152549743652,
+        "max_s": 0.049163818359375
+      },
+      "persistence-and-index": {
+        "samples": 40,
+        "p50_s": 0.007721900939941406,
+        "p95_s": 0.01954364776611328,
+        "max_s": 0.17208623886108398
+      },
+      "context-available": {
+        "samples": 40,
+        "p50_s": 0.11265945434570312,
+        "p95_s": 0.2366936206817627,
+        "max_s": 0.3345305919647217
+      },
+      "finalization": {
+        "samples": 58,
+        "p50_s": 0.08651995658874512,
+        "p95_s": 0.15099859237670898,
+        "max_s": 0.350602388381958
+      },
+      "closure-storage-queue": {
+        "samples": 39,
+        "p50_s": 3.557701349258423,
+        "p95_s": 5.147763729095459,
+        "max_s": 5.882764577865601
+      },
+      "inference": {
+        "samples": 39,
+        "p50_s": 0.0848989486694336,
+        "p95_s": 0.23519539833068848,
+        "max_s": 0.25127720832824707
+      }
+    },
+    "stage_sample_limit": 256,
+    "inference_stage_includes": "Artifact hash checks and full decoding before the fixture call",
+    "persistence_and_index": "One atomic transaction; measured together",
+    "receipt_basis": "recording-notification",
+    "verified_last_frame_receipt": null
+  },
+  "trace_ids": [
+    "3c53c74c9a2f2979384503ec59faf9f603b408d080a67b00b8f3a015c7919dce",
+    "3c53c74c9a2f2979384503ec59faf9f603b408d080a67b00b8f3a015c7919dce",
+    "3c53c74c9a2f2979384503ec59faf9f603b408d080a67b00b8f3a015c7919dce",
+    "6fe741dce08e7915d34c47595f41a248f2f3ed43a01807bcdbfdb2d71a16fe79",
+    "f16ee46388c5d915d8cf022526fb335d00e4a30e7cc598055e4d3a94dba3e473"
+  ],
+  "fixture_models": {
+    "cosmos": "labeled-cosmos-fixture",
+    "version": "fixture-1",
+    "llm": "labeled-wandb-fixture",
+    "speech": "prerecorded-speech-fixture",
+    "ranking": "simulated"
+  },
+  "speech": {
+    "file": "tests/fixtures/foundation/speech.wav",
+    "duration_s": 5.188041666666667,
+    "sample_rate": 24000,
+    "channels": 1,
+    "origin": "prerecorded fixture; local Samantha voice; no live voice verification"
+  },
+  "capabilities": {
+    "fixture": {
+      "storage": {
+        "adapter": "fixture",
+        "ready": true,
+        "live_verified": false,
+        "reason": "Labeled local fixture"
+      },
+      "jobs": {
+        "adapter": "fixture",
+        "ready": true,
+        "live_verified": false,
+        "reason": "Labeled local fixture"
+      },
+      "yolo": {
+        "adapter": "fixture",
+        "ready": true,
+        "live_verified": false,
+        "reason": "Labeled local fixture"
+      },
+      "cosmos": {
+        "adapter": "fixture",
+        "ready": true,
+        "live_verified": false,
+        "reason": "Labeled local fixture"
+      },
+      "search": {
+        "adapter": "fixture",
+        "ready": true,
+        "live_verified": false,
+        "reason": "Labeled local fixture"
+      },
+      "llm": {
+        "adapter": "fixture",
+        "ready": true,
+        "live_verified": false,
+        "reason": "Labeled local fixture"
+      },
+      "speech": {
+        "adapter": "fixture",
+        "ready": true,
+        "live_verified": false,
+        "reason": "Labeled local fixture"
+      }
+    },
+    "live": {
+      "storage": {
+        "adapter": "live",
+        "ready": false,
+        "live_verified": false,
+        "reason": "Missing verified configuration: endpoint, version"
+      },
+      "jobs": {
+        "adapter": "live",
+        "ready": false,
+        "live_verified": false,
+        "reason": "Missing verified configuration: endpoint, version"
+      },
+      "yolo": {
+        "adapter": "live",
+        "ready": false,
+        "live_verified": false,
+        "reason": "Missing verified configuration: endpoint, version, provider-returned model_id"
+      },
+      "cosmos": {
+        "adapter": "live",
+        "ready": false,
+        "live_verified": false,
+        "reason": "Missing verified configuration: endpoint, version, provider-returned model_id"
+      },
+      "search": {
+        "adapter": "live",
+        "ready": false,
+        "live_verified": false,
+        "reason": "Missing verified configuration: endpoint, version"
+      },
+      "llm": {
+        "adapter": "live",
+        "ready": false,
+        "live_verified": false,
+        "reason": "Missing verified configuration: endpoint, version, provider-returned model_id"
+      },
+      "speech": {
+        "adapter": "live",
+        "ready": false,
+        "live_verified": false,
+        "reason": "Missing verified configuration: endpoint, version, provider-returned model_id"
+      }
+    }
+  },
+  "regressions": [
+    {
+      "report": ".runtime/foundation-checks/20261007T050750-1d3d04/multi_camera_check/validation.json",
+      "result": {
+        "elapsed_s": 18.0,
+        "passed": true,
+        "mode": "Synthetic staged ball action, encoded five views. Local fixture selection only.",
+        "physical_phone_sync_validated": false,
+        "live_provider_analysis_validated": false,
+        "checks": [
+          {
+            "name": "five_fixture_sources_and_live_program",
+            "occupied": 5
+          },
+          {
+            "name": "decoded_camera_order_and_clock_markers",
+            "max_clock_marker_error_ms": 33.333333333333485,
+            "continuous_cut_event_ms": 3500,
+            "combined_alignment_bound_ms": 139.33333333333425
+          },
+          {
+            "name": "continuous_cut_no_gap_or_duplicate_action",
+            "clock_step_ms": 66.66666666666667
+          },
+          {
+            "name": "repeat_and_mixed_speed_crop",
+            "repeat_duration_s": 6.0,
+            "mixed_duration_s": 6.266667,
+            "repeat_cue": "ALTERNATE ANGLE baked throughout repeated shot; browser frame checks below"
+          },
+          {
+            "name": "bounded_timestamped_visual_context",
+            "frames": 24
+          },
+          {
+            "name": "five_view_fixture_selection_rejects_obscured_angles"
+          },
+          {
+            "name": "simulated_segmentor_timeout_and_malformed_response_abstain"
+          },
+          {
+            "name": "malformed_plan_leaves_live_running"
+          },
+          {
+            "name": "unknown_mapping_and_reconnect_rejected"
+          },
+          {
+            "name": "weak_alternate_angle_falls_back",
+            "reason": "Fallback: only one view adds supported information. camera-2: No usable fixture evidence for the complete action; camera-3: No usable fixture evidence for the complete action; camera-4: No usable fixture evidence for the complete action; camera-5: No usable fixture evidence for the complete action"
+          },
+          {
+            "name": "missing_packet_across_join_rejected"
+          },
+          {
+            "name": "worker_timeout_leaves_live_running",
+            "error": "Command 'fixture-worker-timeout' timed out after 1 seconds",
+            "encoder_pid_unchanged": true
+          },
+          {
+            "name": "cancellation_releases_pins"
+          },
+          {
+            "name": "repeat_cue_current_speed_audio_muted_and_immediate_return",
+            "normalized_audio_rms": 0.0
+          },
+          {
+            "name": "automatic_return_to_live"
+          },
+          {
+            "name": "ready_replay_retraction_rejects_playback"
+          },
+          {
+            "name": "single_camera_compatibility_uses_shared_worker"
+          },
+          {
+            "name": "sixth_camera_rejected"
+          }
+        ],
+        "samples": [
+          {
+            "path": "runtime/replays/ae9a2bbe2c5346839b70f90e63679ef3.mp4",
+            "report": "runtime/replays/ae9a2bbe2c5346839b70f90e63679ef3.json",
+            "plan_hash": "3450bddcb98430f3a2ec17acc150b8df58132445fde9c57963f7ea87f1f77ded",
+            "camera_order": [
+              "camera-1",
+              "camera-2"
+            ],
+            "render_s": 0.31782556699909037,
+            "duration_s": 5.0,
+            "planned_duration_s": 5.0
+          },
+          {
+            "path": "runtime/replays/d8a56e0973614a6dbde32ddbfe598a57.mp4",
+            "report": "runtime/replays/d8a56e0973614a6dbde32ddbfe598a57.json",
+            "plan_hash": "ef6e8ea10dae264536d2c8db27c8e990b513e143d5453d3fbfacea9b17cd8359",
+            "camera_order": [
+              "camera-1",
+              "camera-2"
+            ],
+            "render_s": 0.365352165994409,
+            "duration_s": 6.0,
+            "planned_duration_s": 6.0
+          },
+          {
+            "path": "runtime/replays/1894f57b17af4690b1dd002a67cf6eb3.mp4",
+            "report": "runtime/replays/1894f57b17af4690b1dd002a67cf6eb3.json",
+            "plan_hash": "021f0b3dd886ba12dfe20a1f367b7222c6cc21b8755ef60d1ad3f5fafc0b92d6",
+            "camera_order": [
+              "camera-1",
+              "camera-2"
+            ],
+            "render_s": 0.3912925540062133,
+            "duration_s": 6.266667,
+            "planned_duration_s": 6.25
+          }
+        ],
+        "target_alignment_tolerance_ms": 150.0,
+        "blockers": [
+          "No verified VAST endpoint, credentials, SDK, or immutable-object access.",
+          "No verified Cosmos endpoint, model ID, SDK, or video-window contract.",
+          "No verified YOLO model/version or per-epoch tracker access.",
+          "No verified semantic-search endpoint, index revision, or media resolver.",
+          "No verified W&B/CoreWeave endpoint, model ID, SDK, or structured-output limits.",
+          "No physical phones or shared-marker calibration measured on live phone media."
+        ],
+        "measured_clock_marker_error_ms": 33.333333333333485,
+        "browser": {
+          "passed": true,
+          "browser": "154.0.8037.92",
+          "mode": "Injected synthetic encoded media; no physical phone or provider analysis",
+          "checks": [
+            "multi_camera_controls_accessible_under_advanced",
+            "review_shows_order_intervals_speeds_reasons_and_fixture_label",
+            "rendering_does_not_start_playback_and_live_frames_advance",
+            "encoded_preview_decodes_in_browser",
+            "manual_playback_and_immediate_return",
+            "changed_plan_requires_review_and_invalid_cut_explains_rejection",
+            "mobile_replay_editor_fits_viewport"
+          ],
+          "page_errors": []
+        }
+      }
+    },
+    {
+      "report": ".runtime/foundation-checks/20261007T050750-1d3d04/multi_camera_check/browser-report.json",
+      "result": {
+        "passed": true,
+        "browser": "154.0.8037.92",
+        "mode": "Injected synthetic encoded media; no physical phone or provider analysis",
+        "checks": [
+          "multi_camera_controls_accessible_under_advanced",
+          "review_shows_order_intervals_speeds_reasons_and_fixture_label",
+          "rendering_does_not_start_playback_and_live_frames_advance",
+          "encoded_preview_decodes_in_browser",
+          "manual_playback_and_immediate_return",
+          "changed_plan_requires_review_and_invalid_cut_explains_rejection",
+          "mobile_replay_editor_fits_viewport"
+        ],
+        "page_errors": []
+      }
+    },
+    {
+      "report": ".runtime/foundation-checks/20261007T050750-1d3d04/studio_check/validation.json",
+      "result": {
+        "passed": true,
+        "mode": "Labeled real RTSP sample media; no provider or physical phone",
+        "checks": [
+          {
+            "name": "one_camera_before_five",
+            "source": "camera/8823f3cc5f364decab723fd59c0e88eb"
+          },
+          {
+            "name": "UX4",
+            "occupied": 5
+          },
+          {
+            "name": "CAMERA_AUDIO",
+            "muted_full_capture_rms": 0.0,
+            "muted_steady_rms": 0.0,
+            "selected_camera": 2,
+            "fixture_tone_amplitudes": {
+              "1": 5.679143180781871e-05,
+              "2": 0.1250860041051958,
+              "3": 1.8971765472897967e-05,
+              "4": 1.0720567207620886e-05,
+              "5": 1.4409305566760041e-05
+            },
+            "second_full_capture_rms": 9.408119018481787e-05,
+            "second_muted_steady_rms": 0.0,
+            "restored_rms": 0.08541522422738401,
+            "steady_window": "Latter half of one-second decoded audio capture; initial encoded audio may precede mute"
+          },
+          {
+            "name": "R1",
+            "crew_paused": false,
+            "rehearsal": {
+              "state": "Complete",
+              "label": "Local rehearsal",
+              "generation": 7,
+              "reason": "Encoded replay completed; controller returned to live",
+              "slot": 1
+            }
+          },
+          {
+            "name": "C4",
+            "command_revision": 11
+          },
+          {
+            "name": "C1_C2_C5",
+            "crew_paused": true,
+            "reason": "Proposal run, control, program, or source revision changed"
+          },
+          {
+            "name": "R2_render",
+            "urgent_elapsed_s": 0.0026142370043089613,
+            "render_did_not_air": true
+          },
+          {
+            "name": "C7",
+            "reason": "This preparation is no longer running"
+          },
+          {
+            "name": "R2_replay",
+            "automatic_return_in_manual": true
+          },
+          {
+            "name": "R3_M1",
+            "reason": "Replay source lease or epoch changed",
+            "old_source_path": "camera/66b62826441944d6941644983b4b687b",
+            "new_source_path": "camera/8a5dcfc4f8b04639b4514c8f697fb226",
+            "same_epoch": true,
+            "replacement_stays_off_air": true
+          },
+          {
+            "name": "R3_audio_owner",
+            "replacement_audio_rms": 0.0,
+            "explicit_restored_audio_rms": 0.08538816769997187
+          },
+          {
+            "name": "M2",
+            "encoded_duration_s": 89.38,
+            "frames": 1341,
+            "black_frames": 0,
+            "max_frame_gap_s": 0.11299999999999999,
+            "encoder_pid": 22809,
+            "artifact": "/Users/joel/Code/breadcast/.runtime/foundation-checks/20261007T050750-1d3d04/studio_check/program.mkv"
+          }
+        ],
+        "failures": [],
+        "browser": {
+          "passed": true,
+          "browser": "154.0.8037.92",
+          "checks": [
+            {
+              "id": "UX1",
+              "passed": true
+            },
+            {
+              "id": "PROGRAM_OVERLAY",
+              "passed": true,
+              "geometry": {
+                "video": {
+                  "x": 8,
+                  "y": 70.5,
+                  "width": 820.8125,
+                  "height": 461.703125,
+                  "bottom": 532.203125,
+                  "right": 828.8125
+                },
+                "panel": {
+                  "x": 8,
+                  "y": 70.5,
+                  "width": 820.8125,
+                  "height": 461.703125,
+                  "bottom": 532.203125,
+                  "right": 828.8125
+                },
+                "crew": {
+                  "x": 836.8125,
+                  "y": 70.5,
+                  "width": 435.1875,
+                  "height": 721.5,
+                  "bottom": 792,
+                  "right": 1272
+                },
+                "controls": [
+                  {
+                    "x": 20,
+                    "y": 488.203125,
+                    "width": 32,
+                    "height": 32,
+                    "bottom": 520.203125,
+                    "right": 52
+                  },
+                  {
+                    "x": 54,
+                    "y": 488.203125,
+                    "width": 32,
+                    "height": 32,
+                    "bottom": 520.203125,
+                    "right": 86
+                  },
+                  {
+                    "x": 88,
+                    "y": 488.203125,
+                    "width": 32,
+                    "height": 32,
+                    "bottom": 520.203125,
+                    "right": 120
+                  },
+                  {
+                    "x": 368.40625,
+                    "y": 488.203125,
+                    "width": 32,
+                    "height": 32,
+                    "bottom": 520.203125,
+                    "right": 400.40625
+                  },
+                  {
+                    "x": 402.40625,
+                    "y": 488.203125,
+                    "width": 32,
+                    "height": 32,
+                    "bottom": 520.203125,
+                    "right": 434.40625
+                  },
+                  {
+                    "x": 436.40625,
+                    "y": 488.203125,
+                    "width": 32,
+                    "height": 32,
+                    "bottom": 520.203125,
+                    "right": 468.40625
+                  },
+                  {
+                    "x": 470.40625,
+                    "y": 488.203125,
+                    "width": 32,
+                    "height": 32,
+                    "bottom": 520.203125,
+                    "right": 502.40625
+                  },
+                  {
+                    "x": 750.8125,
+                    "y": 488.203125,
+                    "width": 32,
+                    "height": 32,
+                    "bottom": 520.203125,
+                    "right": 782.8125
+                  },
+                  {
+                    "x": 784.8125,
+                    "y": 488.203125,
+                    "width": 32,
+                    "height": 32,
+                    "bottom": 520.203125,
+                    "right": 816.8125
+                  }
+                ],
+                "nativeControls": false,
+                "statusVisible": false
+              },
+              "tooltip_labels": true,
+              "local_audio_only": true,
+              "fullscreen": true
+            },
+            {
+              "id": "CAMERA_CONTROLS",
+              "passed": true,
+              "filled_preview": true,
+              "controls_above_video": true,
+              "exclusive_microphone": true,
+              "mute_all": true,
+              "tooltip_keyboard_hover_escape": true
+            },
+            {
+              "id": "FEATURE_MODALS",
+              "passed": true,
+              "native_modal": true,
+              "focus_trap": true,
+              "escape_focus_return": true,
+              "backdrop_close": true,
+              "draft_preserved": true,
+              "video_geometry_unchanged": true,
+              "urgent_control_available": true
+            },
+            {
+              "id": "UX2_G2",
+              "passed": true,
+              "reconnects": 0
+            },
+            {
+              "id": "CREW_UX",
+              "passed": true,
+              "collapsed_history": true,
+              "compact_preview": true,
+              "enter_to_send": true,
+              "shift_enter_newline": true,
+              "server_message_restored": true
+            },
+            {
+              "id": "C2_C6",
+              "passed": true,
+              "two_tabs": true
+            },
+            {
+              "id": "C4",
+              "passed": true,
+              "response_aborted_after_server_execution": true,
+              "action_id": "c24ce719-d7df-4da2-9fab-e3caa56b8785"
+            },
+            {
+              "id": "G1",
+              "passed": true
+            },
+            {
+              "id": "M3",
+              "passed": true,
+              "request_to_controller_observed_ms": 116.37798600000133,
+              "action_created_to_encoder_ms": 63.414510994334705,
+              "request_to_viewer_pixels_ms": 177.7278810000007,
+              "controller_applied_monotonic_s": 36828.911050047,
+              "ack": "encoder frame submission; viewer pixels measured separately"
+            },
+            {
+              "id": "UX3",
+              "passed": true
+            },
+            {
+              "id": "CAMERA_REMOVE",
+              "passed": true,
+              "slot": 5,
+              "mobile_tooltip_fits": true,
+              "encoder_unchanged": true
+            }
+          ],
+          "page_errors": []
+        },
+        "versions": {
+          "mediamtx": "v1.20.1",
+          "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+          "python": "Python 3.13.16",
+          "package_source": "docker"
+        },
+        "actions_path": "/Users/joel/Code/breadcast/.runtime/foundation-checks/20261007T050750-1d3d04/studio_check/runtime/program-history.jsonl"
+      }
+    },
+    {
+      "report": ".runtime/foundation-checks/20261007T050750-1d3d04/studio_check/browser-report.json",
+      "result": {
+        "passed": true,
+        "browser": "154.0.8037.92",
+        "checks": [
+          {
+            "id": "UX1",
+            "passed": true
+          },
+          {
+            "id": "PROGRAM_OVERLAY",
+            "passed": true,
+            "geometry": {
+              "video": {
+                "x": 8,
+                "y": 70.5,
+                "width": 820.8125,
+                "height": 461.703125,
+                "bottom": 532.203125,
+                "right": 828.8125
+              },
+              "panel": {
+                "x": 8,
+                "y": 70.5,
+                "width": 820.8125,
+                "height": 461.703125,
+                "bottom": 532.203125,
+                "right": 828.8125
+              },
+              "crew": {
+                "x": 836.8125,
+                "y": 70.5,
+                "width": 435.1875,
+                "height": 721.5,
+                "bottom": 792,
+                "right": 1272
+              },
+              "controls": [
+                {
+                  "x": 20,
+                  "y": 488.203125,
+                  "width": 32,
+                  "height": 32,
+                  "bottom": 520.203125,
+                  "right": 52
+                },
+                {
+                  "x": 54,
+                  "y": 488.203125,
+                  "width": 32,
+                  "height": 32,
+                  "bottom": 520.203125,
+                  "right": 86
+                },
+                {
+                  "x": 88,
+                  "y": 488.203125,
+                  "width": 32,
+                  "height": 32,
+                  "bottom": 520.203125,
+                  "right": 120
+                },
+                {
+                  "x": 368.40625,
+                  "y": 488.203125,
+                  "width": 32,
+                  "height": 32,
+                  "bottom": 520.203125,
+                  "right": 400.40625
+                },
+                {
+                  "x": 402.40625,
+                  "y": 488.203125,
+                  "width": 32,
+                  "height": 32,
+                  "bottom": 520.203125,
+                  "right": 434.40625
+                },
+                {
+                  "x": 436.40625,
+                  "y": 488.203125,
+                  "width": 32,
+                  "height": 32,
+                  "bottom": 520.203125,
+                  "right": 468.40625
+                },
+                {
+                  "x": 470.40625,
+                  "y": 488.203125,
+                  "width": 32,
+                  "height": 32,
+                  "bottom": 520.203125,
+                  "right": 502.40625
+                },
+                {
+                  "x": 750.8125,
+                  "y": 488.203125,
+                  "width": 32,
+                  "height": 32,
+                  "bottom": 520.203125,
+                  "right": 782.8125
+                },
+                {
+                  "x": 784.8125,
+                  "y": 488.203125,
+                  "width": 32,
+                  "height": 32,
+                  "bottom": 520.203125,
+                  "right": 816.8125
+                }
+              ],
+              "nativeControls": false,
+              "statusVisible": false
+            },
+            "tooltip_labels": true,
+            "local_audio_only": true,
+            "fullscreen": true
+          },
+          {
+            "id": "CAMERA_CONTROLS",
+            "passed": true,
+            "filled_preview": true,
+            "controls_above_video": true,
+            "exclusive_microphone": true,
+            "mute_all": true,
+            "tooltip_keyboard_hover_escape": true
+          },
+          {
+            "id": "FEATURE_MODALS",
+            "passed": true,
+            "native_modal": true,
+            "focus_trap": true,
+            "escape_focus_return": true,
+            "backdrop_close": true,
+            "draft_preserved": true,
+            "video_geometry_unchanged": true,
+            "urgent_control_available": true
+          },
+          {
+            "id": "UX2_G2",
+            "passed": true,
+            "reconnects": 0
+          },
+          {
+            "id": "CREW_UX",
+            "passed": true,
+            "collapsed_history": true,
+            "compact_preview": true,
+            "enter_to_send": true,
+            "shift_enter_newline": true,
+            "server_message_restored": true
+          },
+          {
+            "id": "C2_C6",
+            "passed": true,
+            "two_tabs": true
+          },
+          {
+            "id": "C4",
+            "passed": true,
+            "response_aborted_after_server_execution": true,
+            "action_id": "c24ce719-d7df-4da2-9fab-e3caa56b8785"
+          },
+          {
+            "id": "G1",
+            "passed": true
+          },
+          {
+            "id": "M3",
+            "passed": true,
+            "request_to_controller_observed_ms": 116.37798600000133,
+            "action_created_to_encoder_ms": 63.414510994334705,
+            "request_to_viewer_pixels_ms": 177.7278810000007,
+            "controller_applied_monotonic_s": 36828.911050047,
+            "ack": "encoder frame submission; viewer pixels measured separately"
+          },
+          {
+            "id": "UX3",
+            "passed": true
+          },
+          {
+            "id": "CAMERA_REMOVE",
+            "passed": true,
+            "slot": 5,
+            "mobile_tooltip_fits": true,
+            "encoder_unchanged": true
+          }
+        ],
+        "page_errors": []
+      }
+    },
+    {
+      "report": ".runtime/foundation-checks/20261007T050750-1d3d04/graphics/runtime/graphics-browser-report.json",
+      "result": {
+        "passed": true,
+        "browser": "154.0.8037.92",
+        "mode": "Five labeled sample publishers; actual WebRTC viewer pixels; TEST scores are fixtures",
+        "checks": [
+          {
+            "name": "catalog_contains_24_prepared_designs_and_unknown_initial_scores"
+          },
+          {
+            "name": "preview_and_invalid_updates_cannot_commit_scores"
+          },
+          {
+            "name": "long_text_non_ascii_names_and_unknown_values_render_at_program_size"
+          },
+          {
+            "name": "edited_name_bar_reaches_actual_webrtc_pixels",
+            "request_to_observed_pixels_ms": 650
+          },
+          {
+            "name": "score_only_updates_preserve_running_clock"
+          },
+          {
+            "name": "operator_confirms_scores_and_starts_stops_display_clock"
+          },
+          {
+            "name": "replay_keeps_marker_and_brand_hides_current_score_then_restores_live"
+          },
+          {
+            "name": "all_24_presets_cued_with_continuous_viewer_playback",
+            "frames_submitted_ack_ms": [
+              111,
+              116,
+              110,
+              111,
+              112,
+              116,
+              111,
+              113,
+              116,
+              115,
+              113,
+              122,
+              111,
+              112,
+              113,
+              116,
+              111,
+              113,
+              115,
+              115,
+              113,
+              123,
+              136,
+              116
+            ],
+            "max_ack_ms": 136
+          },
+          {
+            "name": "countdown_and_stinger_expire_return_to_live_clears_full_screen"
+          },
+          {
+            "name": "five_cameras_remain_active_no_encoder_restart_no_page_errors_mobile_fits"
+          }
+        ],
+        "page_errors": []
+      }
+    },
+    {
+      "report": ".runtime/foundation-checks/20261007T050750-1d3d04/graphics/runtime/modal-report.json",
+      "result": {
+        "passed": true,
+        "browser": "154.0.8037.92",
+        "checks": [
+          {
+            "width": 1440,
+            "height": 900,
+            "native_modal": true,
+            "focus_trap": true,
+            "escape_focus_return": true,
+            "backdrop_close": true,
+            "drafts_preserved": true,
+            "player_unchanged": true,
+            "reconnects": 0,
+            "errors_visible_in_active_modal": true,
+            "nested_confirmation_escape": true
+          },
+          {
+            "width": 1280,
+            "height": 800,
+            "native_modal": true,
+            "focus_trap": true,
+            "escape_focus_return": true,
+            "backdrop_close": true,
+            "drafts_preserved": true,
+            "player_unchanged": true,
+            "reconnects": 0,
+            "errors_visible_in_active_modal": true,
+            "nested_confirmation_escape": true
+          },
+          {
+            "width": 390,
+            "height": 844,
+            "native_modal": true,
+            "focus_trap": true,
+            "escape_focus_return": true,
+            "backdrop_close": true,
+            "drafts_preserved": true,
+            "player_unchanged": true,
+            "reconnects": 0,
+            "errors_visible_in_active_modal": true,
+            "nested_confirmation_escape": true
+          }
+        ],
+        "page_errors": [],
+        "failure_injection": "End request intercepted with HTTP 503; actual server was not ended"
+      }
+    },
+    {
+      "report": ".runtime/foundation-checks/20261007T050750-1d3d04/graphics/runtime/graphics-evidence/graphics-media-report.json",
+      "result": {
+        "passed": true,
+        "mode": "Five generated camera fixtures and labeled test tones; real RTSP H264/Opus output",
+        "checks": [
+          {
+            "file": "/Users/joel/Code/breadcast/.runtime/foundation-checks/20261007T050750-1d3d04/graphics/runtime/graphics-evidence/live.mkv",
+            "decoded_video_frames": 42,
+            "max_video_gap_s": 0.067,
+            "first_video_gap_s": 0.06,
+            "max_steady_video_gap_s": 0.067,
+            "audio_samples": 144000,
+            "middle_audio_rms": 2896.19
+          },
+          {
+            "file": "/Users/joel/Code/breadcast/.runtime/foundation-checks/20261007T050750-1d3d04/graphics/runtime/graphics-evidence/opening.mkv",
+            "decoded_video_frames": 40,
+            "max_video_gap_s": 0.067,
+            "first_video_gap_s": 0.067,
+            "max_steady_video_gap_s": 0.067,
+            "audio_samples": 144000,
+            "middle_audio_rms": 0.0
+          },
+          {
+            "file": "/Users/joel/Code/breadcast/.runtime/foundation-checks/20261007T050750-1d3d04/graphics/runtime/graphics-evidence/restored.mkv",
+            "decoded_video_frames": 45,
+            "max_video_gap_s": 0.067,
+            "first_video_gap_s": 0.067,
+            "max_steady_video_gap_s": 0.067,
+            "audio_samples": 144000,
+            "middle_audio_rms": 2893.89
+          },
+          {
+            "file": "/Users/joel/Code/breadcast/.runtime/foundation-checks/20261007T050750-1d3d04/graphics/runtime/graphics-evidence/replay.mkv",
+            "decoded_video_frames": 43,
+            "max_video_gap_s": 0.067,
+            "first_video_gap_s": 0.067,
+            "max_steady_video_gap_s": 0.067,
+            "audio_samples": 144000,
+            "middle_audio_rms": 0.0
+          }
+        ],
+        "encoder_pid_unchanged": true,
+        "physical_phone_tested": false
+      }
+    },
+    {
+      "report": ".runtime/foundation-checks/20261007T050750-1d3d04/ui/ui-report.json",
+      "result": {
+        "passed": true,
+        "browser": "154.0.8037.92",
+        "mode": "Local Docker browser UI without viewer/operator keys; no physical phone scan",
+        "checks": [
+          {
+            "name": "both_pages_and_operator_api_open_without_keys"
+          },
+          {
+            "name": "old_access_fragments_and_saved_keys_are_removed"
+          },
+          {
+            "name": "broadcast_has_video_and_decodable_qr_only",
+            "width": 224,
+            "height": 224,
+            "natural_width": 270,
+            "payload_matches_join_link": true
+          },
+          {
+            "name": "tabs_switch_pages_without_login"
+          },
+          {
+            "name": "shared_navigation_layout_clean_chat_and_direct_join"
+          },
+          {
+            "name": "http_urgent_takeover_delayed_release_and_specific_unsupported_command"
+          },
+          {
+            "name": "decorative_motion_respects_reduced_motion"
+          },
+          {
+            "name": "operator_rotation_updates_broadcast_qr_and_revokes_old_join_code"
+          },
+          {
+            "name": "mobile_pages_fit_viewport_and_qr_decodes",
+            "width": 224,
+            "height": 224,
+            "natural_width": 270,
+            "payload_matches_join_link": true
+          },
+          {
+            "name": "qr_failure_shows_retry_state_and_recovers"
+          },
+          {
+            "name": "brand_assets_and_fonts_load_without_experiment_labels"
+          }
+        ],
+        "page_errors": []
+      }
+    }
+  ],
+  "worker_cli_proof": {
+    "passed": true,
+    "mode": "generated real video and labeled fixture output",
+    "worker_command": [
+      "/usr/local/bin/python3",
+      "/opt/breadcast/app/studio.py",
+      "foundation-worker",
+      "--config",
+      "/opt/breadcast/config/foundation.fixture.json",
+      "--request",
+      "/evidence/request.json",
+      "--output",
+      "/evidence/result.json",
+      "--storage",
+      "/evidence/remote-media"
+    ],
+    "query_command": [
+      "/usr/local/bin/python3",
+      "/opt/breadcast/app/studio.py",
+      "foundation-query",
+      "--config",
+      "/opt/breadcast/config/foundation.fixture.json",
+      "--runtime",
+      "/evidence/runtime",
+      "--run-id",
+      "cli-fixture-run",
+      "--text",
+      "action"
+    ],
+    "job_key": "5c0f6c64294a0625446e39b80d9301a419e890c246c56b9c50bde9a2d480eae6",
+    "source": {
+      "event_id": "foundation-fixture",
+      "run_id": "cli-fixture-run",
+      "source_id": "camera/cli-fixture",
+      "epoch": 1,
+      "slot": 1,
+      "time_base": "1/15360",
+      "discontinuity": null
+    },
+    "snapshot_preserved": true,
+    "query_hits": 1,
+    "decoded_frames": 30,
+    "remote_storage_has_no_ledger": true,
+    "fixture_ranking": "simulated"
+  },
+  "failures_and_fixes": [
+    {
+      "case": "RTSP timestamp checks used as encoder checks",
+      "result": "Decoded direct encoder packets separately. Retained reader measurements. Direct encoder gaps are checked strictly."
+    },
+    {
+      "case": "Low host disk space",
+      "result": "Archive admission stopped at the 2 GiB reserve while the program continued. Removed task-owned redundant output and build cache; host space recovered."
+    },
+    {
+      "case": "Synthetic source omitted native clock revision",
+      "result": "Legacy fixture sources default to revision 1; real sources retain explicit revisions."
+    },
+    {
+      "case": "Chromium launched with an unwritable home",
+      "result": "Acceptance image sets temporary writable XDG config/cache directories."
+    },
+    {
+      "case": "Chromium could not gather WebRTC candidates with network none",
+      "result": "Temporary internal Docker network supplies a private interface and no external route; resources are removed on exit."
+    },
+    {
+      "case": "Fullscreen property changed before fullscreenchange callback",
+      "result": "Browser check waits for the control label updated by that callback."
+    },
+    {
+      "case": "Rectangular audio analysis leaked into neighboring test tones",
+      "result": "Hann analysis passed the original selected/unselected amplitude limits; production audio selection was unchanged."
+    },
+    {
+      "case": "Graphics check runtime directory missing",
+      "result": "Runner creates the directory before constructing the application."
+    },
+    {
+      "case": "Chunk end inferred from prior spacing",
+      "result": "Full decoding uses the recorded final-frame duration; variable-rate and unknown-duration cases are checked."
+    },
+    {
+      "case": "Hook notification treated as a last-frame receipt",
+      "result": "Receipt remains null. Notification deadlines bound archive processing and cannot grant live freshness."
+    },
+    {
+      "case": "Human score confirmation rejected its own takeover revision",
+      "result": "Score confirmation uses the existing media revision checks. A browser and unit test prove one fact revision per operation."
+    },
+    {
+      "case": "Shared artifact publication raced retention",
+      "result": "Publication and retention share a lock; concurrent upload/deletion test retains decodable bytes."
+    }
+  ],
+  "open_gates": [
+    "Actual VAST storage/trigger, YOLO, Cosmos, semantic search, W&B, and speech access and private media transport",
+    "Verified recorder-to-decoder frame receipt mapping before live freshness",
+    "Physical phones, orientation metadata, venue clocks and playback",
+    "Real retrieval quality and expressive spoken commentary; PRD 2",
+    "Archive replay editing and scheduling; PRD 3"
+  ],
+  "handoff": "docs/18-event-foundation.md",
+  "working_tree": "Preserved existing README and design edits. This record describes validation before the requested commit and push. No broadcast deployment or publication.",
+  "review_fix_validation": {
+    "passed": true,
+    "fixes": [
+      {
+        "finding": "Retrieved archive history bypassed the reviewed evidence revision",
+        "status": "fixed",
+        "behavior": "Every supporting observation must be active, owned by the scene source, and at or below the reviewed evidence ordinal. Newer scene revisions are omitted; corrections remain invalid."
+      },
+      {
+        "finding": "Director context omitted source health and actual program state",
+        "status": "fixed",
+        "behavior": "DecisionSnapshot.runtime preserves sampled decoder health, immutable lease/epoch, actual encoder target, requested state, audio selection/mute, takeover and controller policy. Missing or concurrently invalidated runtime makes director context unavailable."
+      }
+    ],
+    "unit_tests": {
+      "count": 101,
+      "passed": true,
+      "log": ".runtime/foundation-context-review-20261007/final-unit-tests.log",
+      "report": ".runtime/foundation-context-review-20261007/final-unit-report.json",
+      "added_regressions": [
+        "test_foundation.FoundationContracts.test_E08_archive_hits_obey_reviewed_evidence_revision",
+        "test_foundation.FoundationContracts.test_E08_context_no_future_actual_airtime_and_bounds",
+        "test_foundation.FoundationContracts.test_E08_director_without_reviewed_runtime_is_unavailable",
+        "test_foundation.FoundationContracts.test_E08_legacy_snapshot_serialization_preserves_retry_identity",
+        "test_foundation.FoundationHTTP.test_E08_director_runtime_uses_reviewed_health_and_actual_program",
+        "test_foundation.FoundationHTTP.test_E08_runtime_race_with_control_change_fails_closed"
+      ]
+    },
+    "media_regression": {
+      "passed": true,
+      "report": ".runtime/foundation-context-review-20261007/media-report.json",
+      "command": [
+        "/usr/local/bin/python",
+        "/opt/breadcast/tests/media/check.py",
+        "--evidence",
+        "/scratch/media",
+        "--file",
+        "/opt/breadcast/demo.mp4",
+        "--one-camera-seconds",
+        "5",
+        "--sustained-seconds",
+        "45",
+        "--foundation-config",
+        "/opt/breadcast/config/foundation.fixture.json"
+      ],
+      "sustained_five_source_seconds": 45.0149428789955,
+      "encoded_frames": 1290,
+      "encoded_duration_s": 85.933,
+      "max_encoded_frame_gap_s": 0.06700000000000728,
+      "encoder_schedule_late_events": 0,
+      "archive_frames_after_slot_reuse": 30,
+      "encoded_output": ".runtime/foundation-context-review-20261007/encoder-program.mkv",
+      "rtsp_output": ".runtime/foundation-context-review-20261007/program.mkv",
+      "completed_job_runtime_proof": ".runtime/foundation-context-review-20261007/runtime-media-proof.json",
+      "completed_windows_inspected": 40,
+      "five_source_live_snapshots": 31
+    },
+    "environment": "Pinned breadcast-studio:foundation image; current app/tests/config mounted read-only; network none; temporary 4 GiB in-memory media runtime; no active Studio changes",
+    "compatibility": "Old snapshots omit null runtime on serialization. Retry signatures and saved worker requests round-trip unchanged.",
+    "source_hashes": {
+      "app/foundation.py": "7800def8141565d840f2396535ddf3900df9b05c7b0bced083f4e335557f94de",
+      "app/foundation_records.py": "2b0b016407690c599bff304102fdf67ea52645669aede0f7a40f5a90b85c2c79",
+      "app/studio.py": "070d27d5539cb6ba90103a0d5e14147c73f16c079383301c04a84ff14c952a49",
+      "tests/unit/test_foundation.py": "fc36fe900f3482246c9326470c72be0fc0dd8dda976d3f6c2632d5a1775810bf",
+      "docs/05-context-and-contracts.md": "f54a27c27d060704967a87317b8680e79a73ce9cd87d9cd43200ec61b52ed804",
+      "docs/18-event-foundation.md": "5ce0df8b2b10446440fa5a589a94253e16ec07cee80405d290e7899de9690e1c"
+    },
+    "full_acceptance_rerun": false,
+    "validation_scope": "Full unit suite plus affected media/admission/control/replay/background-ingestion regression. The original E01\u2013E17 five-minute and browser acceptance run remains the baseline.",
+    "live_verified": false
+  }
+}

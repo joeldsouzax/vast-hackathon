@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "event_id": "demo-soccer-001",
+  "context_revision": 1,
+  "fixture": true,
+  "title": "Campus Cup",
+  "profile": "soccer",
+  "participants": [
+    {"id": "team-north", "display_name": "North FC", "short_name": "NTH", "color": "#FF784F"},
+    {"id": "team-south", "display_name": "South FC", "short_name": "STH", "color": "#6ED6CC"}
+  ],
+  "branding": {
+    "background": "#111C2C",
+    "foreground": "#FFF9EE",
+    "accent": "#FF784F",
+    "font_family": "Arial, sans-serif",
+    "logo_uri": null
+  },
+  "camera_policy": {
+    "max_cameras": 5,
+    "join_mode": "event_qr",
+    "reservation_ttl_seconds": 60,
+    "reconnect_grace_seconds": 20,
+    "preferred_width": 1280,
+    "preferred_height": 720,
+    "preferred_fps": 30,
+    "max_sync_uncertainty_ms": 150
+  },
+  "output": {
+    "width": 1280,
+    "height": 720,
+    "fps_num": 30,
+    "fps_den": 1,
+    "program_delay_ms": 8000,
+    "visibility": "private_demo"
+  },
+  "editorial": {
+    "minimum_shot_ms": 5000,
+    "maximum_replay_ms": 12000,
+    "replay_cooldown_ms": 30000,
+    "allowed_speeds": [0.5, 1, 2],
+    "maximum_zoom": 1.5,
+    "score_authority": "operator",
+    "clock_authority": "operator",
+    "unknown_fact_policy": "hide",
+    "replay_score_policy": "hide"
+  },
+  "audio": {
+    "live_policy": "one_designated_source",
+    "replay_policy": "mute_source_and_live_audio",
+    "commentary_mode": "captions",
+    "language": "en",
+    "pronunciations": {}
+  },
+  "graphics_template_manifest": "assets/graphics/manifest.json"
+}

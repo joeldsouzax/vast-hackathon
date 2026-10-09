@@ -1,0 +1,136 @@
+{
+  "evidence_scope": "historical validation",
+  "image_id": "sha256:3759889db59f3cff4e90d6553918f61d65ab05de86a522823963de079480ed08",
+  "platform": "Linux ARM64 container; Chrome on Apple ARM Mac",
+  "identity": {
+    "name": "Breadcast",
+    "mark": "Winking toast with a broadcast headset",
+    "logo": "_experiments/studio/web/brand/breadcast-mark.svg",
+    "palette": "Cream, olive, charcoal, and toast orange",
+    "fonts": "Self-hosted Outfit and DM Sans; licenses and source hashes bundled",
+    "prepared_waiting_screen": "_experiments/studio/web/brand/holding.png"
+  },
+  "ui": {
+    "passed": true,
+    "browser": "154.0.8037.98",
+    "mode": "Local Docker browser UI without viewer/operator keys; no physical phone scan",
+    "checks": [
+      {
+        "name": "both_pages_and_operator_api_open_without_keys"
+      },
+      {
+        "name": "old_access_fragments_and_saved_keys_are_removed"
+      },
+      {
+        "name": "broadcast_has_video_and_decodable_qr_only",
+        "width": 239,
+        "height": 239,
+        "natural_width": 270,
+        "payload_matches_join_link": true
+      },
+      {
+        "name": "tabs_switch_pages_without_login"
+      },
+      {
+        "name": "operator_rotation_updates_broadcast_qr_and_revokes_old_join_code"
+      },
+      {
+        "name": "mobile_pages_fit_viewport_and_qr_decodes",
+        "width": 268,
+        "height": 268,
+        "natural_width": 270,
+        "payload_matches_join_link": true
+      },
+      {
+        "name": "qr_failure_shows_retry_state_and_recovers"
+      },
+      {
+        "name": "brand_assets_and_fonts_load_without_experiment_labels"
+      }
+    ],
+    "page_errors": []
+  },
+  "browser_media": {
+    "passed": true,
+    "mode": "Chrome fake camera devices; physical phones not tested",
+    "browser": "154.0.8037.98",
+    "checks": [
+      {
+        "name": "one_browser_camera_to_webrtc_viewer",
+        "width": 640,
+        "height": 360,
+        "frames": 61
+      },
+      {
+        "name": "browser_replay_and_return_without_encoder_restart"
+      },
+      {
+        "name": "five_browser_cameras_stream_and_decode",
+        "slots": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      {
+        "name": "sixth_browser_camera_rejected"
+      },
+      {
+        "name": "browser_stop_releases_all_camera_slots"
+      }
+    ],
+    "page_errors": []
+  },
+  "admission_tests": {
+    "passed": true,
+    "count": 7
+  },
+  "visual_inspection": [
+    "Desktop Broadcast and Operator screenshots",
+    "390px Broadcast and Operator screenshots",
+    "Camera Join page",
+    "640x360 prepared waiting screen"
+  ],
+  "artifacts": {
+    "broadcast-fixed.png": "_experiments/studio/.run/brand-review/broadcast-fixed.png",
+    "operator-mobile.png": "_experiments/studio/.run/brand-review/operator-mobile.png",
+    "broadcast-mobile.png": "_experiments/studio/.run/brand-review/broadcast-mobile.png",
+    "operator-fixed.png": "_experiments/studio/.run/brand-review/operator-fixed.png",
+    "operator.png": "_experiments/studio/.run/brand-review/operator.png",
+    "phone.png": "_experiments/studio/.run/brand-review/phone.png",
+    "join-branded.png": "_experiments/studio/.run/brand-review/join-branded.png",
+    "viewer.png": "_experiments/studio/.run/brand-review/viewer.png"
+  },
+  "media_verification_note": "The complete browser/media run passed before a rebuild that only changed a JavaScript comment. UI/brand checks and admission tests passed on the final image; media behavior did not change between those builds.",
+  "limits": [
+    "Fixtures and fake cameras; physical phones and remote HTTPS remain unverified.",
+    "No provider integration claims or changed capture-time calibration."
+  ],
+  "source_sha256": {
+    "_experiments/studio/media.py": "9b9f1af738a5be9678d5cecd8232c3e0d96a3461e3eb5f32dc4a2a72af179d17",
+    "_experiments/studio/tests/ui-check.cjs": "1fa0b15ad4b4a22511434356b7b5ee9aa9f8f3b05227bf37c9410261a904b477",
+    "_experiments/studio/tests/browser-check.cjs": "8177a8a15dbd524d8a519a922e14b88f33636427fd90916620c3a5c220160ea3",
+    "_experiments/studio/web/brand/breadcast-mark.svg": "c37f72a8279a7828df92879da471d2acb9105846e0a2d27a8798017d906342d4",
+    "_experiments/studio/web/brand/holding.png": "57b8d7d98a44c3d6037f3295ccd15dafa208540618955bc880d7ca3f7aa570ab",
+    "_experiments/studio/web/brand/holding.svg": "699c7b6417621e5433318a00a164c95be04c7cdcc2a1b3d804ec5ee178eaef72",
+    "_experiments/studio/web/broadcast.js": "650a86b37ee9a277084533f671b1693a810d5e6a05e5c171fce173f6bbea0136",
+    "_experiments/studio/web/common.js": "ce667bb7f976e0a9fb89e8275e1dad2a98c8cc6b6645086eaa77df406180d019",
+    "_experiments/studio/web/fonts/dmsans-OFL.txt": "9af36190332437f5ecd09974de43c1f7c77a310a996cdd8ceb25628b458840e1",
+    "_experiments/studio/web/fonts/dmsans.ttf": "8cd08d97e89c24d0aa92edd2f0f4c8ee6195eee9b7c9f154865a58b02f0c1c0d",
+    "_experiments/studio/web/fonts/outfit-OFL.txt": "c676351bf8576b9aba743cd5eaa8c0e7ee0d51f805d720447b4df4ddb6a2e416",
+    "_experiments/studio/web/fonts/outfit.ttf": "fc7287273e66929776e2ba54f144fe699080bec29f61bf649d70d871468aeade",
+    "_experiments/studio/web/fonts/sources.json": "f034aed9eb507fec1c1fcd6baffbfd23f6f02e10ecf6f2f51e76c0d9a6f1fb18",
+    "_experiments/studio/web/join.html": "431611e97cf9e14eea15cc61259a80031208e826bf0b5039adc0cbf385c40a43",
+    "_experiments/studio/web/join.js": "48f283ec6d66eed9d4ce61fbfa6a5a2f832f1f53767fa85d151b50bbe74fd28c",
+    "_experiments/studio/web/operator.html": "c8d189d274769d7842ec659307ce37197166cf6547b8f92cd3792afacbc1529d",
+    "_experiments/studio/web/operator.js": "ef69888f185d707a07d8106658b4f28690b00b091768bace4343bf8550f5b668",
+    "_experiments/studio/web/style.css": "26656051dd7ab8d3e8fcf4d5d950bbcd970635c5ea5ad0bdee586031fcc96be0",
+    "_experiments/studio/web/vendor/LICENSE": "ecae73b0a23185a35a1222edc0aae5245bb9739420bad0125b0c42e935301a80",
+    "_experiments/studio/web/vendor/publisher.js": "ed94a74e13b11398309ef51590495f3d2b9d4fde159f251fbd77d06c9ff335d0",
+    "_experiments/studio/web/vendor/reader.js": "a802f229b803c33713d4c69c4cc0d480108a5bf384947aeee4aaf04268bf85c1",
+    "_experiments/studio/web/vendor/sources.json": "1ee72dd87c4b76bf2e8883997300843a6c85d530dc8c8f9d7f1c0e8642789016",
+    "_experiments/studio/web/watch.html": "19842872113c58af328f20a32898e4cd739f051bb0c0929e6a531b8b05ac216c"
+  }
+}

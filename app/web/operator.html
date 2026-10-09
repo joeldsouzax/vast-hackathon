@@ -4,6 +4,12 @@
 <body class="studio-page">
 <header class="studio-header" data-page="studio"></header>
 <p id="message" class="error studio-message" role="alert" hidden></p>
+<form id="operator-login" class="operator-login card" hidden autocomplete="off">
+<h1>Open Studio</h1><p>Enter the operator credential for this event.</p>
+<label for="operator-token">Operator credential</label><input id="operator-token" type="password" autocomplete="off" required>
+<button type="submit" class="primary">Open Studio</button><p id="operator-login-status" role="alert"></p>
+</form>
+<button id="operator-lock" class="operator-lock" type="button" hidden>Lock Studio</button>
 <main id="workspace" class="studio-workspace">
 <section class="main-surface" aria-label="Program workspace">
 <div class="program-panel"><div class="monitor-frame"><video id="program" autoplay muted playsinline poster="/brand/holding.png" aria-label="Program monitor"></video>

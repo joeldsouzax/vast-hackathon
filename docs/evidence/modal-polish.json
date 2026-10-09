@@ -1,0 +1,627 @@
+{
+  "evidence_scope": "historical validation",
+  "phase": "Feature modals and audience page polish",
+  "passed": true,
+  "baseline_commit": "52093e77692ac7f9d8540f834890f32b06054f12",
+  "changes": [
+    "Replays, Graphics, Audio, Event details, and commands share a modal with icon tabs, close control, and quick program controls",
+    "Drafts and player remain mounted; Tab wraps, Escape and backdrop close, and focus returns to the opener",
+    "Errors appear in the active modal, including the separate End broadcast confirmation",
+    "Broadcast gets a larger video, styled QR invitation, warm texture, and gentle orbit/glow motion",
+    "Join returns to a compact Preview/Share/Live flow; local preview appears only after permission",
+    "Shared navigation uses icons; decorative motion stops under prefers-reduced-motion"
+  ],
+  "validation": {
+    "unit": {
+      "passed": true,
+      "tests": 66,
+      "report": ".runtime/modal-polish/unit.log"
+    },
+    "page_browser": {
+      "passed": true,
+      "browser": "154.0.8037.98",
+      "mode": "Local Docker browser UI without viewer/operator keys; no physical phone scan",
+      "checks": [
+        {
+          "name": "both_pages_and_operator_api_open_without_keys"
+        },
+        {
+          "name": "old_access_fragments_and_saved_keys_are_removed"
+        },
+        {
+          "name": "broadcast_has_video_and_decodable_qr_only",
+          "width": 224,
+          "height": 224,
+          "natural_width": 270,
+          "payload_matches_join_link": true
+        },
+        {
+          "name": "tabs_switch_pages_without_login"
+        },
+        {
+          "name": "shared_navigation_layout_clean_chat_and_direct_join"
+        },
+        {
+          "name": "http_urgent_takeover_delayed_release_and_specific_unsupported_command"
+        },
+        {
+          "name": "decorative_motion_respects_reduced_motion"
+        },
+        {
+          "name": "operator_rotation_updates_broadcast_qr_and_revokes_old_join_code"
+        },
+        {
+          "name": "mobile_pages_fit_viewport_and_qr_decodes",
+          "width": 224,
+          "height": 224,
+          "natural_width": 270,
+          "payload_matches_join_link": true
+        },
+        {
+          "name": "qr_failure_shows_retry_state_and_recovers"
+        },
+        {
+          "name": "brand_assets_and_fonts_load_without_experiment_labels"
+        }
+      ],
+      "page_errors": []
+    },
+    "camera_browser": {
+      "passed": true,
+      "mode": "Chrome fake camera devices; physical phones not tested",
+      "browser": "154.0.8037.98",
+      "checks": [
+        {
+          "name": "one_browser_camera_to_webrtc_viewer",
+          "width": 640,
+          "height": 360,
+          "frames": 61
+        },
+        {
+          "name": "browser_replay_and_return_without_encoder_restart"
+        },
+        {
+          "name": "five_browser_cameras_stream_and_decode",
+          "slots": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "name": "sixth_browser_camera_rejected"
+        },
+        {
+          "name": "browser_stop_releases_all_camera_slots"
+        }
+      ],
+      "page_errors": []
+    },
+    "modal_browser": {
+      "passed": true,
+      "browser": "154.0.8037.98",
+      "checks": [
+        {
+          "width": 1440,
+          "height": 900,
+          "native_modal": true,
+          "focus_trap": true,
+          "escape_focus_return": true,
+          "backdrop_close": true,
+          "drafts_preserved": true,
+          "player_unchanged": true,
+          "reconnects": 0,
+          "errors_visible_in_active_modal": true,
+          "nested_confirmation_escape": true
+        },
+        {
+          "width": 1280,
+          "height": 800,
+          "native_modal": true,
+          "focus_trap": true,
+          "escape_focus_return": true,
+          "backdrop_close": true,
+          "drafts_preserved": true,
+          "player_unchanged": true,
+          "reconnects": 0,
+          "errors_visible_in_active_modal": true,
+          "nested_confirmation_escape": true
+        },
+        {
+          "width": 390,
+          "height": 844,
+          "native_modal": true,
+          "focus_trap": true,
+          "escape_focus_return": true,
+          "backdrop_close": true,
+          "drafts_preserved": true,
+          "player_unchanged": true,
+          "reconnects": 0,
+          "errors_visible_in_active_modal": true,
+          "nested_confirmation_escape": true
+        }
+      ],
+      "page_errors": [],
+      "failure_injection": "End request intercepted with HTTP 503; actual server was not ended"
+    },
+    "graphics_browser": {
+      "passed": true,
+      "browser": "154.0.8037.98",
+      "mode": "Five labeled sample publishers; actual WebRTC viewer pixels; TEST scores are fixtures",
+      "checks": [
+        {
+          "name": "catalog_contains_24_prepared_designs_and_unknown_initial_scores"
+        },
+        {
+          "name": "preview_and_invalid_updates_cannot_commit_scores"
+        },
+        {
+          "name": "long_text_non_ascii_names_and_unknown_values_render_at_program_size"
+        },
+        {
+          "name": "edited_name_bar_reaches_actual_webrtc_pixels",
+          "request_to_observed_pixels_ms": 618
+        },
+        {
+          "name": "score_only_updates_preserve_running_clock"
+        },
+        {
+          "name": "operator_confirms_scores_and_starts_stops_display_clock"
+        },
+        {
+          "name": "replay_keeps_marker_and_brand_hides_current_score_then_restores_live"
+        },
+        {
+          "name": "all_24_presets_cued_with_continuous_viewer_playback",
+          "frames_submitted_ack_ms": [
+            110,
+            113,
+            111,
+            110,
+            111,
+            113,
+            114,
+            111,
+            111,
+            110,
+            111,
+            112,
+            113,
+            112,
+            112,
+            111,
+            110,
+            112,
+            110,
+            111,
+            111,
+            111,
+            113,
+            111
+          ],
+          "max_ack_ms": 114
+        },
+        {
+          "name": "countdown_and_stinger_expire_return_to_live_clears_full_screen"
+        },
+        {
+          "name": "five_cameras_remain_active_no_encoder_restart_no_page_errors_mobile_fits"
+        }
+      ],
+      "page_errors": []
+    },
+    "studio_browser": {
+      "passed": true,
+      "browser": "154.0.8037.98",
+      "checks": [
+        {
+          "id": "UX1",
+          "passed": true
+        },
+        {
+          "id": "PROGRAM_OVERLAY",
+          "passed": true,
+          "geometry": {
+            "video": {
+              "x": 8,
+              "y": 70.5,
+              "width": 820.8125,
+              "height": 461.703125,
+              "bottom": 532.203125,
+              "right": 828.8125
+            },
+            "panel": {
+              "x": 8,
+              "y": 70.5,
+              "width": 820.8125,
+              "height": 461.703125,
+              "bottom": 532.203125,
+              "right": 828.8125
+            },
+            "crew": {
+              "x": 836.8125,
+              "y": 70.5,
+              "width": 435.1875,
+              "height": 721.5,
+              "bottom": 792,
+              "right": 1272
+            },
+            "controls": [
+              {
+                "x": 20,
+                "y": 488.203125,
+                "width": 32,
+                "height": 32,
+                "bottom": 520.203125,
+                "right": 52
+              },
+              {
+                "x": 54,
+                "y": 488.203125,
+                "width": 32,
+                "height": 32,
+                "bottom": 520.203125,
+                "right": 86
+              },
+              {
+                "x": 88,
+                "y": 488.203125,
+                "width": 32,
+                "height": 32,
+                "bottom": 520.203125,
+                "right": 120
+              },
+              {
+                "x": 368.40625,
+                "y": 488.203125,
+                "width": 32,
+                "height": 32,
+                "bottom": 520.203125,
+                "right": 400.40625
+              },
+              {
+                "x": 402.40625,
+                "y": 488.203125,
+                "width": 32,
+                "height": 32,
+                "bottom": 520.203125,
+                "right": 434.40625
+              },
+              {
+                "x": 436.40625,
+                "y": 488.203125,
+                "width": 32,
+                "height": 32,
+                "bottom": 520.203125,
+                "right": 468.40625
+              },
+              {
+                "x": 470.40625,
+                "y": 488.203125,
+                "width": 32,
+                "height": 32,
+                "bottom": 520.203125,
+                "right": 502.40625
+              },
+              {
+                "x": 750.8125,
+                "y": 488.203125,
+                "width": 32,
+                "height": 32,
+                "bottom": 520.203125,
+                "right": 782.8125
+              },
+              {
+                "x": 784.8125,
+                "y": 488.203125,
+                "width": 32,
+                "height": 32,
+                "bottom": 520.203125,
+                "right": 816.8125
+              }
+            ],
+            "nativeControls": false,
+            "statusVisible": false
+          },
+          "tooltip_labels": true,
+          "local_audio_only": true,
+          "fullscreen": true
+        },
+        {
+          "id": "CAMERA_CONTROLS",
+          "passed": true,
+          "filled_preview": true,
+          "controls_above_video": true,
+          "exclusive_microphone": true,
+          "mute_all": true,
+          "tooltip_keyboard_hover_escape": true
+        },
+        {
+          "id": "FEATURE_MODALS",
+          "passed": true,
+          "native_modal": true,
+          "focus_trap": true,
+          "escape_focus_return": true,
+          "backdrop_close": true,
+          "draft_preserved": true,
+          "video_geometry_unchanged": true,
+          "urgent_control_available": true
+        },
+        {
+          "id": "UX2_G2",
+          "passed": true,
+          "reconnects": 0
+        },
+        {
+          "id": "CREW_UX",
+          "passed": true,
+          "collapsed_history": true,
+          "compact_preview": true,
+          "enter_to_send": true,
+          "shift_enter_newline": true,
+          "server_message_restored": true
+        },
+        {
+          "id": "C2_C6",
+          "passed": true,
+          "two_tabs": true
+        },
+        {
+          "id": "C4",
+          "passed": true,
+          "response_aborted_after_server_execution": true,
+          "action_id": "d265a1f3-37bb-4a77-8d95-8b44534413d2"
+        },
+        {
+          "id": "G1",
+          "passed": true
+        },
+        {
+          "id": "M3",
+          "passed": true,
+          "request_to_controller_observed_ms": 102.60808399999951,
+          "action_created_to_encoder_ms": 62.04559099933249,
+          "request_to_viewer_pixels_ms": 161.30512500000077,
+          "controller_applied_monotonic_s": 24066.034791167,
+          "ack": "encoder frame submission; viewer pixels measured separately"
+        },
+        {
+          "id": "UX3",
+          "passed": true
+        },
+        {
+          "id": "CAMERA_REMOVE",
+          "passed": true,
+          "slot": 5,
+          "mobile_tooltip_fits": true,
+          "encoder_unchanged": true
+        }
+      ],
+      "page_errors": []
+    },
+    "media_checks": [
+      {
+        "name": "one_camera_before_five",
+        "source": "camera/b5a733f473db48a9b0cdbe4876be800d"
+      },
+      {
+        "name": "UX4",
+        "occupied": 5
+      },
+      {
+        "name": "CAMERA_AUDIO",
+        "muted_full_capture_rms": 7.893136241763977e-06,
+        "muted_steady_rms": 0.0,
+        "selected_camera": 2,
+        "fixture_tone_amplitudes": {
+          "1": 5.800326996650678e-05,
+          "2": 0.12506618473017403,
+          "3": 4.7697703296040384e-05,
+          "4": 5.05620371756026e-06,
+          "5": 7.706176886505894e-06
+        },
+        "second_full_capture_rms": 9.36342549746722e-05,
+        "second_muted_steady_rms": 0.0,
+        "restored_rms": 0.08537358534690628,
+        "steady_window": "Latter half of one-second decoded audio capture; initial encoded audio may precede mute"
+      },
+      {
+        "name": "R1",
+        "crew_paused": false,
+        "rehearsal": {
+          "state": "Complete",
+          "label": "Local rehearsal",
+          "generation": 7,
+          "reason": "Encoded replay completed; controller returned to live",
+          "slot": 1
+        }
+      },
+      {
+        "name": "C4",
+        "command_revision": 11
+      },
+      {
+        "name": "C1_C2_C5",
+        "crew_paused": true,
+        "reason": "Proposal run, control, program, or source revision changed"
+      },
+      {
+        "name": "R2_render",
+        "urgent_elapsed_s": 0.004756856000312837,
+        "render_did_not_air": true
+      },
+      {
+        "name": "C7",
+        "reason": "This preparation is no longer running"
+      },
+      {
+        "name": "R2_replay",
+        "automatic_return_in_manual": true
+      },
+      {
+        "name": "R3_M1",
+        "reason": "Replay source lease or epoch changed",
+        "old_source_path": "camera/c7dd97743d0e44d192296661f1393be4",
+        "new_source_path": "camera/5a43586d04c4469ab6a886ad3deec2ed",
+        "same_epoch": true,
+        "replacement_stays_off_air": true
+      },
+      {
+        "name": "R3_audio_owner",
+        "replacement_audio_rms": 0.0,
+        "explicit_restored_audio_rms": 0.08537977263219848
+      },
+      {
+        "name": "M2",
+        "encoded_duration_s": 122.047,
+        "frames": 1831,
+        "black_frames": 0,
+        "max_frame_gap_s": 0.11399999999999988,
+        "encoder_pid": 22,
+        "artifact": "/work/.runtime/modal-polish/media-final/program.mkv"
+      }
+    ],
+    "versions": {
+      "mediamtx": "v1.20.1",
+      "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+      "python": "Python 3.13.16",
+      "package_source": "docker"
+    },
+    "static": [
+      "node --check on four application scripts and six changed browser checks",
+      "git diff --check"
+    ],
+    "scope": "Final modal checks cover 1440x900, 1280x800, and 390x844. WebRTC checks use one Chrome fake camera before five, reject a sixth, and release slots. Graphics checks use labeled real RTSP fixtures and viewer pixels. The media recording is a 120-second refinement regression; the prior five-minute evidence remains historical. The media/controller/backend code did not change."
+  },
+  "failures_and_corrections": [
+    {
+      "scope": "Focus",
+      "failure": "A short native modal could let Tab move focus to browser chrome.",
+      "fix": "Explicit Tab/Shift+Tab wrapping for visible dialog controls. Three-size checks passed."
+    },
+    {
+      "scope": "Browser harness",
+      "failure": "Replay queries selected a crew button behind the modal or an old ineligible asset.",
+      "fix": "Select an enabled replay control within the active Replays modal. Final sharing/replay checks passed."
+    },
+    {
+      "scope": "Fake camera",
+      "failure": "One render rejected missing source timestamp coverage. No frames were fabricated.",
+      "fix": "Use a fresh two-second interval in the browser refinement check. Replay/return passed; physical phones remain unverified."
+    },
+    {
+      "scope": "Fixture lifetime",
+      "failure": "Four-minute sample feeds expired before the graphics replay check.",
+      "fix": "Fresh isolated session with ten-minute samples. All 24 graphics and replay suppression/return checks passed."
+    },
+    {
+      "scope": "Harness timing",
+      "failure": "Assertions preceded a dialog close event; mobile opener scrolling changed player position before opening.",
+      "fix": "Wait for close-event results and verify unchanged video dimensions."
+    },
+    {
+      "scope": "Harness lifecycle",
+      "failure": "A test-server restart interrupted one modal check.",
+      "fix": "Final checks ran against a stable isolated instance."
+    }
+  ],
+  "active_studio": {
+    "same_process_before_after": true,
+    "name": "breadcast-studio",
+    "restarted_by_validation": false,
+    "status_at_handoff": "exited",
+    "exit_code": 0,
+    "note": "The original container stopped during this session. Validation commands only stopped the named isolated test containers; the original was not restarted."
+  },
+  "limits": [
+    "Generated RTSP and Chrome fake-camera input are software evidence. Physical phones, venue networks, remote HTTPS, and provider-backed direction remain unverified.",
+    "End-error checks intercept HTTP with 503; no active broadcast was ended.",
+    "Local timing samples are not percentile or venue performance guarantees."
+  ],
+  "handoff": {
+    "operator": "Feature icons open the modal. Switch with icon tabs; close with X, Escape, or backdrop. Footer controls take/release control, return live, and clear graphics.",
+    "audience": "Broadcast has video and QR; Join only shows local preview after permission. Camera credentials, source ownership, five-camera enforcement, and microphone consent remain unchanged.",
+    "runtime": "No backend/provider/media-worker changes. The original player and validated actions are retained. Coordinator.propose(request, actor=\"Provider crew\") remains the future trusted adapter boundary.",
+    "deployment": "The original Studio container is currently stopped. Rebuild the image to load the frontend. Validation did not restart the original container."
+  },
+  "final_source_sha256": {
+    "app/web/public.css": "63c22bf78949c620ba6021f877f46ff9436a992710e67fe16787c6ac6f65896e",
+    "tests/browser/modal-check.cjs": "02f91bd2217a5238879f9fbc671401e247997c616eac66bd358522a10d3e16e2",
+    "app/web/common.js": "8ef0add7ad259cdb2e510d6df3eddccdbbc6604d8cec30915d075b4ed5252bd3",
+    "app/web/join.html": "1e331621f61d854af8c6153a55bab34e56bba6df218242290f2135671064c842",
+    "app/web/join.js": "510bd49d946e45592e34d803f0ae92fd02d27b98536db996369a017df6e1edc5",
+    "app/web/operator.html": "37f4dab40fb9b67de42e3fedac242642227604c21d9d41d72bcdea38fa78b4f0",
+    "app/web/operator.js": "beefe066fd5451256788eb90a5f8328e82087dcc1fe7cae250f28302b8291a07",
+    "app/web/studio.css": "f4a48cab6ee50882c6644c5f1151c8ee777668b0ff85f17c6e12cfa35ee16c37",
+    "app/web/watch.html": "bdc0d8eb41598780bb0d577569f27a848151e71cbc4a60b14ff366693a8492b2",
+    "tests/browser/browser-check.cjs": "12305de3d4775a9a73595ea97011a1e6a7e09fedc5cb0d2097766ac282a11bf1",
+    "tests/browser/graphics-check.cjs": "fa9817fbcebe3f7e39e6cd790e60bf19b20313d603fb658c1db262225dce20fb",
+    "tests/browser/replay-check.cjs": "ad4cf6dfd1c2fa38c3d2ba06ff2aef648f6f75f937448da7ac41c5379597c200",
+    "tests/browser/studio-check.cjs": "da920a4c4d828919a544ecbe6963c66be2a735b60999095a9c31d1d7539e7385",
+    "tests/browser/ui-check.cjs": "4018250e7402e805a14e355f886fc7bad8fa87251e188654e2f03a367bbb497a"
+  },
+  "local_artifacts": [
+    {
+      "path": ".runtime/modal-polish/ui/ui-report.json",
+      "sha256": "26a0b6fb155b4fa8e982bda3850e941f029efcd22562263eeec31f58cc8a4b45"
+    },
+    {
+      "path": ".runtime/modal-polish/ui/browser-report.json",
+      "sha256": "21234b22757a9834562274b500469712d2d8c2c92277b9be346ffd428b068e46"
+    },
+    {
+      "path": ".runtime/modal-polish/graphics-final/modal-report.json",
+      "sha256": "6650c183117ac30c0d359fbff78c7b5559fd680d95873dee699cfe6a3c629bb9"
+    },
+    {
+      "path": ".runtime/modal-polish/graphics-final/graphics-browser-report.json",
+      "sha256": "1b9c97a54e02926442b5c05d745d4c3d85143bba0601a0f21bc1f6f5d2d144d1"
+    },
+    {
+      "path": ".runtime/modal-polish/media-final/validation.json",
+      "sha256": "5704c18b2234d702d553391365c53642d28c3067918f5ce41a0a79d54cf2a360"
+    },
+    {
+      "path": ".runtime/modal-polish/unit.log",
+      "sha256": "79ccf7beff99e1bf98ebef63e61c39e66447ee0ae5be9b291a1defc0f2c8bc09"
+    },
+    {
+      "path": ".runtime/modal-polish/media-final/browser-report.json",
+      "sha256": "c95ffb02b3669b735048dc753453f66da458ee32091fe06e09063ad300a9d5d3"
+    },
+    {
+      "path": ".runtime/modal-polish/media-final/program.mkv",
+      "sha256": "96bf15365b283b8de22f7931e2cdc53b1226cedaa0a6d6dc8f1c2176a17cb0c9"
+    },
+    {
+      "path": ".runtime/modal-polish/media-final/runtime/program-history.jsonl",
+      "sha256": "452d05fde8bbd140a068ffa4ea9c45c6ffaacff56b1dd0cf984cbb00cc1d6868"
+    },
+    {
+      "path": ".runtime/modal-polish/graphics-final/setup.json",
+      "sha256": "aecd835f5419bae4344f9a81ecefed0fda7f8836bae15a808df351c644c3de14"
+    },
+    {
+      "path": ".runtime/modal-polish/graphics-final/broadcast-1440.png",
+      "sha256": "51dc957619e459882e1ba9f07fd92b93253088b744a07acfe08b1b3cb7c817a9"
+    },
+    {
+      "path": ".runtime/modal-polish/graphics-final/join-390.png",
+      "sha256": "248d1023c8cdb203c20dbef6b5050a493928e94d37979b49d352d26f56899dc6"
+    },
+    {
+      "path": ".runtime/modal-polish/graphics-final/modal-graphics-1440.png",
+      "sha256": "970f1fa1d24e50c8e4d08e15f23496a8432ded5cb6faf313a64d2c953c7f1f1c"
+    },
+    {
+      "path": ".runtime/modal-polish/graphics-final/modal-graphics-390.png",
+      "sha256": "668fc1baccf611c744b97723b1c38523ff41b9ccd710abab07cba63c41d3d685"
+    },
+    {
+      "path": ".runtime/modal-polish/ui/phone.png",
+      "sha256": "67d010d9fb8716658eec0b3638b581dbc92eb3d0b15b9678c541d6ca0be0452a"
+    }
+  ]
+}

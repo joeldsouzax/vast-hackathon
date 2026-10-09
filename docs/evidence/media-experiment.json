@@ -1,0 +1,176 @@
+{
+  "evidence_scope": "historical validation",
+  "platform": "aarch64-darwin",
+  "media": {
+    "mode": "sample media; not physical phones or live provider integration",
+    "checks": [
+      {
+        "name": "one_camera_program",
+        "duration_s": 5.09,
+        "encoder_pid": 57747,
+        "normalized_media_age_s": 3.053
+      },
+      {
+        "name": "invalid_revision_type_rejected"
+      },
+      {
+        "name": "designated_live_audio_reaches_program",
+        "normalized_rms": 0.0876691527611894
+      },
+      {
+        "name": "five_active_cameras",
+        "slots": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      {
+        "name": "sixth_join_rejected"
+      },
+      {
+        "name": "uncalibrated_seamless_cut_rejected"
+      },
+      {
+        "name": "direct_unauthorized_publish_rejected"
+      },
+      {
+        "name": "publisher_fenced_and_slot_reused"
+      },
+      {
+        "name": "replay_speed_and_crop_presets",
+        "results": [
+          {
+            "speed": 1,
+            "zoom": 1,
+            "duration_s": 4.0,
+            "render_s": 0.1942438330152072
+          },
+          {
+            "speed": 0.5,
+            "zoom": 1.5,
+            "duration_s": 8.0,
+            "render_s": 0.27078387496294454
+          },
+          {
+            "speed": 2,
+            "zoom": 1,
+            "duration_s": 2.0,
+            "render_s": 0.16444370796671137
+          }
+        ]
+      },
+      {
+        "name": "stale_command_rejected"
+      },
+      {
+        "name": "replay_audio_muted",
+        "normalized_rms": 0.0
+      },
+      {
+        "name": "return_to_current_delayed_live",
+        "control_to_encoder_s": 0.2109255829709582,
+        "source_sequence_before": 356,
+        "source_sequence_after": 396
+      },
+      {
+        "name": "automatic_replay_return"
+      },
+      {
+        "name": "explicit_independent_view_change"
+      },
+      {
+        "name": "five_source_sustained_output",
+        "duration_s": 60.48398095800076,
+        "peak_jpeg_buffer_bytes": 82295451,
+        "encoder_pid": 57747
+      },
+      {
+        "name": "primary_source_loss_to_holding"
+      },
+      {
+        "name": "program_output_decodes_with_continuous_timestamps",
+        "frames": 1200,
+        "duration_s": 79.93299999999999,
+        "max_frame_gap_s": 0.06700000000000728,
+        "output": "_experiments/studio/.run/evidence/20261006T142501-b7eb2b/program.mkv"
+      },
+      {
+        "name": "original_camera_segment_decodes",
+        "output": "_experiments/studio/.run/evidence/20261006T142501-b7eb2b/runtime/recordings/camera/7a20dd78032b4cc8976bb9588035f569/2026-10-06_14-25-02-552634.mp4"
+      }
+    ],
+    "versions": {
+      "mediamtx": "v1.20.1",
+      "ffmpeg": "ffmpeg version 9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
+      "python": "Python 3.14.7",
+      "nixpkgs_revision": "aa48d347080940b8a2b8d2f48228674e280a3514"
+    },
+    "passed": true
+  },
+  "browser": {
+    "passed": true,
+    "mode": "Chrome fake camera devices; physical phones not tested",
+    "browser": "154.0.8037.98",
+    "checks": [
+      {
+        "name": "one_browser_camera_to_webrtc_viewer",
+        "width": 640,
+        "height": 360,
+        "frames": 61
+      },
+      {
+        "name": "browser_replay_and_return_without_encoder_restart"
+      },
+      {
+        "name": "five_browser_cameras_stream_and_decode",
+        "slots": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      {
+        "name": "sixth_browser_camera_rejected"
+      },
+      {
+        "name": "browser_stop_releases_all_camera_slots"
+      }
+    ],
+    "page_errors": []
+  },
+  "admission_tests": {
+    "passed": 7,
+    "suite": "_experiments/studio/test_leases.py"
+  },
+  "linux": {
+    "package_evaluation": "passed; x86_64-linux",
+    "nixos_module_evaluation": "passed; enabled and disabled",
+    "runtime_or_remote_deployment": "not tested"
+  },
+  "limits": [
+    "Physical phones and venue networking not tested",
+    "Five-minute phone run and fifteen-minute five-phone rehearsal remain open",
+    "Capture synchronization and end-to-end player latency not calibrated",
+    "No VAST, Cosmos, YOLO, search or hosted LLM requests"
+  ],
+  "source_sha256": {
+    "studio.py": "c15770b3ec71d3c2c71d102f25e0f302112ef58863562c206d6ca2be22f7c7eb",
+    "media.py": "6ecda3bbe0379a8bbb8635a1a0d6d2aeaa4e9e3f2db6a9c10ab80b01459e98db",
+    "check.py": "993dba4ec6ad649ff150750c210757091b81e39a62e38c3dc2edb871588fc08d",
+    "test_leases.py": "1b8a185dd9198f443e2d77f4401a55d1b0614f0cb1dd1ab053f0d8d43d925cc6",
+    "nixpkgs.nix": "3eb0223414c09cce686844decd86dd068f7ed5292fb35021a477b77475e76818",
+    "default.nix": "48cdfb30b6bd64ae13d28c14ea281226146ddae0ce4643a1a208d925cb7d1dec",
+    "shell.nix": "ab1d204cfa1e7d2ab51477ceca01200f904ec53b89f293fe5cb0cecefacfaf58",
+    "nixos-module.nix": "33b142aa19e54b6f4a08638ed61d5e86a0bd1d151cccae18a35698f517888496",
+    "web/operator.js": "b75c143cf4b3060de03b00be9657ee862536d97f5d279be345394ec66ffa8376",
+    "web/join.js": "4f27c406b4008e8b0d4dc2f97567e4683de31b9e0de2edf5126e89da7637672f",
+    "web/common.js": "3e5c2d0386bf0036f6d2684f8b088d46adfeb7e78d2a26ce099cd2ef50385908",
+    "tests/browser-check.cjs": "d2629320e639523d675598a4a89fca7a6ff7cdc747d185f980ecba40760a923b",
+    "tests/package-lock.json": "745ba0007c3aed8723fb002946eab0c30ca11ba80abd738531bc2a9fb7a3f8cd"
+  }
+}

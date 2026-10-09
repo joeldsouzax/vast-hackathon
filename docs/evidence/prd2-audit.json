@@ -1,0 +1,158 @@
+{
+  "evidence_scope": "historical validation",
+  "prd": "docs/19-live-direction-and-commentary-prd.md",
+  "scope": "Task 2; current working tree, including uncommitted implementation",
+  "verdict": "Partial match. Core paths exist, but code defects and incomplete acceptance prevent local-ready status.",
+  "local_ready": false,
+  "live_verified": false,
+  "application_code_changed_by_audit": false,
+  "findings": [
+    {
+      "id": "A1",
+      "priority": "P1",
+      "title": "Late admission skips the beginning of speech and can report full completion",
+      "criteria": [
+        "D09",
+        "D10"
+      ],
+      "locations": [
+        "app/direction.py:198",
+        "app/control.py:458",
+        "app/media.py:427",
+        "app/media.py:649",
+        "app/media.py:515"
+      ],
+      "cause": "Preparation fixes start_frame before the action waits in the controller. Admission checks the original start plus duration, but does not require that start to remain in the future. Playback computes its PCM offset from elapsed program frames. Reaching the end of PCM records completed even when the prefix was never submitted.",
+      "trigger": "A prepared second cue waits for the active cue, or another controller action delays its admission past start_frame.",
+      "reproduction": "A real Program encoder accepted a two-second signal with start_frame 5 at program frame 20. It submitted 48000 of 96000 input samples and recorded completed. The first second was skipped. The encoded file was successfully decoded.",
+      "impact": "Viewers can hear only the end of a sentence. The history can falsely treat the complete planned sentence as delivered.",
+      "required_change": "At admission, establish an actual start from sample zero and verify that the complete audio still fits the original expiry and eligible interval. Otherwise use eligible captions or reject the cue. Completion must require complete sample coverage. Preserve the original deadline.",
+      "required_regression": "Queue a second utterance behind an active cue. Decode output and prove that it either airs completely once or is rejected without a false completed receipt."
+    },
+    {
+      "id": "A2",
+      "priority": "P1",
+      "title": "A crew holding action disables the crew path needed to return live",
+      "criteria": [
+        "D03",
+        "S06"
+      ],
+      "locations": [
+        "app/direction.py:331",
+        "app/direction.py:332",
+        "app/direction.py:144"
+      ],
+      "cause": "The scheduler skips both roles unless requested and actual states are LIVE or REPLAY. After an accepted holding action, it cannot schedule the director to propose return_live, even when a camera remains healthy and crew control is released.",
+      "reproduction": "With a healthy source and crew enabled, the real coordinator loop submitted no role work during holding. After a manual live command it submitted director and commentator work.",
+      "impact": "A valid crew holding decision requires a human to recover. Release alone cannot restore autonomous direction.",
+      "required_change": "Distinguish initial not-started holding from holding in an operator-started session. Allow eligible director recovery in the latter while preserving the rule that crew cannot start an event.",
+      "required_regression": "Start the program through human control, let crew select holding, and return through the normal director scheduler. Also prove that startup holding cannot start itself."
+    },
+    {
+      "id": "A3",
+      "priority": "P2",
+      "title": "Speech preparation is absent from pending context and duplicate validation is not repeated",
+      "criteria": [
+        "D08",
+        "D10"
+      ],
+      "locations": [
+        "app/direction.py:97",
+        "app/direction.py:131",
+        "app/direction.py:163",
+        "app/direction.py:213"
+      ],
+      "cause": "A commentator result enters the speech queue before it enters ProgramText. A second reviewed context can therefore omit that sentence. Validation checks duplicates only against the supplied context; preparation and controller admission do not check current pending or delivered text again.",
+      "reproduction": "Dispatching commentary created pending speech work but no pending ProgramText. A second context accepted the same text. After preparing and admitting the first cue, dispatching the second result from that reviewed context created a second prepared cue and a second Scheduled action with identical text.",
+      "impact": "Overlapping decisions can prepare and schedule the same sentence twice. Exact-string duplicate protection does not cover asynchronous preparation.",
+      "required_change": "Reserve commentary identity in the shared ledger when preparation starts. Recheck current pending and delivered identity before cue admission. Keep failed, canceled, and superseded reservations in the existing lifecycle.",
+      "required_regression": "Delay the first speech preparation while a second commentator result returns the same text. Only one cue may reach delivery."
+    },
+    {
+      "id": "A4",
+      "priority": "P2",
+      "title": "The acceptance command can mark criteria passed without exercising their required behavior",
+      "criteria": [
+        "D03",
+        "D12",
+        "D15",
+        "D19"
+      ],
+      "locations": [
+        "tests/media/direction_check.py:154",
+        "tests/media/direction_check.py:179",
+        "tests/media/direction_check.py:190",
+        "tests/media/direction_check.py:270",
+        "tests/media/direction_check.py:292",
+        "tests/unit/test_direction.py:279"
+      ],
+      "evidence": [
+        "D03 uses human('live', slot=1) for return but lists return_live among scripted controller actions. This bypasses the scheduler failure in A2.",
+        "D12 uses a single-camera half-speed replay. It does not exercise a replay with repeated alternate angles and speed changes within that replay, as required.",
+        "D15 checks current prepared/active counts and a unit test for pending-trigger coalescing and action-record capacity. It does not saturate speech storage or delay/fail all role providers while proving media and urgent-control responsiveness.",
+        "Coverage is initially derived from matching D-number test names, then combined into local_ready. A passing test with only a subset of a criterion can therefore close the whole criterion."
+      ],
+      "impact": "Even a future green full command would not prove all PRD acceptance conditions. The existing evidence record correctly retains local_ready=false; this finding concerns the test gate itself.",
+      "required_change": "Track each required observable condition. Leave a criterion incomplete until every condition has evidence. Exercise production scheduling, multi-shot replay timing, and actual saturation/failure cases."
+    }
+  ],
+  "verified_strengths": [
+    "The existing foundation, controller, and persistent encoder are reused.",
+    "Typed role schemas exclude human-only operations and reject extra authority fields.",
+    "Context/control/source/mapping checks and evidence retraction guards exist at the controller boundary.",
+    "Crop validation, speech decoding, caption composition, separate channel receipts, and bounded shared worker queues are implemented.",
+    "Fixture and live capability states are distinct. Missing live access does not silently use fixture output."
+  ],
+  "validation": {
+    "unit_suite": {
+      "command": "BREADCAST_FONT=app/web/fonts/dmsans.ttf PYDANTIC_AI_NO_BANNER=1 PYTHONPATH=app .runtime/foundation-venv/bin/python -m unittest discover -s tests/unit -q",
+      "passed": true,
+      "count": 120,
+      "note": "An SQLite ResourceWarning was emitted. No test failed. The offline command also ran the suite and retained its log."
+    },
+    "targeted_reproductions": {
+      "command": "BREADCAST_FONT=app/web/fonts/dmsans.ttf PYDANTIC_AI_NO_BANNER=1 PYTHONPATH=app:tests/unit .runtime/foundation-venv/bin/python .runtime/prd2-audit/reproduce.py",
+      "script": ".runtime/prd2-audit/reproduce.py",
+      "results": ".runtime/prd2-audit/reproductions.json",
+      "encoded_output": ".runtime/prd2-audit/late-cue.mkv",
+      "scope": "A1 uses the real Program encoder with a local file sink and generated audio. A2 and A3 are isolated scheduler/controller contract reproductions. No physical camera or provider behavior is claimed."
+    },
+    "offline_media": {
+      "command": "BREADCAST_FONT=app/web/fonts/dmsans.ttf PYDANTIC_AI_NO_BANNER=1 PYTHONPATH=app:tests/media .runtime/foundation-venv/bin/python tests/media/direction_check.py --offline --evidence .runtime/prd2-audit/offline",
+      "report": ".runtime/prd2-audit/offline/20261007T151316-c52637/report.json",
+      "media_checks_passed": true,
+      "decoded_frames": 205,
+      "unexpected_black_frames": 0,
+      "speech_alignment_error_ms": 0.0,
+      "alignment_search_step_ms": 5,
+      "scope": "One prerecorded fixture, generated source, local file sink. Crop/reset, captions/clearing, speech, full-screen silence, and ambient restoration passed. Alignment is against encoder submission, not viewer arrival.",
+      "exit_code": 1,
+      "exit_reason": "Expected IncompleteAcceptance: file output cannot prove RTSP/WebRTC, admission, five-minute continuity, or browser regressions."
+    },
+    "not_run": [
+      "Full Docker direction-check and its foundation/browser regressions",
+      "Real provider L01-L03 and listening review",
+      "Physical-phone, venue, and viewer-delivery validation"
+    ]
+  },
+  "acceptance_assessment": {
+    "D01_D02": "Setup/package and revision paths exist; unit checks pass. Full asset/text-fit and failure acceptance was not re-established by this audit.",
+    "D03": "Blocked by A2 and test gap A4.",
+    "D04": "Crop/reset contract checks and local decoded output pass. Full live source-change/reset scenarios remain unverified in this audit.",
+    "D05_D06": "Existing contract checks pass. Full slow-call and lost-response acceptance was not re-established.",
+    "D07": "Receipt/mapping implementation and rejection tests exist. Full final live mapping and discontinuity acceptance was not run.",
+    "D08": "Blocked by A3; full development/callback behavior remains unverified.",
+    "D09_D10": "Blocked by A1; duplicate protection is also incomplete under A3.",
+    "D11": "Mixer unit checks and local decoded ambient/silence/restoration pass. Full microphone loss/reuse and multi-source checks remain unverified.",
+    "D12": "Replay paths exist; required repeated-angle and changing-speed acceptance is not covered by the current direction media scenario.",
+    "D13": "Caption unit checks and local decoded appearance/clearing pass. Full required layering and footage cases remain unverified.",
+    "D14": "Browser acceptance was not rerun.",
+    "D15": "Bounds exist, but full role/provider/storage saturation acceptance is missing under A4.",
+    "D16": "Final five-source sustained direction acceptance was not run.",
+    "D17": "Old-run contract checks pass; full final restart/shutdown and affected browser/media regressions were not run.",
+    "D18": "Missing-access and schema checks pass. Live transports remain intentionally unavailable pending verified access.",
+    "D19": "Launcher, templates, records, and handoff exist. Full command was not run and its completeness gate needs A4 corrected.",
+    "L01_L03": "Open. Live provider access, real generated speech, listening review, and connected failure/continuity evidence are absent. These are declared integration gates, separate from the local defects."
+  },
+  "follow_up_fixes": "docs/evidence/prd2-fixes.json"
+}

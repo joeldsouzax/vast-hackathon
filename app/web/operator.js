@@ -3,9 +3,13 @@ let state, reader, posterUrl, refreshing = false, ended = false, connectionFaile
 const cameraCards = new Map(), replayCards = new Map();
 let reviewedPlan;
 async function loadProgramPoster() {
-  const response = await fetch('/api/preview/program');
+  const revision = operatorSessionRevision;
+  const response = await operatorFetch('/api/preview/program');
   if (!response.ok) return;
-  posterUrl = URL.createObjectURL(await response.blob());
+  const blob = await response.blob();
+  if (!operatorAuthorized || revision !== operatorSessionRevision) return;
+  if (posterUrl) URL.revokeObjectURL(posterUrl);
+  posterUrl = URL.createObjectURL(blob);
   document.querySelector('#program').poster = posterUrl;
 }
 async function studioAction(op, args = {}) {
@@ -61,18 +65,25 @@ document.querySelector('#render').onclick = async () => {
   } catch (error) { message(error.message); }
 };
 async function preview(image, slot) {
-  const response = await fetch(`/api/preview/${slot}`);
+  const revision = operatorSessionRevision;
+  const response = await operatorFetch(`/api/preview/${slot}`);
   if (!response.ok) return;
-  const url = URL.createObjectURL(await response.blob());
+  const blob = await response.blob();
+  if (!operatorAuthorized || revision !== operatorSessionRevision || !image.isConnected) return;
+  const url = URL.createObjectURL(blob);
   const old = image.dataset.blob;
-  image.src = url; await image.decode(); image.hidden = false; image.dataset.blob = url;
-  image.nextElementSibling.hidden = true;
+  image.src = url; image.dataset.blob = url;
   if (old) URL.revokeObjectURL(old);
+  await image.decode();
+  if (!operatorAuthorized || revision !== operatorSessionRevision) return;
+  image.hidden = false;
+  image.nextElementSibling.hidden = true;
 }
 async function refreshReplaySetup() {
   const status = document.querySelector('#replay-setup-status');
   try {
     const context = await api('/api/replay-context');
+    if (!operatorAuthorized || !state) return;
     const cameras = state.cameras.filter(camera => camera.buffer_ready);
     const mappings = context.mappings.filter(mapping => cameras.some(camera =>
       mapping.source_id === `camera-${camera.slot}` && mapping.source_epoch === camera.epoch && mapping.source_path === camera.source_path));
@@ -167,7 +178,7 @@ function cameraCard(camera) {
   audio.onclick = () => command('audio', {slot: camera.slot, muted: microphone});
   const remove = card.querySelector('.remove'); remove.setAttribute('aria-label', `Remove camera ${camera.slot}`); remove.title = remove.getAttribute('aria-label');
   remove.onclick = async () => {
-    try { await api(`/api/lease/${camera.lease_id}/release`, {}); await refresh(); } catch (error) { message(error.message); }
+    try { await api(`/api/cameras/${camera.lease_id}/remove`, {}); await refresh(); } catch (error) { message(error.message); }
   };
   const info = card.querySelector('.camera-info'); info.setAttribute('aria-label', `Camera ${camera.slot} details`);
   info.onmouseenter = info.onfocus = info.onclick = () => showCameraInfo(info, camera);
@@ -176,10 +187,12 @@ function cameraCard(camera) {
   preview(card.querySelector('img'), camera.slot).catch(() => {});
 }
 async function refresh() {
-  if (refreshing || ended) return;
+  if (refreshing || ended || !operatorAuthorized) return;
   refreshing = true;
   try {
-    state = await api('/api/status', undefined);
+    const nextState = await api('/api/status', undefined);
+    if (!operatorAuthorized) return;
+    state = nextState;
     if (connectionFailed) { message(); connectionFailed = false; }
     document.querySelector('#workspace').hidden = false;
     document.querySelector('#end').hidden = false;
@@ -230,6 +243,7 @@ async function refresh() {
     }
     state.cameras.forEach(cameraCard);
     await refreshReplaySetup();
+    if (!operatorAuthorized || !state) return;
     const select = document.querySelector('#replay-camera'), selected = select.value;
     select.replaceChildren(...state.cameras.map(camera => {
       const option = document.createElement('option'); option.value = camera.slot; option.textContent = `Camera ${camera.slot}`; return option;
@@ -262,7 +276,8 @@ async function refresh() {
       list.replaceChildren(...plan.shots.map(shotDescription));
       const reason = document.createElement('p'); reason.className = 'eligibility'; reason.textContent = replay.eligible ? 'Ready · Available' : replay.reason;
       const preview = document.createElement('video'); preview.controls = true; preview.muted = true;
-      preview.preload = 'metadata'; preview.src = replay.preview_url; preview.className = 'preview';
+      preview.preload = 'metadata'; preview.className = 'preview';
+      loadProtectedAsset(preview, replay.preview_url).catch(error => {reason.textContent = error.message;});
       preview.setAttribute('aria-label', 'Rendered replay preview');
       const play = document.createElement('button'); play.textContent = 'Play replay';
       play.disabled = !replay.eligible;
@@ -272,12 +287,14 @@ async function refresh() {
     }
     document.querySelector('#diagnostics').textContent = JSON.stringify({program: p, cameras: state.cameras, gateway_error: state.gateway_error, providers: state.providers, direction:state.direction}, null, 2);
   } catch (error) {
+    if (error.status === 403 && operatorAuthMode === 'token') return;
     connectionFailed = true; message('Cannot reach the studio. Retrying…');
   }
   finally {
     refreshing = false;
   }
 }
+window.addEventListener('breadcast-operator-ready', refresh);
 refresh(); setInterval(refresh, 500);
 
 document.querySelector('#event-setup-form').onsubmit=async event => {
@@ -525,7 +542,7 @@ function crewState(control) {
         summary.setAttribute('aria-label', 'Preview replay');
         const preview = document.createElement('video'); preview.controls = true; preview.muted = true;
         preview.preload = 'metadata'; preview.setAttribute('aria-label','Crew replay preview');
-        attachment.ontoggle = () => {if (attachment.open && !preview.getAttribute('src')) preview.src = ready.preview_url; if (!attachment.open) preview.pause();};
+        attachment.ontoggle = () => {if (attachment.open && !preview.getAttribute('src')) loadProtectedAsset(preview, ready.preview_url).catch(error => message(error.message)); if (!attachment.open) preview.pause();};
         attachment.append(summary, preview); body.append(attachment);
       }
       const buttons = document.createElement('div'); buttons.className = 'action-buttons'; buttons.setAttribute('role', 'group'); buttons.setAttribute('aria-label','Action controls');
@@ -593,12 +610,15 @@ for (const holder of document.querySelectorAll('[data-icon]')) holder.prepend(st
 for (const [selector, icon] of [['#takeover','hand'],['#return','radio'],['#graphics-clear','x'],['[data-panel="replays"]','clapperboard'],['[data-panel="graphics"]','image'],['[data-panel="audio"]','mic'],['[data-panel="crew"]','message-square'],['#collapse-crew','panel-right-close'],['#close-drawer','x']]) {
   const button = document.querySelector(selector); if (button) button.prepend(studioIcon(icon));
 }
-(async () => {
+async function restorePendingRequests() {
+  if (!operatorAuthorized) return;
   for (const [key, route] of [['breadcast-pending-action', '/api/actions'], ['breadcast-pending-chat', '/api/chat']]) {
     const saved = sessionStorage.getItem(key);
     if (saved) try {await api(route, JSON.parse(saved)); sessionStorage.removeItem(key);} catch (error) {message(`Retry failed: ${error.message}`);}
   }
-})();
+}
+window.addEventListener('breadcast-operator-ready', restorePendingRequests);
+restorePendingRequests();
 
 let searchGeneration = 0;
 function showMoments(result) {
@@ -631,8 +651,27 @@ document.querySelector('#moment-search').addEventListener('submit', async event 
   try {const result = await api('/api/search', request); if (generation === searchGeneration) showMoments(result);}
   catch (error) {if (generation === searchGeneration) document.querySelector('#moment-status').textContent = error.message;}
 });
-(async () => {
+async function restoreMomentSearch() {
+  if (!operatorAuthorized) return;
   try {const stored = JSON.parse(sessionStorage.getItem('breadcast-moment-query') || 'null');
     if (stored) {document.querySelector('#moment-query').value = stored.text; showMoments(await api(`/api/search/${encodeURIComponent(stored.id)}`));}
   } catch (_) {document.querySelector('#moment-status').textContent = 'Submit a search for this run.';}
-})();
+}
+window.addEventListener('breadcast-operator-ready', restoreMomentSearch);
+restoreMomentSearch();
+
+window.addEventListener('breadcast-operator-locked', () => {
+  state = undefined; reviewedPlan = undefined;
+  document.querySelector('#render-plan').disabled = true;
+  for (const card of replayCards.values()) card.remove();
+  replayCards.clear();
+  if (reader) {reader.close(); reader = undefined;}
+  const program = document.querySelector('#program');
+  program.pause(); program.srcObject = null; program.removeAttribute('poster');
+  if (posterUrl) {URL.revokeObjectURL(posterUrl); posterUrl = undefined;}
+  for (const image of document.querySelectorAll('#cameras img[data-blob]')) {
+    URL.revokeObjectURL(image.dataset.blob); delete image.dataset.blob;
+    image.removeAttribute('src'); image.hidden = true;
+  }
+  hideStudioTooltip(); message();
+});

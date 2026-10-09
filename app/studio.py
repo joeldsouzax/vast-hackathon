@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 import copy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import fcntl
 import hashlib
 import hmac
@@ -98,9 +98,29 @@ class Config:
     foundation_config: Path | None = None
     program_proof: Path | None = None
     webrtc_port: int | None = None
+    public_path_prefix: str = ""
+    operator_auth: str = "local"
+    operator_token_file: Path | None = None
+    operator_token: str = field(default="", init=False, repr=False)
 
     def __post_init__(self):
         self.public_url=public_origin(self.public_url)
+        if self.public_path_prefix not in ('', '/app'):
+            raise ValueError('BREADCAST_PUBLIC_PATH_PREFIX must be empty or /app')
+        if self.operator_auth not in ('local', 'proxy', 'token'):
+            raise ValueError('BREADCAST_OPERATOR_AUTH must be local, proxy, or token')
+        if self.operator_auth == 'token':
+            if not self.operator_token_file or not Path(self.operator_token_file).is_absolute():
+                raise ValueError('Token access requires an absolute BREADCAST_OPERATOR_TOKEN_FILE path')
+            try:
+                with Path(self.operator_token_file).open('rb') as secret:
+                    raw = secret.read(4097)
+                token = raw.decode('ascii').strip()
+            except (OSError, UnicodeError):
+                raise ValueError('Operator token file is unreadable or invalid') from None
+            if len(raw) > 4096 or len(token) < 32 or not re.fullmatch(r'[A-Za-z0-9_-]+', token):
+                raise ValueError('Operator token must contain 32–4096 URL-safe characters')
+            self.operator_token = token
         host=urllib.parse.urlsplit(self.public_url).hostname
         self.ice_hosts=self.ice_hosts or (host,)
         for candidate in self.ice_hosts:
@@ -114,6 +134,9 @@ class Config:
     @property
     def audio_size(self):
         return 48000 // self.fps * 2
+
+    def public_path(self, path):
+        return self.public_path_prefix + path
 
     def rtsp_url(self, path, token=None):
         auth = f"publisher:{token}@" if token else ""
@@ -404,12 +427,13 @@ class App:
             print(f"Studio started. Access links are in {access_path}", flush=True)
 
     def join_url(self):
-        return f"{self.cfg.public_url}/join?code={urllib.parse.quote(self.join_code)}"
+        return f"{self.cfg.public_url}{self.cfg.public_path('/join')}?code={urllib.parse.quote(self.join_code)}"
 
     def write_access(self):
         cfg = self.cfg
-        access = {"public_url": cfg.public_url, "operator_url": cfg.public_url + "/operator",
-                  "broadcast_url": cfg.public_url + "/", "join_url": self.join_url(), "join_code": self.join_code,
+        access = {"public_url": cfg.public_url, "public_path_prefix": cfg.public_path_prefix,
+                  "operator_url": cfg.public_url + cfg.public_path("/operator"),
+                  "broadcast_url": cfg.public_url + cfg.public_path("/"), "join_url": self.join_url(), "join_code": self.join_code,
                   "rtsp_port": 8554 + cfg.offset, "width": cfg.width, "height": cfg.height, "fps": cfg.fps}
         temporary = cfg.runtime / "access.new"
         temporary.write_text(json.dumps(access, indent=2) + "\n")
@@ -791,7 +815,7 @@ def sample(args):
     signal.signal(signal.SIGTERM, lambda *_: stop.set())
     try:
         for _ in range(args.count):
-            lease = request_json(access["public_url"] + "/api/leases",
+            lease = request_json(access["public_url"] + access.get('public_path_prefix', '') + "/api/leases",
                                  {"code": access["join_code"], "client": uuid.uuid4().hex}, context=context)
             leases.append(lease)
             (args.runtime / ("sample-"+lease["lease_id"])).touch(mode=0o600)
@@ -838,7 +862,7 @@ def sample(args):
             stop_process(process)
         for lease in leases:
             try:
-                request_json(access["public_url"] + f"/api/lease/{lease['lease_id']}/release", {},
+                request_json(access["public_url"] + access.get('public_path_prefix', '') + f"/api/lease/{lease['lease_id']}/release", {},
                              token=lease["token"], context=context)
             except OSError:
                 pass
@@ -847,6 +871,10 @@ def sample(args):
 
 def main():
     import sys
+    if sys.argv[1:2] == ['one-camera-check']:
+        from sprint_one_check import main as sprint_one_main
+        sys.argv.pop(1)
+        return sprint_one_main()
     if sys.argv[1:2] == ["check"]:
         from check import main as check_main
         sys.argv.pop(1)
@@ -887,6 +915,9 @@ def main():
     serve.add_argument("--program-proof",type=Path,help="Isolated validation: duplicate encoded packets into a local proof file")
     serve.add_argument("--foundation-config", type=Path, default=os.environ.get("BREADCAST_FOUNDATION_CONFIG") or None)
     serve.add_argument("--quiet", action="store_true", help="Keep page addresses out of service logs")
+    serve.add_argument('--public-path-prefix', default=os.environ.get('BREADCAST_PUBLIC_PATH_PREFIX', ''))
+    serve.add_argument('--operator-auth', choices=('local', 'proxy', 'token'), default=os.environ.get('BREADCAST_OPERATOR_AUTH') or None)
+    serve.add_argument('--operator-token-file', type=Path, default=os.environ.get('BREADCAST_OPERATOR_TOKEN_FILE') or None)
     samples = sub.add_parser("sample", help="Publish labeled sample media; this is not a live phone test")
     samples.add_argument("--runtime", type=Path, default=runtime)
     samples.add_argument("--count", type=int, choices=range(1, 6), default=1)
@@ -907,6 +938,20 @@ def main():
         parser.error('Set BREADCAST_PUBLIC_URL or --public-url when listening outside loopback; QR codes need the reachable browser address')
     try:public_url=public_origin(args.public_url or f"{'https' if args.tls_cert else 'http'}://localhost:{args.port}")
     except ValueError as error:parser.error(str(error))
+    remote = not loopback_host(urllib.parse.urlsplit(public_url).hostname) or not loopback_host(args.bind)
+    operator_auth = args.operator_auth or ('token' if remote else 'local')
+    if remote and operator_auth == 'local':
+        parser.error('Remote operation requires token access or a verified private authenticated proxy')
+    if remote and urllib.parse.urlsplit(public_url).scheme != 'https':
+        parser.error('Remote phone capture requires a trusted HTTPS public origin')
+    if args.public_path_prefix not in ('', '/app'):
+        parser.error('Public path prefix must be empty or /app')
+    for file in (args.tls_cert, args.tls_key):
+        if file and not Path(file).is_file():parser.error('TLS certificate and key must be readable files')
+    if operator_auth == 'token':
+        # Validate the secret before creating a runtime lock or media resources.
+        try:Config(args.runtime, public_url, operator_auth='token', operator_token_file=args.operator_token_file)
+        except ValueError as error:parser.error(str(error))
     args.runtime.mkdir(parents=True, exist_ok=True, mode=0o700)
     os.chmod(args.runtime, 0o700)
     lock = open(args.runtime / "server.lock", "a")
@@ -921,7 +966,8 @@ def main():
                                  [h.strip() for h in os.environ.get("BREADCAST_ICE_HOSTS", "").split(",") if h.strip()]
                                  or []),
                  ice_servers=tuple(json.loads(args.ice_servers.read_text())) if args.ice_servers else (),
-                 print_access=not args.quiet, foundation_config=args.foundation_config or None,program_proof=args.program_proof,webrtc_port=args.webrtc_port)
+                 print_access=not args.quiet, foundation_config=args.foundation_config or None,program_proof=args.program_proof,webrtc_port=args.webrtc_port,
+                 public_path_prefix=args.public_path_prefix, operator_auth=operator_auth, operator_token_file=args.operator_token_file)
     app = App(cfg)
     server = uvicorn.Server(uvicorn.Config(web_api(app), host=cfg.bind, port=cfg.port, workers=1,
         reload=False, access_log=False, log_level="warning", proxy_headers=False,

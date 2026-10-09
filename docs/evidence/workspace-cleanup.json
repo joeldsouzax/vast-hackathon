@@ -1,0 +1,442 @@
+{
+  "evidence_scope": "historical validation",
+  "phase": "Shared workspace and default crew authority",
+  "passed": true,
+  "baseline_commit": "bd90c9e64f2d9e61db9c41584531c05ea225f380",
+  "changes": [
+    "One centered navigation shell on Broadcast, Studio, and Join; shared video dimensions and side column",
+    "Broadcast QR on the right; Join links carry the current event code and direct /join resolves it without taking a slot",
+    "Removed repeated event/mode/availability/camera-count/Add camera/Settings header controls and empty Crew introduction",
+    "Conversation starts with real results; compact Event details access preserves policy, official-score confirmation, diagnostics, code rotation, explicit local rehearsal, and confirmed end",
+    "Replaced three modes and per-action approval with crew_paused; proposals enabled by default, human intervention pauses, explicit reviewed release requires fresh work",
+    "No connection banner or connection-state error framing; unsupported commands state their concrete limits"
+  ],
+  "validation": {
+    "unit": {
+      "passed": true,
+      "tests": 66,
+      "report": ".runtime/workspace-cleanup/unit-final.log"
+    },
+    "page_browser": {
+      "passed": true,
+      "browser": "154.0.8037.98",
+      "mode": "Local Docker browser UI without viewer/operator keys; no physical phone scan",
+      "checks": [
+        {
+          "name": "both_pages_and_operator_api_open_without_keys"
+        },
+        {
+          "name": "old_access_fragments_and_saved_keys_are_removed"
+        },
+        {
+          "name": "broadcast_has_video_and_decodable_qr_only",
+          "width": 260,
+          "height": 260,
+          "natural_width": 270,
+          "payload_matches_join_link": true
+        },
+        {
+          "name": "tabs_switch_pages_without_login"
+        },
+        {
+          "name": "shared_navigation_layout_clean_chat_and_direct_join"
+        },
+        {
+          "name": "http_urgent_takeover_delayed_release_and_specific_unsupported_command"
+        },
+        {
+          "name": "operator_rotation_updates_broadcast_qr_and_revokes_old_join_code"
+        },
+        {
+          "name": "mobile_pages_fit_viewport_and_qr_decodes",
+          "width": 260,
+          "height": 260,
+          "natural_width": 270,
+          "payload_matches_join_link": true
+        },
+        {
+          "name": "qr_failure_shows_retry_state_and_recovers"
+        },
+        {
+          "name": "brand_assets_and_fonts_load_without_experiment_labels"
+        }
+      ],
+      "page_errors": []
+    },
+    "studio_browser": {
+      "passed": true,
+      "browser": "154.0.8037.98",
+      "checks": [
+        {
+          "id": "UX1",
+          "passed": true
+        },
+        {
+          "id": "PROGRAM_OVERLAY",
+          "passed": true,
+          "geometry": {
+            "video": {
+              "x": 8,
+              "y": 70.5,
+              "width": 820.8125,
+              "height": 461.703125,
+              "bottom": 532.203125,
+              "right": 828.8125
+            },
+            "panel": {
+              "x": 8,
+              "y": 70.5,
+              "width": 820.8125,
+              "height": 461.703125,
+              "bottom": 532.203125,
+              "right": 828.8125
+            },
+            "crew": {
+              "x": 836.8125,
+              "y": 70.5,
+              "width": 435.1875,
+              "height": 721.5,
+              "bottom": 792,
+              "right": 1272
+            },
+            "controls": [
+              {
+                "x": 20,
+                "y": 488.203125,
+                "width": 32,
+                "height": 32,
+                "bottom": 520.203125,
+                "right": 52
+              },
+              {
+                "x": 54,
+                "y": 488.203125,
+                "width": 32,
+                "height": 32,
+                "bottom": 520.203125,
+                "right": 86
+              },
+              {
+                "x": 88,
+                "y": 488.203125,
+                "width": 32,
+                "height": 32,
+                "bottom": 520.203125,
+                "right": 120
+              },
+              {
+                "x": 368.40625,
+                "y": 488.203125,
+                "width": 32,
+                "height": 32,
+                "bottom": 520.203125,
+                "right": 400.40625
+              },
+              {
+                "x": 402.40625,
+                "y": 488.203125,
+                "width": 32,
+                "height": 32,
+                "bottom": 520.203125,
+                "right": 434.40625
+              },
+              {
+                "x": 436.40625,
+                "y": 488.203125,
+                "width": 32,
+                "height": 32,
+                "bottom": 520.203125,
+                "right": 468.40625
+              },
+              {
+                "x": 470.40625,
+                "y": 488.203125,
+                "width": 32,
+                "height": 32,
+                "bottom": 520.203125,
+                "right": 502.40625
+              },
+              {
+                "x": 750.8125,
+                "y": 488.203125,
+                "width": 32,
+                "height": 32,
+                "bottom": 520.203125,
+                "right": 782.8125
+              },
+              {
+                "x": 784.8125,
+                "y": 488.203125,
+                "width": 32,
+                "height": 32,
+                "bottom": 520.203125,
+                "right": 816.8125
+              }
+            ],
+            "nativeControls": false,
+            "statusVisible": false
+          },
+          "tooltip_labels": true,
+          "local_audio_only": true,
+          "fullscreen": true
+        },
+        {
+          "id": "CAMERA_CONTROLS",
+          "passed": true,
+          "filled_preview": true,
+          "controls_above_video": true,
+          "exclusive_microphone": true,
+          "mute_all": true,
+          "tooltip_keyboard_hover_escape": true
+        },
+        {
+          "id": "UX2_G2",
+          "passed": true,
+          "reconnects": 0
+        },
+        {
+          "id": "CREW_UX",
+          "passed": true,
+          "collapsed_history": true,
+          "compact_preview": true,
+          "enter_to_send": true,
+          "shift_enter_newline": true,
+          "server_message_restored": true
+        },
+        {
+          "id": "C2_C6",
+          "passed": true,
+          "two_tabs": true
+        },
+        {
+          "id": "C4",
+          "passed": true,
+          "response_aborted_after_server_execution": true,
+          "action_id": "3e5ecea5-4fb4-47da-9ec0-a620483aeaf6"
+        },
+        {
+          "id": "G1",
+          "passed": true
+        },
+        {
+          "id": "M3",
+          "passed": true,
+          "request_to_controller_observed_ms": 104.6854170000006,
+          "action_created_to_encoder_ms": 60.875327999383444,
+          "request_to_viewer_pixels_ms": 217.94895899999938,
+          "controller_applied_monotonic_s": 22771.562253097,
+          "ack": "encoder frame submission; viewer pixels measured separately"
+        },
+        {
+          "id": "UX3",
+          "passed": true
+        },
+        {
+          "id": "CAMERA_REMOVE",
+          "passed": true,
+          "slot": 5,
+          "mobile_tooltip_fits": true,
+          "encoder_unchanged": true
+        }
+      ],
+      "page_errors": []
+    },
+    "media_checks": [
+      {
+        "name": "one_camera_before_five",
+        "source": "camera/e10f572c49134fc583e527d33c84bb74"
+      },
+      {
+        "name": "UX4",
+        "occupied": 5
+      },
+      {
+        "name": "CAMERA_AUDIO",
+        "muted_full_capture_rms": 0.00014791931557270313,
+        "muted_steady_rms": 0.0,
+        "selected_camera": 2,
+        "fixture_tone_amplitudes": {
+          "1": 4.861515204954865e-05,
+          "2": 0.12500026234261366,
+          "3": 3.155148738386505e-05,
+          "4": 1.915351352054264e-06,
+          "5": 1.0990334155527699e-05
+        },
+        "second_full_capture_rms": 6.61344270871474e-05,
+        "second_muted_steady_rms": 0.0,
+        "restored_rms": 0.08535163349030724,
+        "steady_window": "Latter half of one-second decoded audio capture; initial encoded audio may precede mute"
+      },
+      {
+        "name": "R1",
+        "crew_paused": false,
+        "rehearsal": {
+          "state": "Complete",
+          "label": "Local rehearsal",
+          "generation": 7,
+          "reason": "Encoded replay completed; controller returned to live",
+          "slot": 1
+        }
+      },
+      {
+        "name": "C4",
+        "command_revision": 11
+      },
+      {
+        "name": "C1_C2_C5",
+        "crew_paused": true,
+        "reason": "Proposal run, control, program, or source revision changed"
+      },
+      {
+        "name": "R2_render",
+        "urgent_elapsed_s": 0.0050061910005752,
+        "render_did_not_air": true
+      },
+      {
+        "name": "C7",
+        "reason": "This preparation is no longer running"
+      },
+      {
+        "name": "R2_replay",
+        "automatic_return_in_manual": true
+      },
+      {
+        "name": "R3_M1",
+        "reason": "Replay source lease or epoch changed",
+        "old_source_path": "camera/03af5c6a26464e01980b050281c55620",
+        "new_source_path": "camera/8480c5d96a574a6884c20bed2f18c9d3",
+        "same_epoch": true,
+        "replacement_stays_off_air": true
+      },
+      {
+        "name": "R3_audio_owner",
+        "replacement_audio_rms": 0.0,
+        "explicit_restored_audio_rms": 0.08537977263219848
+      },
+      {
+        "name": "M2",
+        "encoded_duration_s": 302.514,
+        "frames": 4538,
+        "black_frames": 0,
+        "max_frame_gap_s": 0.11399999999999988,
+        "encoder_pid": 21,
+        "artifact": "/work/.runtime/workspace-cleanup/media/program.mkv"
+      }
+    ],
+    "versions": {
+      "mediamtx": "v1.20.1",
+      "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+      "python": "Python 3.13.16",
+      "package_source": "docker"
+    },
+    "static_checks": [
+      "node --check on four application scripts and three changed browser checks",
+      "git diff --check"
+    ],
+    "coverage_note": "The full media process loaded the initial cleanup coordinator. Later coordinator refinements allow urgent takeover with an older control revision in the same run, remove connection framing from unsupported command errors, and reject chat release without a reviewed control snapshot. Final refinements passed all 66 unit tests and the final real HTTP/browser suite. The continuous-media modules did not change."
+  },
+  "failures_and_corrections": [
+    {
+      "scope": "Browser harness",
+      "failure": "The saved-key init script ran on a new about:blank document and raised a sessionStorage access error.",
+      "fix": "Run that fixture only on HTTP/HTTPS documents. The full final page suite passed with no page errors."
+    },
+    {
+      "scope": "Control review",
+      "failure": "An added /resume chat command could release control without the browser-reviewed control revision.",
+      "fix": "Release is available through the control button and typed resume action with expected revisions; /resume chat is rejected. Unit and HTTP checks prove that held authority remains unchanged."
+    },
+    {
+      "scope": "Screenshot capture",
+      "failure": "One headless screenshot after fullscreen and viewport changes repeated the header in its lower pixels.",
+      "fix": "Fresh-browser captures verified one header and the final video/sidebar layout. Use studio-final.png and broadcast-final.png for review."
+    }
+  ],
+  "active_studio": {
+    "same_process_before_after": true,
+    "name": "breadcast-studio",
+    "restarted_by_validation": false
+  },
+  "limits": [
+    "Media uses generated, labeled RTSP video/audio fixtures and real FFmpeg/WebRTC output. It is not a provider result or a physical phone test.",
+    "Provider-backed direction, physical-phone checks, remote HTTPS hosting, and venue-network validation remain pending.",
+    "Return timings are individual local samples; they are not a percentile or a performance guarantee."
+  ],
+  "handoff": {
+    "provider_entry": "Coordinator.propose(request, actor=\"Provider crew\") from a trusted application adapter",
+    "freshness": "Capture Coordinator.expected(args), attach a finite expiry, validate typed intent, and recheck source/asset evidence. Never expose actor choice over HTTP.",
+    "human_priority": "Direct airtime actions and takeover pause crew work and cancel old airtime. Resume checks the current run/control revision; only new proposals may run. Preparation cannot grant airtime.",
+    "deployment": "Rebuild the running image to load the new files. Validation left the existing Studio running."
+  },
+  "final_source_sha256": {
+    "app/control.py": "ebec2d4ef65adbda2f669a9d7b1fad37da34636f27b00495ace3ddea9432845a",
+    "app/studio.py": "1d38a75026af97131e5bc2ef20d4458516878ffe9e9b25eef918e1e7902d09a4",
+    "app/web/broadcast.js": "6bf97748b589c86710efe72741a30ef502ed997a03d96f9b84124f21d326a5fe",
+    "app/web/common.js": "173a6d10d3c1134d05b9be136a7b19007654314e36b78cd84a35b9e79927b346",
+    "app/web/join.html": "ef504c1ff5ccda9d7d2375eb14980e41251d7ceecf7afd3b953d851d33410030",
+    "app/web/join.js": "d22bfdd87e460c3759ff7ac0d7798df15fcf446dcfddc47467acff4c7a09f252",
+    "app/web/operator.html": "51ab7ec18f28ab1f9fa16d14c3f654959840c02f989df4f44b6d3bb05de5d1de",
+    "app/web/operator.js": "b4766890f8dda5b617f7463087ee4a79fb3bb8759a626756ba90aa15f5b48417",
+    "app/web/studio.css": "1aa3b4021befe873cac073d7d9424d220981e00e5df3c7de0ba4e353d2fae56d",
+    "app/web/watch.html": "e3f44c5132766d5b611a457d386d8f7e232ffa2091553fc1c0291e5fd818954e",
+    "tests/browser/graphics-check.cjs": "c1a4dc472a6db559aae087bc84824136ccb9299bf0be5692b50c311ca1f77316",
+    "tests/browser/studio-check.cjs": "ae2470815ce26498616ae9f176f0f07e3933b23d22b6d90fac7ac351b6b60331",
+    "tests/browser/ui-check.cjs": "dcd492794eac7230a3fa378a2661173f16a4d127bd972dbc455753c8e2986544",
+    "tests/media/studio_check.py": "5122b98492d90a27ee76955ff567a0df97631fc6040572f0ab0fa27e07a0991f",
+    "tests/unit/test_control.py": "9ce93b845f2f0e5aab0a1047a6e026631fa1d2a941923b0eb54b8c49ea7750e7"
+  },
+  "local_artifacts": [
+    {
+      "path": ".runtime/workspace-cleanup/unit-final.log",
+      "sha256": "58ec32726dcfb32ca5ed7d2d168bf25598fc50178ddb62b13c03f05348e12c67"
+    },
+    {
+      "path": ".runtime/workspace-cleanup/ui/ui-report.json",
+      "sha256": "3e109a62462fe3beb5167c133af31a8cf5db42465c396ef573a4e1f56e4ff7ab"
+    },
+    {
+      "path": ".runtime/workspace-cleanup/ui-final.log",
+      "sha256": "613c420e0e1b0282828c644c8f10fdee9ee0ed75160655788ece6af5f26e1494"
+    },
+    {
+      "path": ".runtime/workspace-cleanup/media/validation.json",
+      "sha256": "d6a38cd179764032ff05bb6a179a991b27246aac89f28dde708720f78a90b2ec"
+    },
+    {
+      "path": ".runtime/workspace-cleanup/media/browser-report.json",
+      "sha256": "6bf367e39851e57262f80e965e0aa0895f420b79f74b09355fab5df3aae01d1f"
+    },
+    {
+      "path": ".runtime/workspace-cleanup/media/program.mkv",
+      "sha256": "ffacb8b8561266a86e83b9ef84f1a826aeae4e554b704e93a0f98fd7341bb182"
+    },
+    {
+      "path": ".runtime/workspace-cleanup/studio-final.png",
+      "sha256": "5825b477590286c56b31fdd257c6312abc12186ae35cecae79e0e20248f122e9"
+    },
+    {
+      "path": ".runtime/workspace-cleanup/broadcast-final.png",
+      "sha256": "9657e43d817d3df053ded8b165c52bdd59eefb59eb1eedae0960b780f3403958"
+    },
+    {
+      "path": ".runtime/workspace-cleanup/ui/operator-fixed.png",
+      "sha256": "c18003116ea6647c2e6c3ab70dd9b03db7326ba3dc8248257f77b40500967ae7"
+    },
+    {
+      "path": ".runtime/workspace-cleanup/ui/broadcast-fixed.png",
+      "sha256": "fa0becc5341fcc7fd3b5ef9a0e7d98b8d1886b7270906717d5293eeb0e5b141e"
+    },
+    {
+      "path": ".runtime/workspace-cleanup/ui/join-fixed.png",
+      "sha256": "7b82117d063745967baf647a08f72e728428e513e33deabac09a50a5a823aade"
+    },
+    {
+      "path": ".runtime/workspace-cleanup/media/studio-390.png",
+      "sha256": "9f5a2ca0b5a585f90096e853fd71dbf540aa37dcfe1b237c3587088257723db1"
+    },
+    {
+      "path": ".runtime/workspace-cleanup/media/runtime/program-history.jsonl",
+      "sha256": "0049a7c51a0b5a4390113db3083d0ecd40d0c11250a8d7ecaefc716b85c2864f"
+    }
+  ]
+}

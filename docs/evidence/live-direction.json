@@ -1,0 +1,517 @@
+{
+  "evidence_scope": "historical validation",
+  "prd": "docs/19-live-direction-and-commentary-prd.md",
+  "status": "core application implemented; full local acceptance pending",
+  "local_ready": false,
+  "live_verified": false,
+  "final_unit_checks": {
+    "command": "BREADCAST_FONT=app/web/fonts/dmsans.ttf PYDANTIC_AI_NO_BANNER=1 PYTHONPATH=app .runtime/foundation-venv/bin/python -m unittest discover -s tests/unit -q",
+    "count": 120,
+    "passed": true,
+    "log": ".runtime/direction-unit-final.log",
+    "notes": "ResourceWarning from an existing SQLite test lifetime; no failed checks",
+    "follow_up": {
+      "test": "test_direction.DirectionContracts.test_D18_missing_access_invalid_schema_and_no_fixture_in_live_mode",
+      "passed": true,
+      "reason": "Provider capability status now shows the explicit LLM access failure on the crew card"
+    }
+  },
+  "static_checks": {
+    "passed": true,
+    "commands": [
+      "python3 -m compileall -q app tests/unit tests/media",
+      "bash -n scripts/studio",
+      "node --check app/web/operator.js",
+      "node --check app/web/graphics-ui.js",
+      "git diff --check"
+    ]
+  },
+  "earlier_one_camera": {
+    "mode": "Real generated sample through MediaMTX and RTSP with labeled provider responses",
+    "scope": "Early application increment before the final clock and shutdown changes; not final acceptance",
+    "runtime": ".runtime/direction-dev/smoke",
+    "program": ".runtime/direction-dev/smoke/program.mkv",
+    "measured_recording_mappings": 10,
+    "mapping_samples": [
+      {
+        "monotonic_s": 78729.450520483,
+        "kind": "live_recording_mapping",
+        "source_path": "camera/253c6b6d94e04009be19bb8e710728d2",
+        "epoch": 1,
+        "timeline_offset_pts": 88166,
+        "time_base": "1/90000",
+        "last_receipt_utc": 1791392030.7072983,
+        "geometry": {
+          "native_width": 640,
+          "native_height": 360,
+          "rotation": 0,
+          "output_width": 640,
+          "output_height": 360,
+          "scaled_width": 640,
+          "scaled_height": 360,
+          "pad_x": 0,
+          "pad_y": 0
+        },
+        "revision": 1,
+        "matches": [
+          {
+            "file_pts": 0,
+            "decoder_pts": 84000,
+            "decoder_time_base": "1/90000",
+            "offset_s": 0.9333333333333333,
+            "received_utc": 1791392030.040583,
+            "mae": 0.8780381944444444,
+            "sequence": 1,
+            "uncertainty_ms": 66.66666666666667
+          },
+          {
+            "file_pts": 89999,
+            "decoder_pts": 178165,
+            "decoder_time_base": "1/90000",
+            "offset_s": 0.9796222222222223,
+            "received_utc": 1791392030.0407317,
+            "mae": 0.8871527777777778,
+            "sequence": 17,
+            "uncertainty_ms": 66.66666666666667
+          },
+          {
+            "file_pts": 173999,
+            "decoder_pts": 262165,
+            "decoder_time_base": "1/90000",
+            "offset_s": 0.9796222222222222,
+            "received_utc": 1791392030.7072983,
+            "mae": 0.8641493055555556,
+            "sequence": 31,
+            "uncertainty_ms": 66.66666666666667
+          }
+        ],
+        "residual_ms": 46.28888888888882,
+        "uncertainty_ms": 112.95555555555549,
+        "algorithm": "three decoded image matches and interior timestamp residual",
+        "tolerance_ms": 66.66666666666667,
+        "capture_clock": "unknown"
+      },
+      {
+        "monotonic_s": 78731.361690048,
+        "kind": "live_recording_mapping",
+        "source_path": "camera/253c6b6d94e04009be19bb8e710728d2",
+        "epoch": 1,
+        "timeline_offset_pts": 268165,
+        "time_base": "1/90000",
+        "last_receipt_utc": 1791392032.639426,
+        "geometry": {
+          "native_width": 640,
+          "native_height": 360,
+          "rotation": 0,
+          "output_width": 640,
+          "output_height": 360,
+          "scaled_width": 640,
+          "scaled_height": 360,
+          "pad_x": 0,
+          "pad_y": 0
+        },
+        "revision": 1,
+        "matches": [
+          {
+            "file_pts": 0,
+            "decoder_pts": 268165,
+            "decoder_time_base": "1/90000",
+            "offset_s": 2.979611111111111,
+            "received_utc": 1791392030.7713802,
+            "mae": 0.8815104166666666,
+            "sequence": 32,
+            "uncertainty_ms": 66.66666666666667
+          },
+          {
+            "file_pts": 89999,
+            "decoder_pts": 358165,
+            "decoder_time_base": "1/90000",
+            "offset_s": 2.9796222222222224,
+            "received_utc": 1791392031.7738829,
+            "mae": 0.8858506944444444,
+            "sequence": 47,
+            "uncertainty_ms": 66.66666666666667
+          },
+          {
+            "file_pts": 173999,
+            "decoder_pts": 436165,
+            "decoder_time_base": "1/90000",
+            "offset_s": 2.9129555555555555,
+            "received_utc": 1791392032.639426,
+            "mae": 4.990451388888889,
+            "sequence": 60,
+            "uncertainty_ms": 66.66666666666667
+          }
+        ],
+        "residual_ms": 66.6555555555557,
+        "uncertainty_ms": 133.32222222222236,
+        "algorithm": "three decoded image matches and interior timestamp residual",
+        "tolerance_ms": 66.66666666666667,
+        "capture_clock": "unknown"
+      },
+      {
+        "monotonic_s": 78733.560288769,
+        "kind": "live_recording_mapping",
+        "source_path": "camera/253c6b6d94e04009be19bb8e710728d2",
+        "epoch": 1,
+        "timeline_offset_pts": 448166,
+        "time_base": "1/90000",
+        "last_receipt_utc": 1791392034.705052,
+        "geometry": {
+          "native_width": 640,
+          "native_height": 360,
+          "rotation": 0,
+          "output_width": 640,
+          "output_height": 360,
+          "scaled_width": 640,
+          "scaled_height": 360,
+          "pad_x": 0,
+          "pad_y": 0
+        },
+        "revision": 1,
+        "matches": [
+          {
+            "file_pts": 0,
+            "decoder_pts": 448165,
+            "decoder_time_base": "1/90000",
+            "offset_s": 4.979611111111111,
+            "received_utc": 1791392032.7718592,
+            "mae": 0.8706597222222222,
+            "sequence": 62,
+            "uncertainty_ms": 66.66666666666667
+          },
+          {
+            "file_pts": 89999,
+            "decoder_pts": 538165,
+            "decoder_time_base": "1/90000",
+            "offset_s": 4.979622222222222,
+            "received_utc": 1791392033.771792,
+            "mae": 0.8832465277777778,
+            "sequence": 77,
+            "uncertainty_ms": 66.66666666666667
+          },
+          {
+            "file_pts": 173999,
+            "decoder_pts": 622165,
+            "decoder_time_base": "1/90000",
+            "offset_s": 4.979622222222222,
+            "received_utc": 1791392034.705052,
+            "mae": 0.8602430555555556,
+            "sequence": 91,
+            "uncertainty_ms": 66.66666666666667
+          }
+        ],
+        "residual_ms": 0.011111111111183902,
+        "uncertainty_ms": 66.67777777777786,
+        "algorithm": "three decoded image matches and interior timestamp residual",
+        "tolerance_ms": 66.66666666666667,
+        "capture_clock": "unknown"
+      }
+    ],
+    "unknown_mapping_count": 6,
+    "unknown_reasons": {
+      "Live receipt trace is unavailable": 1,
+      "Recording image match is weak or ambiguous": 1,
+      "Recorder/decoder mapping exceeds one-frame tolerance": 4
+    },
+    "delivery_history": [
+      {
+        "channel": "speech",
+        "cue_id": "ffce6a0d100f45f3ba734b635cb24ecc-speech",
+        "event_id": "foundation-fixture",
+        "event_ms": null,
+        "evidence_ids": [],
+        "first_program_ms": 8600,
+        "first_sample": 412800,
+        "last_program_ms": 13788,
+        "last_sample": 661826,
+        "origin": "controller",
+        "program_revision": 1,
+        "reason": null,
+        "run_id": "95ce296ba0cf42f59b28e1d02482b367",
+        "session_id": "95ce296ba0cf42f59b28e1d02482b367:1",
+        "state": "completed",
+        "text": "This is a prerecorded Breadcast fixture. The live broadcast remains under human control."
+      },
+      {
+        "channel": "caption",
+        "cue_id": "ffce6a0d100f45f3ba734b635cb24ecc-caption",
+        "event_id": "foundation-fixture",
+        "event_ms": null,
+        "evidence_ids": [],
+        "first_program_ms": 8600,
+        "first_sample": null,
+        "last_program_ms": 16400,
+        "last_sample": null,
+        "origin": "controller",
+        "program_revision": 1,
+        "reason": null,
+        "run_id": "95ce296ba0cf42f59b28e1d02482b367",
+        "session_id": "95ce296ba0cf42f59b28e1d02482b367:1",
+        "state": "completed",
+        "text": "This is a prerecorded Breadcast fixture. The live broadcast remains under human control."
+      }
+    ]
+  },
+  "final_file_check": {
+    "passed": true,
+    "scope": "Real Program encoder to a local file; generated source fixture; no RTSP/WebRTC/admission proof",
+    "decoded_frames": 207,
+    "unexpected_black_frames": 0,
+    "encoder_pid": 3282,
+    "pixel_mae": {
+      "caption": 1.7436854098465886,
+      "caption-cleared": 1.6666666666666667,
+      "crop": 1.4191666666666667,
+      "reset": 1.6258039215686273
+    },
+    "speech_alignment": {
+      "correlation": 0.9978637895911777,
+      "alignment_error_ms": 0.0,
+      "tolerance_ms": 500,
+      "search_step_ms": 5
+    },
+    "rms": {
+      "ambient": 1980.5736245279866,
+      "screen-silent": 0.0,
+      "restored": 1980.147728513994
+    },
+    "speech_receipt": {
+      "channel": "speech",
+      "cue_id": "111c8e01aa004dfda00f3feb6cc81a54-speech",
+      "event_id": "foundation-fixture",
+      "event_ms": null,
+      "evidence_ids": [],
+      "first_program_ms": 1200,
+      "first_sample": 57600,
+      "last_program_ms": 6388,
+      "last_sample": 306626,
+      "origin": "controller",
+      "program_revision": 2,
+      "reason": null,
+      "run_id": "e37996a1158745ae9e51f7ab0d857767",
+      "session_id": "e37996a1158745ae9e51f7ab0d857767:2",
+      "state": "completed",
+      "text": "This is a prerecorded Breadcast fixture. The live broadcast remains under human control."
+    },
+    "program": ".runtime/direction-checks/20261007T143222-2d99ba/offline-media/program.mkv",
+    "complete_local_acceptance": false
+  },
+  "file_check_command": {
+    "command": "PYTHONPATH=app:tests/media BREADCAST_FONT=app/web/fonts/dmsans.ttf python tests/media/direction_check.py --offline --evidence .runtime/direction-checks",
+    "report": ".runtime/direction-checks/20261007T143222-2d99ba/report.json",
+    "exit_code": 1,
+    "reason": "Intentional nonzero for incomplete full acceptance; all 119 unit checks in that run and file media checks passed. The final independent unit run adds the receipt uncertainty check."
+  },
+  "environment": {
+    "python": "Python 3.13.13",
+    "ffmpeg": "Local Nix FFmpeg 9.0.1; Docker acceptance uses the existing pinned image",
+    "font": "app/web/fonts/dmsans.ttf",
+    "dependencies": {
+      "av": "17.0.1",
+      "pydantic": "2.13.5",
+      "pydantic-ai-slim": "2.54.0",
+      "fastapi": "0.142.2",
+      "uvicorn": "0.54.0"
+    }
+  },
+  "failures_and_fixes": [
+    {
+      "attempt": ".runtime/direction-dev/offline-20261007T141640",
+      "failure": "Encoder shutdown ended the proof file before queued audio was flushed",
+      "fix": "Drain the audio queue, close both encoder inputs, then use a bounded exit wait",
+      "repeat_passed": true
+    },
+    {
+      "failure": "Final Docker API connection denied by the changed workspace permission policy",
+      "action": "Continue unit and file-only checks; do not mark full local acceptance complete"
+    }
+  ],
+  "coverage": {
+    "D01": {
+      "state": "partial",
+      "contract_tests": [
+        "test_direction.DirectionContracts.test_D01_setup_preload_preview_unknown_and_unicode"
+      ],
+      "acceptance_complete": false
+    },
+    "D02": {
+      "state": "partial",
+      "contract_tests": [
+        "test_direction.DirectionContracts.test_D02_setup_conflict_failure_and_corrected_context"
+      ],
+      "acceptance_complete": false
+    },
+    "D03": {
+      "state": "partial",
+      "contract_tests": [
+        "test_direction.DirectionContracts.test_D03_abstention_and_no_change_preserve_revision"
+      ],
+      "acceptance_complete": false
+    },
+    "D04": {
+      "state": "partial",
+      "contract_tests": [
+        "test_direction.DirectionContracts.test_D04_crop_boundaries_geometry_aspect_and_reset"
+      ],
+      "acceptance_complete": false,
+      "decoded_file_evidence": ".runtime/direction-checks/20261007T143222-2d99ba/report.json"
+    },
+    "D05": {
+      "state": "partial",
+      "contract_tests": [
+        "test_direction.DirectionContracts.test_D05_snapshot_changes_before_scheduling_and_commit"
+      ],
+      "acceptance_complete": false
+    },
+    "D06": {
+      "state": "partial",
+      "contract_tests": [
+        "test_direction.DirectionContracts.test_D06_forgery_retries_and_authority_allowlist"
+      ],
+      "acceptance_complete": false
+    },
+    "D07": {
+      "state": "partial",
+      "contract_tests": [
+        "test_direction.DirectionContracts.test_D07_small_clock_reset_and_time_base_change_renew_native_revision",
+        "test_direction.DirectionContracts.test_D07_unknown_ambiguous_and_discontinuous_mapping",
+        "test_direction.DirectionContracts.test_D07_receipt_uncertainty_shortens_original_deadline"
+      ],
+      "acceptance_complete": false,
+      "earlier_camera_evidence": ".runtime/direction-dev/smoke/program-history.jsonl"
+    },
+    "D08": {
+      "state": "partial",
+      "contract_tests": [
+        "test_direction.DirectionContracts.test_D08_commentary_references_future_and_duplicate_history"
+      ],
+      "acceptance_complete": false
+    },
+    "D09": {
+      "state": "partial",
+      "contract_tests": [
+        "test_direction.DirectionContracts.test_D09_actual_partial_delivery_correction_and_takeover",
+        "test_direction.DirectionContracts.test_D09_missed_notification_retraction_still_invalidates_commit"
+      ],
+      "acceptance_complete": false
+    },
+    "D10": {
+      "state": "partial",
+      "contract_tests": [
+        "test_direction.DirectionContracts.test_D10_decode_duration_corruption_wrong_text_and_deadline"
+      ],
+      "acceptance_complete": false,
+      "decoded_file_evidence": ".runtime/direction-checks/20261007T143222-2d99ba/report.json"
+    },
+    "D11": {
+      "state": "partial",
+      "contract_tests": [
+        "test_direction.DirectionContracts.test_D11_mixer_duck_headroom_ramps_restore_and_bounds"
+      ],
+      "acceptance_complete": false,
+      "decoded_file_evidence": ".runtime/direction-checks/20261007T143222-2d99ba/report.json"
+    },
+    "D12": {
+      "state": "partial",
+      "contract_tests": [
+        "test_direction.DirectionContracts.test_D12_session_change_and_replay_return_cancel"
+      ],
+      "acceptance_complete": false
+    },
+    "D13": {
+      "state": "partial",
+      "contract_tests": [
+        "test_direction.DirectionContracts.test_D13_caption_two_lines_fit_safe_margin_and_contrast"
+      ],
+      "acceptance_complete": false,
+      "decoded_file_evidence": ".runtime/direction-checks/20261007T143222-2d99ba/report.json"
+    },
+    "D14": {
+      "state": "pending",
+      "contract_tests": [],
+      "acceptance_complete": false
+    },
+    "D15": {
+      "state": "partial",
+      "contract_tests": [
+        "test_direction.DirectionContracts.test_D15_role_queue_storage_and_history_bounds_urgent_controls"
+      ],
+      "acceptance_complete": false
+    },
+    "D16": {
+      "state": "pending",
+      "contract_tests": [],
+      "acceptance_complete": false
+    },
+    "D17": {
+      "state": "partial",
+      "contract_tests": [
+        "test_direction.DirectionContracts.test_D17_old_run_and_terminal_history_are_immutable"
+      ],
+      "acceptance_complete": false
+    },
+    "D18": {
+      "state": "partial",
+      "contract_tests": [
+        "test_direction.DirectionContracts.test_D18_missing_access_invalid_schema_and_no_fixture_in_live_mode"
+      ],
+      "acceptance_complete": false
+    },
+    "D19": {
+      "state": "pending",
+      "contract_tests": [],
+      "acceptance_complete": false
+    }
+  },
+  "remaining_local_gates": [
+    "Run ./scripts/studio direction-check with Docker access",
+    "Verify final one-camera recorder/decoder mapping and discontinuity recovery",
+    "Complete the five-minute five-source crew recording",
+    "Complete connected replay/alternate-angle, failure, audio, queue/storage, browser and shutdown regressions"
+  ],
+  "remaining_live_gates": [
+    "Verified VAST, YOLO, Cosmos, search, W&B and speech adapters",
+    "L01-L03 and listening review",
+    "Physical phones and venue/audience validation in Task 3"
+  ],
+  "artifacts": [
+    {
+      "path": ".runtime/direction-checks/20261007T143222-2d99ba/offline-media/program.mkv",
+      "sha256": "f7877c18ea7ffbb13fbb82ca1c6d9a2c6ef7e14134712a580b3f3c0ee9c3d3ab",
+      "bytes": 414706
+    },
+    {
+      "path": ".runtime/direction-checks/20261007T143222-2d99ba/report.json",
+      "sha256": "af92d762f658dbaf601783d4f2dcf3cc2bcb96d5f9da89ae3d430daf5d269bab",
+      "bytes": 22272
+    },
+    {
+      "path": ".runtime/direction-unit-final.log",
+      "sha256": "0b1ad1ba26ac312dddfe4899cccd13ce28aa3964bb374df35a81a67141c35578",
+      "bytes": 365
+    }
+  ],
+  "code_sha256": {
+    "app/control.py": "c011703df382375c21cf9b2b9199fddc24d2bb33b0f3439f2ae392aa58f2e941",
+    "app/direction.py": "ffd2877c1ef36562a6e5f4dfc02f0a06e3ff5efa97bd5ae7e38c6732e52d9180",
+    "app/direction_media.py": "03229f9ae92b86357bddd87bf4b8028f50293f44eb504615df36bd736203d4b0",
+    "app/live_timing.py": "8d64953978e1585fb11c0dbe0d371e1c475da046ebc19e80fc301c92b736682d",
+    "app/foundation.py": "6b966e109479b9c73b8bf6c36ec79a3d0ab945ab896ad480a75bb8c1e92becb2",
+    "app/foundation_records.py": "792dd4778a6f48abd9b040f5b1e07d5f6a718575d48bb07828ec0893c1ecc0dd",
+    "app/foundation_providers.py": "0ad5529cb8e3d69c9fb307f7449fe27c34322016b41b960ba79372c6240acabf",
+    "app/media.py": "b945601c250cd943a8672852909108652751c71608926fc7827d6b010deb5d7e",
+    "app/media_provenance.py": "b3e46e4c33f3dccdfc5729b6015627e81a11f2864146c4d1c19beb70b7beaf2f",
+    "app/replay.py": "793d370b65f16a67d1000911b0e87dcb39e707d004e3c184c48f0fe676ee0c18",
+    "app/studio.py": "bc260172d76e636ead015739dcf0303087c336144e087f69248ea2f1558fb6cd",
+    "app/graphics.py": "69aefd12fe44e163abaadc30cad43d41213bedc030bf044c827cf71446d0796f",
+    "app/http_api.py": "3007ca328eff1c51be0cc5923d7fe99c5653564357f7a8adf1fbe7ec2233313b",
+    "app/web/operator.js": "a4123eb0b33f947443ba9203b68d2caa95ee4fe1994afe4719fb808414282f3a",
+    "app/web/operator.html": "c860f007f1ac691181cb9ee494d981978fc8d7d38574017081a54ab16e4bc296",
+    "app/web/graphics-ui.js": "d2216cc32ae67f896aa31fce44d850fe9c0e6720ae2f01800c8546a137aa85ab",
+    "tests/media/direction_check.py": "bc153c8206054241802529afad7b72a144ca2308538fbf4b11e11e6d83d3fbe0",
+    "tests/unit/test_direction.py": "54f37be8fc690b42003f84337b6020ec71cdf187f197b7a5829cb1d69e905cc8",
+    "scripts/studio": "bc37a675003a91c742349609c8bae3982e2ef5eaafedbb797cd5812f2f0c2c44"
+  },
+  "follow_up_fixes": "docs/evidence/prd2-fixes.json"
+}

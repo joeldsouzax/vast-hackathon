@@ -1,0 +1,45 @@
+{
+  "evidence_scope": "historical validation",
+  "scope": "Replay control visibility and existing synthetic multi-camera replay regression; no provider or physical-phone validation",
+  "passed": true,
+  "changes": [
+    "Top Operator link to multi-camera controls",
+    "Multi-camera controls expanded by default",
+    "Current-source calibration and active evidence counts",
+    "Visible manual preparation steps and automatic-selection limitation"
+  ],
+  "encoded_media_report": ".runtime/replay-visibility/validation.json",
+  "browser_report": ".runtime/replay-visibility/browser-report.json",
+  "browser_checks": [
+    "multi_camera_controls_open_by_default_and_linked_from_top",
+    "review_shows_order_intervals_speeds_reasons_and_fixture_label",
+    "rendering_does_not_start_playback_and_live_frames_advance",
+    "encoded_preview_decodes_in_browser",
+    "manual_playback_and_immediate_return",
+    "changed_plan_requires_review_and_invalid_cut_explains_rejection",
+    "mobile_replay_editor_fits_viewport"
+  ],
+  "live_browser": {
+    "passed": true,
+    "url": "http://localhost:8080/operator",
+    "setup_status": "5 buffered cameras \u00b7 0 cameras with saved calibration \u00b7 0 active evidence records. Add shared-marker calibration and visual evidence below.",
+    "occupied": 5,
+    "program_revision": 0,
+    "encoder_pid": 20,
+    "checks": [
+      "controls_visible_without_expanding",
+      "top_link_opens_replay_section",
+      "setup_status_uses_current_records",
+      "mobile_fits_viewport",
+      "no_page_errors"
+    ],
+    "page_errors": []
+  },
+  "live_screenshot": ".runtime/replay-visibility/live-operator.png",
+  "runtime_update": "Copied three static web files into the existing container; rebuilt the image for future starts. Server and encoder were not restarted. No playback command was sent.",
+  "remaining": [
+    "Manual JSON plan/calibration/evidence controls remain",
+    "No saved calibration or visual evidence in current live session",
+    "Automatic provider-backed selection remains unconnected"
+  ]
+}

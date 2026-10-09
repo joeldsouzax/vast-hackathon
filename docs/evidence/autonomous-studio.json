@@ -1,0 +1,422 @@
+{
+  "evidence_scope": "historical validation",
+  "phase": "docs/16-autonomous-studio-prd.md",
+  "passed": true,
+  "scope": "Local studio workspace and control system; real encoded fixture media and browser WebRTC. No live provider analysis or physical phones.",
+  "environment": {
+    "host": "Darwin",
+    "host_arch": "arm64",
+    "container": "Linux arm64",
+    "python": "3.13.16",
+    "node": "22.23.1",
+    "docker": "29.5.2",
+    "browser": "154.0.8037.98",
+    "ffmpeg": "7.1.5-0+deb13u1",
+    "mediamtx": "1.20.1",
+    "media": {
+      "width": 640,
+      "height": 360,
+      "fps": 15,
+      "delay_s": 3
+    },
+    "validation_image": {
+      "tag": "breadcast-studio:crew-validation",
+      "identity": "arm64 linux sha256:9edb7bc775452eee236d75e63bc4e6065bdadb9f4354591f5e12b35558f23d59"
+    },
+    "execution": "Mounted current workspace for media checks. Lifecycle check uses the rebuilt image. Original broadcast container was not restarted."
+  },
+  "validation": {
+    "unit": {
+      "passed": true,
+      "tests": 61,
+      "report": ".runtime/autonomous-studio/unit-tests.txt",
+      "covered_contracts": [
+        "Concurrent duplicate commits once",
+        "Changed retry rejected",
+        "Exact Assisted signature and freshness",
+        "Takeover during binding and rendering",
+        "Prior-run rejection before takeover",
+        "Delayed resume invalidated",
+        "Crew authority and official facts",
+        "Old cancellation ownership",
+        "Current source lease and epoch at commit",
+        "Selected video and audio lease survive slot reuse",
+        "Exact encoder receipt and committed target",
+        "New session when replaying same asset",
+        "Suppressed graphics cannot claim airtime",
+        "Recovery bypasses crew shot delay",
+        "Malformed legacy action rejected"
+      ]
+    },
+    "reports": {
+      "studio_media": {
+        "passed": true,
+        "path": ".runtime/autonomous-studio/final-media/validation.json",
+        "sha256": "83ae228ab57f87434b94f39f4f2d53a8da3f4c02ab3a15ac134b55bbca616165",
+        "checks": 12
+      },
+      "studio_browser": {
+        "passed": true,
+        "path": ".runtime/autonomous-studio/final-media/browser-report.json",
+        "sha256": "5eaeac4c046b634b248f92dfdc006ba92294eec8fd74c13653ed6397ebc1572b",
+        "checks": 7
+      },
+      "ingress_media": {
+        "passed": true,
+        "path": ".runtime/autonomous-studio/final-regression/20261006T233406-12b95d/report.json",
+        "sha256": "d72b662a601284dda2b0706b4dd0d39eab3981ebfae0dbf3a5540a563f897693",
+        "checks": 18
+      },
+      "multi_camera_media": {
+        "passed": true,
+        "path": ".runtime/autonomous-studio/final-multi/validation.json",
+        "sha256": "2ed091e47915f0d642e90fcfb2680e9caa612bcd65f652fc8b97fb7333cf87e1",
+        "checks": 18
+      },
+      "graphics_media": {
+        "passed": true,
+        "path": ".runtime/autonomous-studio/final-graphics/graphics-evidence/graphics-media-report.json",
+        "sha256": "9d935f53e15052c2a3b526955e926c40405471fd57c4e878ce74ed8ff9b3bdfc",
+        "checks": 4
+      },
+      "graphics_browser": {
+        "passed": true,
+        "path": ".runtime/autonomous-studio/final-graphics/graphics-browser-report.json",
+        "sha256": "7afa2a3b5d3062d19ce5f135f8b13c22de956ba2d8c9751b8eca622430ec5590",
+        "checks": 10
+      },
+      "ui_browser": {
+        "passed": true,
+        "path": ".runtime/autonomous-studio/final-browser/ui-report.json",
+        "sha256": "5fa92a05cf218e9ffc5575a60a8f85e1601c894508618846c8eba042073be7de",
+        "checks": 8
+      },
+      "camera_browser": {
+        "passed": true,
+        "path": ".runtime/autonomous-studio/final-browser/browser-report.json",
+        "sha256": "21234b22757a9834562274b500469712d2d8c2c92277b9be346ffd428b068e46",
+        "checks": 5
+      },
+      "docker_lifecycle": {
+        "passed": true,
+        "path": ".runtime/autonomous-studio/docker-lifecycle-final.json",
+        "sha256": "4782bafb9abb251772ea217b091d6d2cf18303caf8a2408b58d16da8315d48a9",
+        "checks": 6
+      },
+      "legacy_http": {
+        "passed": true,
+        "path": ".runtime/autonomous-studio/final-browser/legacy-action-report.json",
+        "sha256": "ac5d2bec7312e881be950806acd343f1e566f3e3249671d469aaa34a07a9dd2c",
+        "checks": 6
+      }
+    },
+    "acceptance": {
+      "UX1": {
+        "passed": true,
+        "evidence": [
+          "studio_browser"
+        ]
+      },
+      "UX2": {
+        "passed": true,
+        "evidence": [
+          "studio_browser"
+        ]
+      },
+      "UX3": {
+        "passed": true,
+        "evidence": [
+          "studio_browser",
+          "ui_browser"
+        ]
+      },
+      "UX4": {
+        "passed": true,
+        "evidence": [
+          "studio_media",
+          "ui_browser",
+          "camera_browser",
+          "ingress_media"
+        ]
+      },
+      "C1": {
+        "passed": true,
+        "evidence": [
+          "studio_media",
+          "unit"
+        ]
+      },
+      "C2": {
+        "passed": true,
+        "evidence": [
+          "studio_media",
+          "studio_browser",
+          "unit"
+        ]
+      },
+      "C3": {
+        "passed": true,
+        "evidence": [
+          "studio_media",
+          "unit"
+        ]
+      },
+      "C4": {
+        "passed": true,
+        "evidence": [
+          "studio_media",
+          "studio_browser",
+          "unit"
+        ]
+      },
+      "C5": {
+        "passed": true,
+        "evidence": [
+          "studio_media",
+          "unit"
+        ]
+      },
+      "C6": {
+        "passed": true,
+        "evidence": [
+          "studio_browser",
+          "docker_lifecycle",
+          "unit"
+        ]
+      },
+      "C7": {
+        "passed": true,
+        "evidence": [
+          "studio_media",
+          "multi_camera_media",
+          "unit"
+        ]
+      },
+      "C8": {
+        "passed": true,
+        "evidence": [
+          "legacy_http",
+          "multi_camera_media",
+          "unit"
+        ]
+      },
+      "R1": {
+        "passed": true,
+        "evidence": [
+          "studio_media"
+        ]
+      },
+      "R2": {
+        "passed": true,
+        "evidence": [
+          "studio_media",
+          "studio_browser",
+          "unit"
+        ]
+      },
+      "R3": {
+        "passed": true,
+        "evidence": [
+          "studio_media",
+          "multi_camera_media",
+          "unit"
+        ]
+      },
+      "G1": {
+        "passed": true,
+        "evidence": [
+          "studio_browser",
+          "graphics_media",
+          "graphics_browser",
+          "unit"
+        ]
+      },
+      "G2": {
+        "passed": true,
+        "evidence": [
+          "studio_browser",
+          "unit"
+        ]
+      },
+      "M1": {
+        "passed": true,
+        "evidence": [
+          "studio_media",
+          "ingress_media",
+          "multi_camera_media"
+        ]
+      },
+      "M2": {
+        "passed": true,
+        "evidence": [
+          "studio_media"
+        ]
+      },
+      "M3": {
+        "passed": true,
+        "evidence": [
+          "studio_browser",
+          "ingress_media"
+        ]
+      }
+    },
+    "static_checks": [
+      "git diff --check",
+      "node --check app/web/operator.js",
+      "node --check tests/browser/studio-check.cjs",
+      "python3 -m py_compile app/control.py app/media.py app/studio.py tests/media/studio_check.py"
+    ]
+  },
+  "measurements": {
+    "M2": {
+      "encoded_duration_s": 302.514,
+      "frames": 4538,
+      "black_frames": 0,
+      "max_frame_gap_s": 0.11399999999999988,
+      "encoder_pid": 22
+    },
+    "encoder_pid_unchanged": true,
+    "M3": {
+      "request_to_controller_observed_ms": 49.140167000001384,
+      "action_created_to_encoder_ms": 22.387889001038275,
+      "request_to_viewer_pixels_ms": 163.69670899999983,
+      "controller_applied_monotonic_s": 16297.316850621,
+      "ack": "encoder frame submission; viewer pixels measured separately"
+    },
+    "limits": "M3 is one local browser sample, not a performance guarantee. Controller receipt means full frame submission to FFmpeg. Viewer timing uses decoded WebRTC pixels. M2 black frame check requires all mean color channels below 4 and checks every decoded frame."
+  },
+  "artifacts": {
+    "program": ".runtime/autonomous-studio/final-media/program.mkv",
+    "action_trace": ".runtime/autonomous-studio/final-media/runtime/program-history.jsonl",
+    "screenshots": [
+      ".runtime/autonomous-studio/final-media/studio-1280.png",
+      ".runtime/autonomous-studio/final-media/studio-1440.png",
+      ".runtime/autonomous-studio/final-media/studio-390.png",
+      ".runtime/autonomous-studio/final-graphics/graphic-name-bar.png",
+      ".runtime/autonomous-studio/final-graphics/graphic-opening.png",
+      ".runtime/autonomous-studio/final-graphics/graphic-replay.png",
+      ".runtime/autonomous-studio/final-graphics/graphic-scoreboard.png"
+    ],
+    "graphics_media_directory": ".runtime/autonomous-studio/final-graphics/graphics-evidence",
+    "multi_camera_media_directory": ".runtime/autonomous-studio/final-multi",
+    "availability": "Ignored .runtime artifacts remain in this workspace. Reports may use /work paths; replace /work with the repository root on the host. Copy artifacts separately when moving the checkout."
+  },
+  "action_trace_summary": {
+    "run_id": "e65149bd64954de99ffadcb9955bb8ad",
+    "unique_actions": 68,
+    "actors": {
+      "Human": 57,
+      "Local rehearsal": 11
+    },
+    "last_recorded_states": {
+      "Finished": 46,
+      "Ready": 4,
+      "Canceled": 14,
+      "Rejected": 4
+    },
+    "expected_rejections": [
+      {
+        "id": "late-crew",
+        "op": "live",
+        "reason": "Proposal run, control, program, or source revision changed"
+      },
+      {
+        "id": "old-cancel",
+        "op": "cancel",
+        "reason": "This preparation is no longer running"
+      },
+      {
+        "id": "old-source",
+        "op": "replay",
+        "reason": "Replay source lease or epoch changed"
+      },
+      {
+        "id": "158a47cd-99cd-487b-ad4a-3b5226cf7a99",
+        "op": "chat",
+        "reason": "AI not connected. Use the documented slash commands. Speaker names need supplied text; goal identification is unavailable. Official facts need the confirmation form."
+      }
+    ]
+  },
+  "failures_and_resolutions": [
+    {
+      "kind": "product",
+      "failure": "A reused camera slot could inherit selected video or microphone.",
+      "resolution": "Pin selected lease paths; require explicit replacement selection. Final real media and audio probes pass."
+    },
+    {
+      "kind": "product",
+      "failure": "A newer generic applied revision or repeated replay ID could mislabel prior work as on air.",
+      "resolution": "Match exact encoder receipts, committed targets, visible cues, and replay start revisions. Focused tests pass."
+    },
+    {
+      "kind": "fixture",
+      "failure": "Early browser launches missed the bounded readiness window or ran before access.json existed.",
+      "resolution": "Launch after readiness. Final required runs pass."
+    },
+    {
+      "kind": "fixture",
+      "failure": "Encoded amber replay pixels failed an exact RGB threshold.",
+      "resolution": "Use region and compression tolerance; still require actual replay and subsequent live viewer pixels."
+    },
+    {
+      "kind": "fixture",
+      "failure": "Lost-response injection raced reload before server execution.",
+      "resolution": "Wait for the completed server response, abort delivery, then reload and retry the same ID."
+    },
+    {
+      "kind": "fixture",
+      "failure": "An old graphics instance had expired generated publishers; old UI selectors also failed after layout changes.",
+      "resolution": "Use fresh isolated fixtures and current drawer controls. Final media and browser graphics runs pass."
+    }
+  ],
+  "preservation": {
+    "initial_tracked_patch": ".runtime/autonomous-studio/preexisting.patch",
+    "patch_sha256": "cf40b8ba4bc991feeb6e1de87cd939a78e2a30bf32283791cef194ef17f59340",
+    "existing_replay_implementation": "app/replay.py retained; new control path reuses its validation and worker.",
+    "original_broadcast": {
+      "container": "breadcast-studio",
+      "running": true,
+      "port": 8080,
+      "restarted": false
+    },
+    "isolated_test_containers_stopped": true
+  },
+  "handoff": {
+    "guide": "docs/12-studio.md#crew-controls-and-local-rehearsal",
+    "contracts": "docs/05-context-and-contracts.md#local-studio-actions-and-authority",
+    "provider_entry": "Coordinator.propose(request, actor=\"Provider crew\")",
+    "implementation": "app/control.py",
+    "next_adapter": "Verify actual provider access. Validate ProgramProposal intent, attach Coordinator.expected(args), a stable id, and finite future UTC expires_at. Assign actor in trusted application code. Use only supported operations.",
+    "replay_entry": "ReplayContext.accept_segmentor_response, then prepare through Coordinator. Director separately proposes eligible replay playback.",
+    "ownership": "Only Program commits airtime. Provider calls and rendering remain outside continuous playback. Public requests cannot choose the crew actor.",
+    "not_connected": [
+      "VAST",
+      "NVIDIA Cosmos",
+      "YOLO",
+      "semantic search",
+      "W&B-hosted application LLMs on CoreWeave"
+    ],
+    "remaining_validation": [
+      "Physical phones, shared-marker timing and live network playback",
+      "Actual provider endpoints, credentials, model IDs, SDKs, and structured outputs"
+    ],
+    "out_of_scope": [
+      "TTS",
+      "General natural-language direction",
+      "Provider-backed editorial judgment",
+      "New deployment or unrelated infrastructure"
+    ],
+    "decision_required": false
+  },
+  "source_sha256": {
+    "app/control.py": "26a98e1b93fdbe0ea9e7d0bec27375a8f6da42937d14ada85cd3add9b2310251",
+    "app/media.py": "d6c6a7007fc4dddfce0637afdbe0fcd424014ff2191caad3e4fd9ca9ddc684ce",
+    "app/studio.py": "80ab8094c3ee7cb72ec12db2e48e709e03287a77dcbb4318ea492f6539ba491b",
+    "app/web/operator.html": "cc6268fdf71d3f26db287928aea4c9563ae33530efa6bfbef298a3efbca7c330",
+    "app/web/operator.js": "f80de77ed135b1f42cadc301003bb9a1689054d618528dd2436701402f83b463",
+    "app/web/studio.css": "fe003355a69b4e8053b1be1c94f343fea8f64b25635d815e0d3e1df5e925a062",
+    "tests/unit/test_control.py": "ec274a8796e62d0fba0f9c9b57f3beac8c007e3e14af6c1273fae038b32f1647",
+    "tests/media/studio_check.py": "2e2f2f2d53f1d55f9ef2776777d833828ca11c79b03450b172bc8373a2b270b8",
+    "tests/browser/studio-check.cjs": "d18433cf81e53ad91056bc96dcb7ab936b12aaabfe3ca6c9d43bb161021f5e00"
+  }
+}

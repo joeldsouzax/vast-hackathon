@@ -1,0 +1,153 @@
+{
+  "evidence_scope": "historical validation",
+  "image_id": "sha256:6f15ae62a2578b028e3e6dc328d7d84cecbcc578721412e82ccc97bef4ba8da9",
+  "architecture": "arm64",
+  "change": "Removed viewer/operator key generation, access checks, login forms, and keyed links. Both pages open directly. Camera admission/publishing credentials remain.",
+  "pages": {
+    "broadcast": "http://localhost:8080/",
+    "operator": "http://localhost:8080/operator",
+    "qr_location": "Broadcast only"
+  },
+  "ui": {
+    "passed": true,
+    "browser": "154.0.8037.98",
+    "mode": "Local Docker browser UI without viewer/operator keys; no physical phone scan",
+    "checks": [
+      {
+        "name": "both_pages_and_operator_api_open_without_keys"
+      },
+      {
+        "name": "old_access_fragments_and_saved_keys_are_removed"
+      },
+      {
+        "name": "broadcast_has_video_and_decodable_qr_only",
+        "width": 221,
+        "height": 221,
+        "natural_width": 270,
+        "payload_matches_join_link": true
+      },
+      {
+        "name": "tabs_switch_pages_without_login"
+      },
+      {
+        "name": "operator_rotation_updates_broadcast_qr_and_revokes_old_join_code"
+      },
+      {
+        "name": "mobile_pages_fit_viewport_and_qr_decodes",
+        "width": 270,
+        "height": 270,
+        "natural_width": 270,
+        "payload_matches_join_link": true
+      },
+      {
+        "name": "qr_failure_shows_retry_state_and_recovers"
+      }
+    ],
+    "page_errors": []
+  },
+  "browser_media": {
+    "passed": true,
+    "mode": "Chrome fake camera devices; physical phones not tested",
+    "browser": "154.0.8037.98",
+    "checks": [
+      {
+        "name": "one_browser_camera_to_webrtc_viewer",
+        "width": 640,
+        "height": 360,
+        "frames": 61
+      },
+      {
+        "name": "browser_replay_and_return_without_encoder_restart"
+      },
+      {
+        "name": "five_browser_cameras_stream_and_decode",
+        "slots": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      {
+        "name": "sixth_browser_camera_rejected"
+      },
+      {
+        "name": "browser_stop_releases_all_camera_slots"
+      }
+    ],
+    "page_errors": []
+  },
+  "lifecycle": {
+    "image": "breadcast-studio:experiment",
+    "checks": [
+      {
+        "name": "default_image_starts_healthy_program",
+        "user": "studio"
+      },
+      {
+        "name": "five_publishers_live_before_stop",
+        "processes": [
+          "tini",
+          "python3",
+          "mediamtx",
+          "ffmpeg",
+          "python3",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg",
+          "ffmpeg"
+        ]
+      },
+      {
+        "name": "docker_stop_ends_all_container_processes",
+        "exit_code": 0,
+        "stop_s": 4.063,
+        "endpoint_closed": true
+      },
+      {
+        "name": "restart_clears_leases_and_rotates_join_code",
+        "program": "HOLDING"
+      },
+      {
+        "name": "operator_event_end_exits_container",
+        "exit_code": 0
+      }
+    ],
+    "passed": true
+  },
+  "admission_tests": {
+    "count": 7,
+    "passed": true
+  },
+  "limits": [
+    "Local hackathon experiment without page authentication; no SaaS account system.",
+    "Browser fixtures and generated media; no physical phone or provider validation."
+  ],
+  "artifacts": "_experiments/studio/.run/open-pages",
+  "source_sha256": {
+    "_experiments/studio/studio.py": "9251ba37b8aeb02a18edbce701d5d79eb5ec7258548f6760ddc11baa43cfae58",
+    "_experiments/studio/check.py": "43c2ba3d19829c673638545cc5ebe52673f9a4d85245bb9c4161c3e7a67eac1a",
+    "_experiments/studio/tests/docker-check.py": "c055f69c0ecc9da5bd8647528f9969b840c4d1493d833cd5b435820126f0fd2a",
+    "_experiments/studio/tests/browser-check.cjs": "e65c91f87d50eece9ada63bd35079d1f971ac146a3d181095551687e36997905",
+    "_experiments/studio/tests/ui-check.cjs": "ef24b81ddf8e357e2c0019e6c2e5060a71c0c3186c5434df0f1156907275892d",
+    "_experiments/studio/web/broadcast.js": "3866408b174d3d7161f08409c51c7115685822bfb7ea177500f6f5fd8bc3f49a",
+    "_experiments/studio/web/common.js": "9f4618a8d8c749990856a3567835d4ad0c29df24d0d45dbc7f0897e0c906c797",
+    "_experiments/studio/web/join.html": "fe7b24d76c238d69706db126e1573f0a91229f32fa4e2e90bb11d4bb6e0670bd",
+    "_experiments/studio/web/join.js": "4f27c406b4008e8b0d4dc2f97567e4683de31b9e0de2edf5126e89da7637672f",
+    "_experiments/studio/web/operator.html": "b46444444865a247d67cff187cfcc36413b9b8adbeb5d15ec3038b6feba1eceb",
+    "_experiments/studio/web/operator.js": "cb7bf7e76f57f9e1a63cada2ddc00495e6e4688dfd8d83e007f8218e1b133877",
+    "_experiments/studio/web/style.css": "3eaedbb69d6760735aa766b8f5a2ff553940984c29e84267e277ad48d7a15d3f",
+    "_experiments/studio/web/vendor/LICENSE": "ecae73b0a23185a35a1222edc0aae5245bb9739420bad0125b0c42e935301a80",
+    "_experiments/studio/web/vendor/publisher.js": "ed94a74e13b11398309ef51590495f3d2b9d4fde159f251fbd77d06c9ff335d0",
+    "_experiments/studio/web/vendor/reader.js": "a802f229b803c33713d4c69c4cc0d480108a5bf384947aeee4aaf04268bf85c1",
+    "_experiments/studio/web/vendor/sources.json": "1ee72dd87c4b76bf2e8883997300843a6c85d530dc8c8f9d7f1c0e8642789016",
+    "_experiments/studio/web/watch.html": "e6f2e37379042c67b8b23ca10ef8ad5016e35f53cadd23f239a792664ba04c4c"
+  }
+}

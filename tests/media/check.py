@@ -56,7 +56,8 @@ def main():
     parser.add_argument("--file", type=Path, help="Use the repository sample MP4 for the primary source")
     parser.add_argument("--foundation-config",type=Path)
     args = parser.parse_args()
-    folder = (args.evidence / (time.strftime("%Y%m%dT%H%M%S") + "-" + uuid.uuid4().hex[:6])).resolve()
+    run_started = time.monotonic()
+    folder = (args.evidence / uuid.uuid4().hex).resolve()
     folder.mkdir(parents=True, mode=0o700)
     subprocess.run([sys.executable, "-m", "unittest", "discover", "-s", str(ROOT / "tests" / "unit"), "-p", "test_leases.py"], cwd=ROOT, check=True)
     runtime = folder / "runtime"
@@ -66,8 +67,7 @@ def main():
                                "--runtime", str(runtime), "--delay", "3", "--program-proof",str(folder/"encoder-program.mkv"),
                                "--public-url", f"http://localhost:{args.port}"]+(["--foundation-config",str(args.foundation_config)] if args.foundation_config else []), stdout=log, stderr=log)
     publishers, readers = [], []
-    report = {"mode": "sample media; not physical phones or live provider integration", "checks": [],
-              "started_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
+    report = {"mode": "sample media; not physical phones or live provider integration", "checks": []}
 
     def record(name, **values):
         report["checks"].append({"name": name, **values})
@@ -175,7 +175,7 @@ def main():
                     return json.loads(row[0]) if row else None
             wait_for(old_archive,'finalized original Camera 5 archive',timeout=15)
             old_manifest=old_archive()
-        call(f"/api/lease/{fifth['lease_id']}/release", {})
+        request_json(url + f"/api/lease/{fifth['lease_id']}/release", {}, token=fifth['token'])
         wait_for(lambda: status()["occupied"] == 4, "released slot")
         start_sample()
         wait_for(lambda: status()["occupied"] == 5 and status()["cameras"][-1].get("buffer_seconds", 0) > 4,
@@ -325,6 +325,7 @@ def main():
             stop_process(child)
         stop_process(server)
         log.close()
+        report['elapsed_s'] = time.monotonic() - run_started
         (folder / "report.json").write_text(json.dumps(report, indent=2) + "\n")
         print(f"Evidence: {folder / 'report.json'}", flush=True)
 
