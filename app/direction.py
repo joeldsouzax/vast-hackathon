@@ -13,6 +13,7 @@ from pydantic import TypeAdapter
 from foundation_records import (Abstention, DirectorIntent, CommentatorIntent, EventContext, Interval,
     DecisionSnapshot, ProgramText)
 from direction_media import PreparedCue, caption_layer, decode_speech
+from provider_errors import public_failure
 
 DIRECTOR=TypeAdapter(DirectorIntent)
 COMMENTATOR=TypeAdapter(CommentatorIntent)
@@ -29,6 +30,7 @@ class Direction:
         self.lock=threading.RLock();self.prepared={};self.dependencies={}
         self.state={'director':'Inactive','commentator':'Inactive','speech':'Inactive'}
         self.reason='Awaiting fresh mapped evidence' if self.settings.enabled else 'Direction is disabled in server configuration'
+        self.provider_failures={}
         self.cursor=0;self.last_trigger=None;self.traces=deque(maxlen=256)
         self.thread=threading.Thread(target=self._run,name='crew-coordinator',daemon=True)
 
@@ -46,6 +48,7 @@ class Direction:
                 'prepared_assets':len(self.prepared),'prepared_bytes':sum(c.memory_bytes for c in self.prepared.values()),
                 'setup':{**package['manifest'],'ready':package['manifest']['context_revision']==self.foundation.context_revision} if package else {'ready':False},
                 'provider_capabilities':{k:v for k,v in capabilities.items() if k in ('llm','speech')},
+                'provider_failures':dict(self.provider_failures),
                 'traces':list(self.traces),'limits':self.settings.model_dump()}
 
     def expected(self, snapshot, args):
@@ -244,7 +247,8 @@ class Direction:
                 asset=speech.media
                 pcm=decode_speech(speech,self.foundation.storage,intent.text,event,self.foundation.settings)
             except Exception as error:
-                fallback='Speech unavailable: '+type(error).__name__
+                failure=public_failure(error,'speech');self.provider_failures['speech']=failure
+                fallback='Speech unavailable: '+failure['reason']
             self.check(dependencies)
             layer=None
             try:layer=caption_layer(self.app.program.graphics,intent.text)
@@ -282,7 +286,8 @@ class Direction:
             if record['state'] not in ('Scheduled','Applying'):
                 self.discard(cue.id,record['reason']);self.drain_receipts()
                 raise ValueError('Prepared commentary was rejected')
-            self.state['speech']='Prepared';self.reason=fallback or 'Prepared speech and captions'
+            self.state['speech']='Prepared' if pcm else 'Caption only';self.reason=fallback or 'Prepared speech and captions'
+            if pcm:self.provider_failures.pop('speech',None)
             self.traces.append({'cue_id':cue.id,'stage':'speech-ready','utc':time.time(),'samples':len(pcm)//2,'fallback':fallback})
         except Exception as error:
             self.state['speech']='Unavailable';self.reason=str(error) if isinstance(error,ValueError) else type(error).__name__
@@ -392,10 +397,12 @@ class Direction:
                     except (ConnectionError,OSError) as error:
                         if isinstance(error,TimeoutError) or attempt+1==self.settings.attempts:raise
             result=asyncio.run(call())
+            self.provider_failures.pop(role,None)
             self.traces.append({'role':role,'stage':'model-end','utc':time.time(),'model_id':result.model_id,'version':result.model_version,'origin':result.origin})
             self.dispatch(result,role,context,deadline)
         except Exception as error:
-            self.state[role]='Unavailable';self.reason=type(error).__name__
+            failure=public_failure(error,'llm');self.provider_failures[role]=failure
+            self.state[role]='Unavailable';self.reason=failure['reason']
 
     def _run(self):
         while not self.app.stop.wait(.05):

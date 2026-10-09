@@ -970,3 +970,11 @@ Caption and query vectors have a process-local cache capped at 256 entries. Its
 key contains endpoint, returned model ID/version, and exact text hash. VSS search
 still runs on every new query; cached vectors do not freeze archive results. A
 restart drops the cache, including entries with unknown model versions.
+
+`provider_errors.ProviderFailure` implements the shared failure codes above.
+Live transports expose the boundary, fixed application reason, HTTP status,
+nullable request ID and retryability. Retryability is metadata; it does not add
+an automatic retry. Coordinator/status code uses these fields instead of raw
+provider exceptions or response bodies. W&B model catalogs contain returned
+model IDs only and stay on the protected operator status surface. Speech with
+captions but no PCM audio reports `Caption only`, not successful speech.

@@ -28,7 +28,7 @@ class VideoAnalysis:
     def submit(self, video):
         try:values=configuration()
         except VssFailure as error:
-            with self.lock:self.current.update(state='unavailable',reason=str(error))
+            with self.lock:self.current.update(state='unavailable',reason=str(error),failure=error.public())
             return
         key=binding_key(values,video)
         with self.lock:
@@ -78,7 +78,7 @@ class VideoAnalysis:
             try:key,video,values=self.jobs.get(timeout=.2)
             except queue.Empty:continue
             try:self._process(key,video,values)
-            except VssFailure as error:self._state('failed',str(error))
+            except VssFailure as error:self._state('failed',str(error),failure=error.public())
             except Exception:self._state('failed','VAST processing failed; playback remains available')
             finally:
                 with self.lock:self.active.discard(key)
@@ -94,7 +94,7 @@ class VideoAnalysis:
             return
         client=VssClient(values,cancelled=cancelled)
         try:
-            self._state('verifying','Verifying the configured VAST tenant',summary='',origin=None,yolo_sidecar_received=False)
+            self._state('verifying','Verifying the configured VAST tenant',summary='',origin=None,yolo_sidecar_received=False,failure=None)
             client.verify()
             if record['state']=='ready' and record.get('configuration_sha256')==client.config_sha256:
                 client.verify_original(video,record['receipt'])

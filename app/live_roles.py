@@ -13,6 +13,7 @@ from pydantic_ai.providers.openai import OpenAIProvider
 from foundation_records import (DirectorIntent, CommentatorIntent, SegmentorIntent,
     LLMResult, SegmentorResult)
 from live_gpu import endpoint, request
+from provider_errors import ProviderFailure
 
 
 class LiveRoles:
@@ -21,25 +22,28 @@ class LiveRoles:
         self.config=registry.live.config
         self.models={}
         self.verified=set()
+        self.catalog=[]
 
     def configured(self):return bool(self.config.get('WANDB_API_KEY'))
 
     async def llm(self,role,context,snapshot,deadline):
         if role not in ('director','commentator','segmentor'):raise ValueError('Unknown application role')
         if context['snapshot']!=snapshot.model_dump(mode='json'):raise ValueError('Reviewed context changed')
-        url=endpoint(self.config.get('BREADCAST_WANDB_BASE_URL','https://api.inference.wandb.ai/v1'))
+        url=endpoint(self.config.get('BREADCAST_WANDB_BASE_URL','https://api.inference.wandb.ai/v1'),boundary='llm')
         key=self.config.get('WANDB_API_KEY')
-        if not key:raise ValueError('W&B API key is missing')
+        if not key:raise ProviderFailure('configuration_missing','llm',hint='Set WANDB_API_KEY on the VM')
         budget=deadline-time.time()
         if budget<=0:raise TimeoutError('Role deadline expired')
         async with asyncio.timeout(budget),httpx.AsyncClient(follow_redirects=False) as transport:
             if role not in self.models:
-                returned=await request(transport,'GET',url+'/models',token=key,deadline=deadline)
+                returned=await request(transport,'GET',url+'/models',token=key,deadline=deadline,boundary='llm')
                 rows=returned.get('data',[]) if isinstance(returned,dict) else []
                 ids=[r['id'] for r in rows if isinstance(r,dict) and isinstance(r.get('id'),str)]
+                self.catalog=[model for model in ids if 0<len(model)<=192 and not any(ord(c)<32 for c in model)][:64]
                 selected=self.config.get('BREADCAST_'+role.upper()+'_MODEL')
                 if not selected and len(ids)==1:selected=ids[0]
-                if selected not in ids:raise ValueError('Set BREADCAST_'+role.upper()+'_MODEL to an available W&B model ID')
+                if selected not in ids:raise ProviderFailure('configuration_missing','llm',
+                    hint='Set BREADCAST_'+role.upper()+'_MODEL to an available W&B model ID')
                 self.models[role]=selected
             headers={}
             if self.config.get('WANDB_TEAM') and self.config.get('WANDB_PROJECT'):

@@ -14,12 +14,27 @@ import httpx
 
 from provider_probe import assigned_values, ProbeFailure
 from server_videos import s3_client
+from provider_errors import ProviderFailure, http_failure
 
 MAX_JSON = 2 * 1024 * 1024
 
 
-class VssFailure(ValueError):
+class VssFailure(ProviderFailure):
     """Fixed, credential-free failure messages."""
+    def __init__(self,message):
+        code='invalid_response';status=None
+        match=re.fullmatch(r'VAST request failed with HTTP ([0-9]{3})',message)
+        if match:
+            status=int(match[1]);code=http_failure(status,'jobs').code
+        elif 'requires INGRESS_URL' in message or 'ingress URL is invalid' in message:code='configuration_missing'
+        elif 'identity does not match' in message:code='identity_mismatch'
+        elif 'cancelled' in message:code='canceled'
+        elif 'uncertain' in message:code='submission_unknown'
+        elif 'transport failed' in message:code='transport_failed'
+        self.message=message
+        super().__init__(code,'storage' if 'original' in message.lower() or 'upload' in message.lower() else 'jobs',http_status=status)
+
+    def __str__(self):return self.message
 
 
 def configuration():

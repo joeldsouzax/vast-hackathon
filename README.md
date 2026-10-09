@@ -199,6 +199,14 @@ supported. The second video and detector tracking remain unverified. None of
 these conditions is a passed autonomous demo. The user requested skipped checks;
 the VM must establish actual playback, provider access, speech and replay behavior.
 
+Studio reports provider failures by connection: Cosmos, YOLO, search, W&B roles,
+speech, or VAST jobs/storage. Authentication, access, rate limit, deadline and
+unsupported output have separate reason codes. Advanced diagnostics include
+HTTP status and a returned request ID when available. Provider error bodies,
+keys and tokens are excluded. If a W&B role needs model selection, its available
+returned IDs appear under `providers.llm.available_model_ids`. Speech shown as
+**Caption only** has not supplied program speech audio.
+
 ```mermaid
 flowchart LR
   File[Configured video] --> Start[Red Start button]

@@ -14,6 +14,7 @@ from foundation_providers import CapabilityError
 from foundation_records import (Abstention, Interval, PublicSearchRequest, PublicSearchHit, PublicSearchResult,
     ReplayCandidate, ReplayPlan12, SceneEvent, SearchQuery, SegmentWait, SegmentorResult, SourceEpoch)
 from replay_inputs import check_budget, resolve_plan, verify_dependencies, published_dependencies
+from provider_errors import public_failure
 
 
 class ReplayError(ValueError):
@@ -169,8 +170,9 @@ class ReplayWork:
                         check_budget(deadline)
                         outcome={'state':'complete','result':result.model_dump(mode='json')}
                     except Exception as error:
-                        code='deadline_missed' if isinstance(error,TimeoutError) else 'provider_unavailable'
-                        outcome={'state':'failed','error':{'code':code,'message':'Search unavailable: '+type(error).__name__,'status':503}}
+                        failure=public_failure(error,'search')
+                        outcome={'state':'failed','error':{'code':failure['code'],'message':failure['reason'],'status':503},
+                            'provider_failure':failure}
                     finally:
                         with self.lock,self.foundation.transaction():
                             self.foundation.db.execute('UPDATE operations SET result=? WHERE key=?',(canonical(outcome),key))
@@ -383,6 +385,8 @@ class ReplayWork:
                     from pydantic import ValidationError
                     reason=('Invalid segmentor fields or values' if isinstance(error,ValidationError) else
                         'deadline_missed' if isinstance(error,TimeoutError) else str(error) if isinstance(error,ValueError) else type(error).__name__)
+                    if job['stages'].get('model_start_utc') and not job['stages'].get('model_end_utc'):
+                        failure=public_failure(error,'llm');job['provider_failure']=failure;reason=failure['reason']
                     self._update(candidate,state='failed',reason=reason[:256]);job.update(state='failed',error=reason)
         finally:
             with self.lock:self.planning=False

@@ -20,6 +20,7 @@ from foundation_records import (EventContext, OfficialFact, SourceEpoch, Geometr
 from foundation_storage import FileStorage, inspect_video
 from foundation_providers import Registry, bounded_call
 from foundation_worker import analyze_artifacts
+from provider_errors import public_failure
 
 
 def canonical(value):
@@ -76,6 +77,7 @@ class Foundation:
         self.threads = []
         self.snapshot_reader = snapshot
         self.last_failure = None
+        self.last_provider_failure = None
         self.stage_times = deque(maxlen=256)
         self.role_pending = {}
         self.role_active = set()
@@ -859,11 +861,13 @@ class Foundation:
                 self.ingest(window,results,trusted_origin=origin)
                 self.stage_times.append({'trace_id':window.trace_id,'stage':'context-available','seconds':time.time()-began})
             except Exception as error:
-                reason=type(error).__name__ # Provider exception text can contain signed URLs or credentials.
+                failure=public_failure(error,'jobs')
+                reason=failure['reason']
                 self.last_failure=reason
+                self.last_provider_failure=failure
                 with self.transaction():
                     self.db.execute('UPDATE jobs SET state=?,error=?,updated=? WHERE key=?',
-                        ('archive_queued' if not archive and self.registry.live else 'expired' if isinstance(error,TimeoutError) else 'failed',reason,time.time(),window.job_key))
+                        ('archive_queued' if not archive and self.registry.live else 'expired' if failure['code']=='deadline_missed' else 'failed',reason,time.time(),window.job_key))
                     self._notify('analysis.failed','failure-'+window.job_key,{'job_key':window.job_key,'reason':reason})
             finally:
                 self.release(pin)
@@ -910,6 +914,7 @@ class Foundation:
                 'storage_bytes':sum(json.loads(r['body'])['media']['size'] for r in rows if r['available']),
                 'unavailable_chunks':sum(not r['available'] for r in rows),'pins':self.db.execute('SELECT count(*) FROM pins').fetchone()[0],
                 'gaps':[json.loads(r['body']) for r in self._records('gap')[-32:]],'last_failure':self.last_failure,
+                'last_provider_failure':self.last_provider_failure,
                 'sources':[item for item in progress.values() if current_sources.get(item['source']['slot'])==item['source']],
                 'stage_times':list(self.stage_times),'limits':self.settings.limits.model_dump()}
 
