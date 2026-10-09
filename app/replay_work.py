@@ -66,18 +66,29 @@ def deterministic_segment(context, scene, snapshot, chunks=None):
     else:
         native=scene.native
     if (native.end-native.start)*base<0.2-1e-9:return None
-    shots=[];start=native.start;step=max(1,round(6/base))
-    while start<native.end:
-        end=min(start+step,native.end)
-        if (end-start)*base<0.2-1e-9:break
-        refs=[o['evidence_id'] for o in evidence if o['native']['start']<end and o['native']['end']>start]
-        if not refs:refs=[evidence[0]['evidence_id']]
-        shots.append(ShotIntent(source=source,native=Interval(start=start,end=end),
-            scene_revisions={scene.scene_id:scene.revision},evidence_ids=refs[:16],
-            reason='Deterministic lead-in, action and aftermath'))
-        start=end
+    # Shots must lie inside usable view intervals; uncovered time fails as coverage_gap.
+    views=sorted((max(o['view']['native']['start'],native.start),min(o['view']['native']['end'],native.end),o['evidence_id'])
+        for o in evidence if o.get('view') and o['view'].get('subject_visible') and o['view'].get('quality')=='usable')
+    segments=[]
+    for start,end,eid in views:
+        if end<=start:continue
+        if segments and start<=segments[-1][1]:
+            segments[-1][1]=max(segments[-1][1],end);segments[-1][2].append((start,end,eid))
+        else:segments.append([start,end,[(start,end,eid)]])
+    shots=[];step=max(1,round(6/base))
+    for seg_start,seg_end,members in segments:
+        start=seg_start
+        while start<seg_end and len(shots)<16:
+            end=min(start+step,seg_end)
+            if (end-start)*base<0.2-1e-9:break
+            refs=list(dict.fromkeys(eid for a,b,eid in members if a<end and b>start))
+            shots.append(ShotIntent(source=source,native=Interval(start=start,end=end),
+                scene_revisions={scene.scene_id:scene.revision},evidence_ids=refs[:16],
+                reason='Deterministic edit inside usable observed views'))
+            start=end
     if not shots:return None
-    plan=SegmentPlan(op='plan',source=source,action=native,required=native,shots=shots,
+    covered=Interval(start=shots[0].native.start,end=shots[-1].native.end)
+    plan=SegmentPlan(op='plan',source=source,action=covered,required=covered,shots=shots,
         reason='Deterministic retained-media edit after segmentor format failure')
     return SegmentorResult(payload=plan,snapshot=snapshot,origin='provider',
         model_id='deterministic-segmentor',model_version='1')

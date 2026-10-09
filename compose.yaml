@@ -2,6 +2,8 @@ name: breadcast
 services:
   studio:
     image: breadcast-studio:latest
+    # Keep VM desktop headroom; raise on a dedicated host.
+    cpus: ${BREADCAST_CPUS:-2}
     build:
       context: .
       args:

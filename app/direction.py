@@ -479,6 +479,25 @@ class Direction:
             preset,title,subtitle=self.BANNERS[state['banner']%len(self.BANNERS)];state['banner']+=1
             self._graphic(preset,title,subtitle,4);state['next']=now+self.GRAPHICS_S
 
+    def _policy_replay(self):
+        """Air any ready automatic replay after the controller cooldown; no opportunity evidence required."""
+        control=self.app.control;program=self.app.program;policy=control.policy
+        if control.crew_paused or not control.program_started or not policy.get('replays_enabled'):return
+        if program.actual!='LIVE' or program.requested!='LIVE' or program.cue is not None:return
+        now=time.monotonic()
+        if now<control.last_replay+policy.get('replay_cooldown_s',30):return
+        if now<control.last_shot+policy.get('minimum_shot_s',2):return
+        if now<getattr(self,'_replay_tried',0)+3:return
+        if any(r['state'] in ('Scheduled','Applying') or (r['op']=='replay' and r['state']=='On air') for r in control.actions.values()):return
+        ready=sorted(self.app.replay_work.ready(),key=lambda r:r['expires_at'])
+        if not ready:return
+        self._replay_tried=now
+        asset=ready[0];args={'replay_id':asset['id']}
+        record=control.propose({'id':uuid.uuid4().hex,'op':'replay','args':args,'expected':control.expected(args),
+            'expires_at':min(asset['expires_at'],time.time()+10)},actor='Provider crew')
+        self.traces.append({'role':'replay','stage':'propose','utc':time.time(),'state':record.get('state'),'reason':record.get('reason')})
+        if record.get('state') in ('Scheduled','Applying','On air'):self.reason='Policy replay '+asset['id'][:8]
+
     COMMENTARY_S=4.0
     COMMENTARY_HOLD=3
 
@@ -541,6 +560,8 @@ class Direction:
                         if record and record['state'] in ('Rejected','Canceled','Expired'):self.discard(cue.id,record['reason'])
                 if not self.settings.enabled or self.app.control.crew_paused or self.app.control.rehearsal['state']=='Running':continue
                 if not self.app.control.program_started:continue
+                try:self._policy_replay()
+                except Exception as error:self.traces.append({'role':'replay','stage':'error','utc':time.time(),'reason':type(error).__name__+': '+str(error)[:160]})
                 self._policy_rotate()
                 try:self._policy_graphics()
                 except Exception as error:self.traces.append({'role':'graphics','stage':'error','utc':time.time(),'reason':type(error).__name__+': '+str(error)[:160]})

@@ -26,7 +26,7 @@ class Coordinator:
         # rotate_s: when several unrelated live sources are healthy, cut to the
         # next slot on this cadence. minimum_shot_s still gates every live cut.
         self.policy = {'minimum_shot_s': 2, 'rotate_s': 6, 'replay_max_s': 12,
-                       'replay_cooldown_s': 30, 'replays_enabled': True}
+                       'replay_cooldown_s': 20, 'replays_enabled': True}
         self.actions = {}
         self.last_shot = 0
         self.last_replay = 0
