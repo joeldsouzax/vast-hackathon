@@ -28,6 +28,12 @@ case "$command" in
     exec "${compose[@]}" run --build --rm --no-deps \
       --user "$(id -u):$(id -g)" \
       -v "$output_dir:/evidence" studio one-camera-check --evidence /evidence "$@" ;;
+  five-camera-check)
+    output_dir="$repo_dir/.runtime/five-camera-checks"
+    mkdir -p "$output_dir"
+    exec "${compose[@]}" run --build --rm --no-deps \
+      --user "$(id -u):$(id -g)" \
+      -v "$output_dir:/evidence" studio five-camera-check --evidence /evidence "$@" ;;
   foundation-check|direction-check|replay-check)
     output_dir="$repo_dir/.runtime/${command}s"
     mkdir -p "$output_dir"
@@ -48,5 +54,5 @@ case "$command" in
   foundation-capabilities|foundation-query|foundation-worker)
     exec "${compose[@]}" run --rm --no-deps studio "$command" "$@" ;;
   stop|down|logs|build) exec "${compose[@]}" "$command" "$@" ;;
-  *) echo 'Usage: studio [serve|sample|check|one-camera-check|foundation-check|direction-check|replay-check|foundation-capabilities|foundation-query|foundation-worker|stop|down|logs|build]' >&2; exit 2 ;;
+  *) echo 'Usage: studio [serve|sample|check|one-camera-check|five-camera-check|foundation-check|direction-check|replay-check|foundation-capabilities|foundation-query|foundation-worker|stop|down|logs|build]' >&2; exit 2 ;;
 esac

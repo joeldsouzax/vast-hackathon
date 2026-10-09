@@ -32,11 +32,11 @@ Every sprint has two explicit states after implementation:
   on that exact revision. Failures produce a new patch commit and release revision.
   Never move an existing release tag or reuse results from a different revision.
 
-The user can test each pushed candidate immediately. Do not require a user device
-test before making the candidate available. Do require that test before claiming
-the slice is accepted. Start the next dependent sprint after acceptance; workers
-may investigate future gates while the user tests. Fix a failed slice before
-releasing its dependent slice.
+The user tests every pushed candidate manually in production while implementation
+continues. Do not wait for production acceptance before starting the next sprint.
+Keep passed, failed, and pending evidence separate. Fix reported failures promptly.
+A pending device/provider check cannot become a readiness claim. Stop only work
+that actually depends on missing access or an unresolved unsafe contract.
 
 The release path is sequential. Parallel workers operate inside each sprint.
 
@@ -330,7 +330,8 @@ For every candidate the coordinator must:
    do not ask for the same permission again. Repository restrictions still apply.
 5. Give the user the release handoff below. Do not start a public broadcast as a
    side effect of pushing a branch or opening the app.
-6. Attach production and physical results to the same revision. If they fail, fix and push a
+6. Attach user production and physical results to the same revision. Continue
+   implementation while these are pending. If they fail, fix and push a
    patch revision before dependent release work. Record acceptance locally; do
    not alter the already-tested commit just to add an acceptance label.
 
@@ -365,7 +366,8 @@ Previous working tag and tested rollback procedure:
 Evidence location and checksums:
 ```
 
-Implementation follows this plan. S01 is **implemented as candidate `breadcast-s01-r01` for production testing on main**. S02–S07 are **not started**.
+Implementation follows this plan. S01 is **implemented as candidate `breadcast-s01-r01` for production testing on main**. S02 is **implemented as candidate `breadcast-s02-r01` for manual production testing**.
+S03 is **in progress: explicit tenant verification tool**. S04–S07 are **not started**.
 Release commits and production acceptance are recorded in the sprint handoff.
 
 ## 11 Evidence and cumulative regression
@@ -421,8 +423,8 @@ record the blocker instead of inventing a pass.
 | Sprint | Implementation | Production acceptance |
 |---|---|---|
 | S01 | Implemented; candidate `breadcast-s01-r01` releases through main | Pending Docker image build, trusted HTTPS/WebRTC, one physical phone for five minutes, host restart and root/prefix checks |
-| S02 | Not started | Pending |
-| S03 | Not started | Pending |
+| S02 | Implemented; candidate `breadcast-s02-r01` releases through main | Pending five physical phones, three browser viewers, 15-minute run and actual host proof |
+| S03 | In progress: read-only tenant verification; real adapters require verified access | Pending |
 | S04 | Not started | Pending |
 | S05 | Not started | Pending |
 | S06 | Not started | Pending |
@@ -433,3 +435,10 @@ example tests pass. A local synthetic one-camera run decoded 75 video frames and
 240,000 audio samples with no encoder restart and complete cleanup. This is
 local real-media proof, not a physical phone or production host pass. The release
 handoff records exact revision and artifact fingerprints.
+
+S02 local checks: 16 focused unit checks pass. The real local five-source media
+check passes 13 scenarios, including admission race, direct-publisher rejection,
+five decoded camera cuts, microphone retention, three independent RTSP readers,
+slot reuse, old-token rejection, restart, and cleanup. Reader startup is measured
+separately from sustained playback. Browser, physical-device, and production
+acceptance remain pending. See [S02 evidence](evidence/sprint-two.json).

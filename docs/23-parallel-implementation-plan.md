@@ -44,7 +44,8 @@ flowchart LR
   Merge --> Checks[Required targeted checks]
   Checks --> Push[Commit and push]
   Push --> Prod[User tests production]
-  Prod -->|Pass| Next[Next sprint]
+  Push --> Next[Next sprint]
+  Prod -->|Pass| Accepted[Record acceptance]
   Prod -->|Fail| Fix[Fix and push patch]
   Fix --> Prod
 ```
@@ -59,8 +60,9 @@ flowchart LR
 | S06 | Grounded spoken commentary | W00, W01, W05, W06, W07 |
 | S07 | Automatic replay and complete event | W00, W05, W06, W07 |
 
-Investigate later gates while the user tests, but keep unaccepted dependent work
-off `main`. Verify external request contracts before implementing
+Continue later sprint implementation while the user tests manually. Keep failed
+contracts from entering dependent release behavior; pending production evidence
+alone does not block the next sprint. Verify external request contracts before implementing
 transports. Missing production proof stays pending until the user's production
 session; a candidate is not an accepted slice.
 

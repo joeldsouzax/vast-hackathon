@@ -195,9 +195,12 @@ def web_api(app, *, manage_lifecycle=True):
         return send(200,output.getvalue(),'image/png')
 
     @api.get('/api/preview/{target}')
-    def preview(target:str):
+    def preview(target:str,expected_source_path:str|None=None,expected_epoch:int|None=None):
         source=app.get_source(int(target)) if target.isdigit() else None
         if source:
+            if ((expected_source_path is not None and source.path != expected_source_path) or
+                (expected_epoch is not None and source.epoch != expected_epoch)):
+                return send(409, {'error':'Camera preview belongs to a different source epoch'})
             with source.lock:frame=source.frames[-1].data if source.frames else None
         else:frame=app.program.frame if target=='program' else None
         return send(200 if frame else 404,frame or b'','image/jpeg')

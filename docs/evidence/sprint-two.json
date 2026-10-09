@@ -1,0 +1,194 @@
+{
+  "sprint": "S02",
+  "release_tag": "breadcast-s02-r01",
+  "evidence_scope": "Precommit targeted checks; exact source commit and clean-check results recorded in release handoff",
+  "production_acceptance": "pending user manual test",
+  "targeted_unit_checks": {
+    "passed": true,
+    "count": 16,
+    "elapsed_s": 0.634,
+    "scope": "Lease admission and deployment access/source preview binding"
+  },
+  "media": {
+    "sprint": "S02",
+    "passed": true,
+    "physical_five_phone_verified": false,
+    "browser_whep_verified": false,
+    "physical_15_minute_verified": false,
+    "scope": "Five labeled synthetic RTSP cameras and three separate software RTSP readers; no browser, phone, or provider proof",
+    "checks": [
+      {
+        "name": "http_last_slot_race_admits_only_one",
+        "accepted": 1,
+        "rejected": 1,
+        "occupied": 5
+      },
+      {
+        "name": "five_sources_join_off_air",
+        "sources": 5
+      },
+      {
+        "name": "sixth_direct_publisher_rejected",
+        "occupied": 5
+      },
+      {
+        "name": "manual_cut_decodes_selected_source",
+        "slot": 1,
+        "frames": 45,
+        "duration_s": 2.933,
+        "first_decoded_video_pts_s": 0.8,
+        "startup_budget_s": 1.2,
+        "capture_budget_s": 4,
+        "scored_interval_s": 3,
+        "max_frame_gap_s": 0.06700000000000017,
+        "selected_source_last_second_frames": 15,
+        "normalized_audio_rms": 0.061887579101751175,
+        "test_tone_hz": 440.0,
+        "output": "/Users/joel/orca/workspaces/breadcast/hackathon-new/.runtime/five-camera-checks/4d0d746a7d594c05af006350b01d4eaf/cut-1.mkv"
+      },
+      {
+        "name": "manual_cut_decodes_selected_source",
+        "slot": 2,
+        "frames": 45,
+        "duration_s": 2.933,
+        "first_decoded_video_pts_s": 0.179,
+        "startup_budget_s": 1.2,
+        "capture_budget_s": 4,
+        "scored_interval_s": 3,
+        "max_frame_gap_s": 0.06700000000000017,
+        "selected_source_last_second_frames": 15,
+        "normalized_audio_rms": 0.06188492519305317,
+        "test_tone_hz": 440.0,
+        "output": "/Users/joel/orca/workspaces/breadcast/hackathon-new/.runtime/five-camera-checks/4d0d746a7d594c05af006350b01d4eaf/cut-2.mkv"
+      },
+      {
+        "name": "manual_cut_decodes_selected_source",
+        "slot": 3,
+        "frames": 45,
+        "duration_s": 2.933,
+        "first_decoded_video_pts_s": 0.579,
+        "startup_budget_s": 1.2,
+        "capture_budget_s": 4,
+        "scored_interval_s": 3,
+        "max_frame_gap_s": 0.06700000000000017,
+        "selected_source_last_second_frames": 15,
+        "normalized_audio_rms": 0.06188492519305317,
+        "test_tone_hz": 440.0,
+        "output": "/Users/joel/orca/workspaces/breadcast/hackathon-new/.runtime/five-camera-checks/4d0d746a7d594c05af006350b01d4eaf/cut-3.mkv"
+      },
+      {
+        "name": "manual_cut_decodes_selected_source",
+        "slot": 4,
+        "frames": 45,
+        "duration_s": 2.933,
+        "first_decoded_video_pts_s": 0.979,
+        "startup_budget_s": 1.2,
+        "capture_budget_s": 4,
+        "scored_interval_s": 3,
+        "max_frame_gap_s": 0.06700000000000017,
+        "selected_source_last_second_frames": 15,
+        "normalized_audio_rms": 0.06188492519305317,
+        "test_tone_hz": 440.0,
+        "output": "/Users/joel/orca/workspaces/breadcast/hackathon-new/.runtime/five-camera-checks/4d0d746a7d594c05af006350b01d4eaf/cut-4.mkv"
+      },
+      {
+        "name": "manual_cut_decodes_selected_source",
+        "slot": 5,
+        "frames": 45,
+        "duration_s": 2.933,
+        "first_decoded_video_pts_s": 0.379,
+        "startup_budget_s": 1.2,
+        "capture_budget_s": 4,
+        "scored_interval_s": 3,
+        "max_frame_gap_s": 0.06700000000000017,
+        "selected_source_last_second_frames": 15,
+        "normalized_audio_rms": 0.06188492519305317,
+        "test_tone_hz": 440.0,
+        "output": "/Users/joel/orca/workspaces/breadcast/hackathon-new/.runtime/five-camera-checks/4d0d746a7d594c05af006350b01d4eaf/cut-5.mkv"
+      },
+      {
+        "name": "independent_rtsp_viewer_advances",
+        "viewer": 1,
+        "transport": "RTSP software reader",
+        "frames": 76,
+        "duration_s": 5.0,
+        "first_decoded_video_pts_s": 0.079,
+        "startup_budget_s": 1.2,
+        "capture_budget_s": 6,
+        "scored_interval_s": 5,
+        "max_frame_gap_s": 0.06700000000000017,
+        "selected_source_last_second_frames": 15,
+        "normalized_audio_rms": 0.06188492519305317,
+        "test_tone_hz": 440.0,
+        "output": "/Users/joel/orca/workspaces/breadcast/hackathon-new/.runtime/five-camera-checks/4d0d746a7d594c05af006350b01d4eaf/rtsp-viewer-1.mkv"
+      },
+      {
+        "name": "independent_rtsp_viewer_advances",
+        "viewer": 2,
+        "transport": "RTSP software reader",
+        "frames": 76,
+        "duration_s": 5.0,
+        "first_decoded_video_pts_s": 0.079,
+        "startup_budget_s": 1.2,
+        "capture_budget_s": 6,
+        "scored_interval_s": 5,
+        "max_frame_gap_s": 0.06700000000000017,
+        "selected_source_last_second_frames": 15,
+        "normalized_audio_rms": 0.06188492519305317,
+        "test_tone_hz": 440.0,
+        "output": "/Users/joel/orca/workspaces/breadcast/hackathon-new/.runtime/five-camera-checks/4d0d746a7d594c05af006350b01d4eaf/rtsp-viewer-2.mkv"
+      },
+      {
+        "name": "independent_rtsp_viewer_advances",
+        "viewer": 3,
+        "transport": "RTSP software reader",
+        "frames": 76,
+        "duration_s": 5.0,
+        "first_decoded_video_pts_s": 0.079,
+        "startup_budget_s": 1.2,
+        "capture_budget_s": 6,
+        "scored_interval_s": 5,
+        "max_frame_gap_s": 0.06700000000000017,
+        "selected_source_last_second_frames": 15,
+        "normalized_audio_rms": 0.06188492519305317,
+        "test_tone_hz": 440.0,
+        "output": "/Users/joel/orca/workspaces/breadcast/hackathon-new/.runtime/five-camera-checks/4d0d746a7d594c05af006350b01d4eaf/rtsp-viewer-3.mkv"
+      },
+      {
+        "name": "operator_remove_and_slot_reuse_fence_old_token",
+        "slot": 2,
+        "old_token_rejected": true
+      },
+      {
+        "name": "restart_holds_and_clears_camera_authority",
+        "occupied": 0,
+        "new_run": true,
+        "holding": true
+      }
+    ],
+    "failure": null,
+    "versions": {
+      "mediamtx": "v1.20.1",
+      "ffmpeg": "ffmpeg version 9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
+      "python": "Python 3.13.13",
+      "package_source": "local"
+    },
+    "cleanup_passed": true,
+    "elapsed_s": 44.36081520805601
+  },
+  "artifact": {
+    "path": ".runtime/five-camera-checks/4d0d746a7d594c05af006350b01d4eaf/report.json",
+    "sha256": "7be38a7bd5c525c6170e0c162ad4ac55dc4209b6ac8654fb7466a9ec95ba351c"
+  },
+  "prior_failed_attempt": {
+    "path": ".runtime/five-camera-checks/c41495fe6fc947608b427325e07545c5/report.json",
+    "reason": "Capture budget included RTSP keyframe startup, leaving insufficient decoded duration. Fixed bounded startup capture; original continuity thresholds retained."
+  },
+  "pending": [
+    "Docker image build on production",
+    "Five physical phones and three separate browser viewers for 15 minutes",
+    "Viewer local mute/reconnect, setup graphics, and actual host root/prefix routing"
+  ],
+  "run_date_labels": "omitted",
+  "historical_results_used_as_current_acceptance": false
+}

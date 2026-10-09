@@ -38,7 +38,10 @@ diagram when the explanation needs one.
   production system deploys `main` automatically. Do not leave a sprint release
   only on a separate branch. Tag the release commit and provide its production
   test steps. Write and run only tests required for changed behavior and critical
-  failures. Production acceptance remains pending until its required checks pass.
+  failures. The user tests releases manually in production. Continue to the next
+  sprint after each push while these checks are pending. Stop only work that
+  depends on missing access or an unresolved failed contract. Never report
+  pending production checks as passed.
 
 This is a hackathon project for an autonomous live broadcasting studio. Read [README.md](README.md) and the relevant design document before implementing. Live camera input, event QR joining, and a server-enforced maximum of five cameras are required. Prove one camera first, then complete five-camera admission and playback validation.
 

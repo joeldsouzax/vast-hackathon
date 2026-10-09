@@ -128,7 +128,7 @@ def main():
         action('audio',slot=5)
         old_asset=action('prepare',slot=5,seconds=2,speed=1,zoom=1);ready(old_asset)
         lease=next(c for c in state()['cameras'] if c['slot']==5)
-        call('/api/lease/'+lease['lease_id']+'/release',{})
+        call('/api/cameras/'+lease['lease_id']+'/remove',{})
         wait_for(lambda:state()['program']['actual']=='HOLDING','source loss')
         publish(1)
         replacement=wait_for(lambda:next((c for c in state()['cameras'] if c['slot']==5 and c.get('buffer_ready') and c['source_path']!=lease['source_path']),None),'reused camera slot')

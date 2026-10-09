@@ -837,3 +837,18 @@ Only safe reads and verified idempotent operations retry automatically. A logica
 operation key cannot acquire new payload, deadline, source, or configuration on
 retry. Persist terminal identities for the run. A restart reconciles interrupted
 submissions, but it never resumes an old on-air action in a new run.
+
+### S02 admission and preview refinements
+
+Commit a camera capacity claim before requesting its gateway path. If the gateway
+request fails or its response is lost, preserve that claim as `REVOKING`. Keep it
+occupied and reject publishing until gateway removal succeeds or confirms the
+path is absent. An expired reservation or reconnect cannot be promoted by a late
+media poll; mark it `REVOKING` under the lease lock and preserve its epoch.
+
+Camera previews can provide `expected_source_path` and `expected_epoch` on
+`GET /api/preview/{slot}`. A source mismatch returns 409 instead of replacement
+phone media. Browser requests also bind their response to the current source and
+operator session. Slot numbers alone do not identify a continuous camera source.
+Transient Join status-request failures do not revoke the local stream. Confirmed
+invalid/expired ownership stops sharing; the gateway still enforces expiry.

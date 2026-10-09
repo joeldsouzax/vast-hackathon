@@ -2,6 +2,8 @@
 import io
 from pathlib import Path
 import tempfile
+import threading
+from types import SimpleNamespace
 import unittest
 import urllib.response
 from unittest.mock import patch
@@ -84,6 +86,18 @@ class DeploymentAccess(unittest.TestCase):
         self.secret.write_text('short')
         with self.assertRaises(ValueError):
             Config(self.root, 'https://example.test', operator_auth='token', operator_token_file=self.secret)
+
+    def test_preview_rejects_replaced_source_or_epoch(self):
+        source=SimpleNamespace(path='camera/'+'a'*32,epoch=2,lock=threading.RLock(),
+            frames=[SimpleNamespace(data=b'current-preview')])
+        with patch.object(self.app,'get_source',return_value=source):
+            url='/app/api/preview/1'
+            for path,epoch in (('camera/'+'b'*32,2),(source.path,1)):
+                response=self.client.get(url,params={'expected_source_path':path,'expected_epoch':epoch},headers=self.headers)
+                self.assertEqual(response.status_code,409)
+                self.assertNotIn(b'current-preview',response.content)
+            response=self.client.get(url,params={'expected_source_path':source.path,'expected_epoch':source.epoch},headers=self.headers)
+            self.assertEqual(response.content,b'current-preview')
 
     def test_local_and_proxy_do_not_trust_forwarded_identity(self):
         self.app.cfg.operator_auth = 'local'

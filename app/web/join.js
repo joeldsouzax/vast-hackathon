@@ -1,5 +1,5 @@
 'use strict';
-let lease, stream, publisher, busy = false;
+let lease, stream, publisher, busy = false, pollingLease = false;
 let code = new URLSearchParams(location.search).get('code');
 let client = sessionStorage.getItem('breadcast-camera-client');
 if (!client) { client = crypto.randomUUID().replaceAll('-', ''); sessionStorage.setItem('breadcast-camera-client', client); }
@@ -39,6 +39,7 @@ joinButton.onclick = async () => {
     await joinReady;
     if (!window.isSecureContext || !navigator.mediaDevices) throw new Error('Camera access needs HTTPS. Use the trusted event URL.');
     lease = await api('/api/leases', {code, client});
+    const reservationReceivedAt = performance.now();
     status.textContent = `Camera ${lease.slot} reserved. Allow camera permission.`;
     stream = await navigator.mediaDevices.getUserMedia({
       video: {facingMode: {ideal: 'environment'}, width: {ideal: 1280}, height: {ideal: 720}, frameRate: {ideal: 30, max: 30}},
@@ -47,7 +48,8 @@ joinButton.onclick = async () => {
     document.querySelector('#preview').srcObject = stream;
     sharingState('preview');
     startButton.disabled = false; stopButton.disabled = false;
-    status.textContent = `Camera ${lease.slot} preview. Select Start sharing within 60 seconds.`;
+    const remaining = Math.max(0, Math.ceil(lease.reservation_remaining_s - (performance.now() - reservationReceivedAt)/1000));
+    status.textContent = `Camera ${lease.slot} preview. Select Start sharing within ${remaining} seconds.`;
   } catch (error) {
     message(error.message);
     try { await release(); } catch (_) {}
@@ -57,11 +59,12 @@ joinButton.onclick = async () => {
 startButton.onclick = () => {
   if (!lease || !stream) return;
   startButton.disabled = true; message();
+  const sharingLease = lease;
   publisher = new MediaMTXWebRTCPublisher({
     url: `${location.origin}${publicPath(`/media/${lease.source_path}/whip`)}`, token: lease.token, stream,
     videoCodec: 'h264', videoBitrate: 1500, audioCodec: 'opus', audioBitrate: 64, audioVoice: false,
-    onConnected: () => { sharingState('sharing'); status.textContent = `Connected as Camera ${lease.slot}`; message(); },
-    onError: error => { message(`Connection issue: ${error}. Reconnecting while this slot remains valid.`); },
+    onConnected: () => { if (lease !== sharingLease) return; sharingState('sharing'); status.textContent = `Connected as Camera ${lease.slot}`; message(); },
+    onError: error => { if (lease !== sharingLease) return; message(`Connection issue: ${error}. Reconnecting while this slot remains valid.`); },
   });
 };
 stopButton.onclick = async () => {
@@ -70,15 +73,27 @@ stopButton.onclick = async () => {
   startButton.disabled = true; stopButton.disabled = true; joinButton.disabled = false;
 };
 setInterval(async () => {
-  if (!lease) return;
+  if (!lease || pollingLease) return;
+  const checkedLease = lease;
+  pollingLease = true;
   try {
-    const state = await api(`/api/lease/${lease.lease_id}`, undefined, lease.token);
-    if (publisher) status.textContent = `Camera ${state.slot}: ${state.state.toLowerCase()}${state.on_air ? ' · ON AIR' : ''}`;
+    const state = await api(`/api/lease/${checkedLease.lease_id}`, undefined, checkedLease.token);
+    if (lease !== checkedLease) return;
+    if (state.state === 'REVOKING') {
+      const error = new Error('Camera removed'); error.status = 403; throw error;
+    }
+    if (publisher) status.textContent = `Camera ${state.slot} · ${cameraStateLabel(state)}${state.on_air ? ' · On air' : ''}`;
   } catch (error) {
-    message('Your camera slot expired or was removed. Select Join camera again.');
-    try { await release(); } catch (_) {}
-    startButton.disabled = true; stopButton.disabled = true; joinButton.disabled = false;
-  }
+    if (lease !== checkedLease) return;
+    if (error.status === 403 || error.status === 404) {
+      try { await release(); } catch (_) {}
+      status.textContent = 'Camera sharing is off.';
+      message('Your camera slot expired or was removed. Select Join camera again.');
+      startButton.disabled = true; stopButton.disabled = true; joinButton.disabled = false;
+    } else {
+      status.textContent = `Camera ${checkedLease.slot} · Status unavailable. Retrying…`;
+    }
+  } finally {pollingLease = false;}
 }, 1500);
 window.addEventListener('pagehide', () => {
   if (publisher) publisher.close();

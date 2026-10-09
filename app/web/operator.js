@@ -64,20 +64,36 @@ document.querySelector('#render').onclick = async () => {
     message(); await refresh();
   } catch (error) { message(error.message); }
 };
-async function preview(image, slot) {
-  const revision = operatorSessionRevision;
-  const response = await operatorFetch(`/api/preview/${slot}`);
-  if (!response.ok) return;
-  const blob = await response.blob();
-  if (!operatorAuthorized || revision !== operatorSessionRevision || !image.isConnected) return;
-  const url = URL.createObjectURL(blob);
-  const old = image.dataset.blob;
-  image.src = url; image.dataset.blob = url;
-  if (old) URL.revokeObjectURL(old);
-  await image.decode();
-  if (!operatorAuthorized || revision !== operatorSessionRevision) return;
-  image.hidden = false;
-  image.nextElementSibling.hidden = true;
+function clearCameraPreview(image, caption = 'Preview unavailable') {
+  image.dataset.previewRevision = String(Number(image.dataset.previewRevision || 0) + 1);
+  delete image.dataset.loadingPreview;
+  if (image.dataset.blob) {URL.revokeObjectURL(image.dataset.blob); delete image.dataset.blob;}
+  image.removeAttribute('src'); image.hidden = true;
+  image.nextElementSibling.textContent = caption; image.nextElementSibling.hidden = false;
+}
+async function preview(image, camera) {
+  if (image.dataset.loadingPreview) return;
+  const identity = `${camera.source_path}:${camera.epoch}`;
+  const session = operatorSessionRevision, revision = image.dataset.previewRevision || '0';
+  const current = () => operatorAuthorized && session === operatorSessionRevision && image.isConnected &&
+    image.dataset.sourceIdentity === identity && (image.dataset.previewRevision || '0') === revision;
+  image.dataset.loadingPreview = revision;
+  try {
+    const query = new URLSearchParams({expected_source_path: camera.source_path, expected_epoch: camera.epoch});
+    const response = await operatorFetch(`/api/preview/${camera.slot}?${query}`);
+    if (!current()) return;
+    if (!response.ok) {clearCameraPreview(image); return;}
+    const blob = await response.blob();
+    if (!current()) return;
+    const url = URL.createObjectURL(blob), old = image.dataset.blob;
+    image.src = url; image.dataset.blob = url;
+    if (old) URL.revokeObjectURL(old);
+    await image.decode();
+    if (!current()) return;
+    image.hidden = false; image.nextElementSibling.hidden = true;
+  } catch (error) {
+    if (current()) clearCameraPreview(image);
+  } finally {if (image.dataset.loadingPreview === revision) delete image.dataset.loadingPreview;}
 }
 async function refreshReplaySetup() {
   const status = document.querySelector('#replay-setup-status');
@@ -123,7 +139,7 @@ function showCameraInfo(button, camera) {
   const p = state.program;
   const selected = p.audio_source_path === camera.source_path && !p.audio_muted;
   const heading = document.createElement('strong'); heading.textContent = `Camera ${camera.slot}`;
-  const health = document.createElement('p'); health.textContent = `${camera.buffer_ready ? 'Ready' : camera.state} · ${camera.buffer_seconds || 0}s retained · Epoch ${camera.epoch ?? 'unknown'}`;
+  const health = document.createElement('p'); health.textContent = `${cameraStateLabel(camera)} · ${camera.buffer_seconds || 0}s retained · Epoch ${camera.epoch ?? 'unknown'}`;
   const audio = document.createElement('p'); audio.textContent = !camera.has_audio ? 'No microphone audio available.' : selected ? 'Selected microphone. Other cameras are muted.' : 'Microphone muted. Unmute to use this camera.';
   const timing = document.createElement('p'); timing.className = 'muted'; timing.textContent = 'Live views are independent. Replay cuts need calibration.';
   studioTooltip.replaceChildren(heading, health, audio, timing);
@@ -150,33 +166,39 @@ function cameraCard(camera) {
   let card = cameraCards.get(camera.slot);
   if (!card) {
     card = document.createElement('section'); card.className = 'camera-tile'; card.dataset.slot = camera.slot;
-    card.innerHTML = `<div class="camera-toolbar"><h3></h3><div class="camera-buttons" role="group"><button class="select camera-button" type="button"></button><button class="audio camera-button" type="button"></button><button class="remove camera-button" type="button"></button></div><button class="camera-info camera-button" type="button"></button></div><div class="camera-picture"><img class="preview" hidden><p class="preview-wait">Connecting…</p></div>`;
+    card.innerHTML = `<div class="camera-toolbar"><h3></h3><div class="camera-buttons" role="group"><button class="select camera-button" type="button"></button><button class="audio camera-button" type="button"></button><button class="remove camera-button" type="button"></button></div><button class="camera-info camera-button" type="button"></button></div><div class="camera-picture"><img class="preview" hidden><p class="preview-wait">Connecting…</p></div><p class="camera-state" role="status"></p>`;
     card.querySelector('.select').append(studioIcon('send'));
     card.querySelector('.remove').append(studioIcon('trash-2'));
     card.querySelector('.camera-info').append(studioIcon('info'));
     const reset=document.createElement('button');reset.className='frame-reset camera-button';reset.type='button';reset.setAttribute('aria-label','Reset live framing');reset.title='Full frame';reset.append(studioIcon('maximize'));reset.onclick=()=>command('reset_crop');card.querySelector('.camera-buttons').append(reset);
     document.querySelector('#cameras').append(card); cameraCards.set(camera.slot, card);
   }
+  const image = card.querySelector('img'), identity = `${camera.source_path}:${camera.epoch}`;
+  if (image.dataset.sourceIdentity !== identity) {clearCameraPreview(image, cameraStateLabel(camera)); image.dataset.sourceIdentity = identity;}
   const p = state.program;
   const onAir = p.actual === 'LIVE' && p.actual_target.source_path === camera.source_path && !p.graphics.applied.covers_camera;
   card.querySelector('.frame-reset').hidden=!onAir || !p.framing;
   const microphone = p.audio_source_path === camera.source_path && !p.audio_muted && camera.has_audio;
   card.dataset.onAir = String(onAir); card.dataset.microphone = String(microphone);
+  const caption = `${cameraStateLabel(camera)}${onAir ? ' · On air' : ''}${microphone ? ' · Microphone selected' : ''}`;
+  const lifecycle = card.querySelector('.camera-state');
+  if (lifecycle.textContent !== caption) lifecycle.textContent = caption;
+  const removing = camera.state === 'REVOKING';
   card.querySelector('h3').textContent = `Camera ${camera.slot}`;
   card.querySelector('h3').setAttribute('aria-label', `Camera ${camera.slot}${onAir ? ' · On air' : ''}`);
   card.querySelector('.camera-buttons').setAttribute('aria-label', `Camera ${camera.slot} controls`);
   card.querySelector('img').alt = `Camera ${camera.slot} preview`;
   const select = card.querySelector('.select');
   select.setAttribute('aria-label', `Take camera ${camera.slot} live`); select.title = `Take camera ${camera.slot} live · Independent view`;
-  select.setAttribute('aria-pressed', String(onAir)); select.disabled = !camera.buffer_ready;
+  select.setAttribute('aria-pressed', String(onAir)); select.disabled = removing || !camera.buffer_ready;
   select.onclick = () => command('live', {slot: camera.slot, independent: true});
   const audio = card.querySelector('.audio'), audioIcon = microphone ? 'mic' : 'mic-off';
   if (audio.dataset.icon !== audioIcon) {audio.replaceChildren(studioIcon(audioIcon)); audio.dataset.icon = audioIcon;}
   audio.setAttribute('aria-pressed', String(microphone));
   audio.setAttribute('aria-label', !camera.has_audio ? `Camera ${camera.slot} microphone unavailable` : microphone ? `Mute camera ${camera.slot} microphone` : `Use camera ${camera.slot} microphone`);
-  audio.title = audio.getAttribute('aria-label'); audio.disabled = !camera.has_audio || !camera.buffer_ready;
+  audio.title = audio.getAttribute('aria-label'); audio.disabled = removing || !camera.has_audio || !camera.buffer_ready;
   audio.onclick = () => command('audio', {slot: camera.slot, muted: microphone});
-  const remove = card.querySelector('.remove'); remove.setAttribute('aria-label', `Remove camera ${camera.slot}`); remove.title = remove.getAttribute('aria-label');
+  const remove = card.querySelector('.remove'); remove.setAttribute('aria-label', `Remove camera ${camera.slot}`); remove.title = remove.getAttribute('aria-label'); remove.disabled = removing;
   remove.onclick = async () => {
     try { await api(`/api/cameras/${camera.lease_id}/remove`, {}); await refresh(); } catch (error) { message(error.message); }
   };
@@ -184,7 +206,8 @@ function cameraCard(camera) {
   info.onmouseenter = info.onfocus = info.onclick = () => showCameraInfo(info, camera);
   info.onmouseleave = info.onblur = deferStudioTooltipClose;
   if (tooltipTrigger === info) showCameraInfo(info, camera);
-  preview(card.querySelector('img'), camera.slot).catch(() => {});
+  if (camera.state === 'ACTIVE' && camera.epoch != null && camera.last_frame_age_s != null && camera.last_frame_age_s <= 3) preview(image, camera);
+  else clearCameraPreview(image, cameraStateLabel(camera));
 }
 async function refresh() {
   if (refreshing || ended || !operatorAuthorized) return;
@@ -234,6 +257,9 @@ async function refresh() {
       button.setAttribute('aria-label', original.getAttribute('aria-label')); button.title = original.dataset.tooltip; button.setAttribute('aria-disabled', original.getAttribute('aria-disabled') || 'false');
     }
     updateAudio();
+    const occupancy = `${state.occupied} of ${state.capacity} camera slots occupied${state.occupied >= state.capacity ? ' · Camera limit reached' : ''}`;
+    const capacity = document.querySelector('#camera-capacity');
+    if (capacity.textContent !== occupancy) capacity.textContent = occupancy;
     document.querySelector('#camera-empty').hidden = state.cameras.length > 0;
     const occupied = new Set(state.cameras.map(c => c.slot));
     for (const [slot, card] of cameraCards) if (!occupied.has(slot)) {
@@ -670,8 +696,7 @@ window.addEventListener('breadcast-operator-locked', () => {
   program.pause(); program.srcObject = null; program.removeAttribute('poster');
   if (posterUrl) {URL.revokeObjectURL(posterUrl); posterUrl = undefined;}
   for (const image of document.querySelectorAll('#cameras img[data-blob]')) {
-    URL.revokeObjectURL(image.dataset.blob); delete image.dataset.blob;
-    image.removeAttribute('src'); image.hidden = true;
+    clearCameraPreview(image);
   }
   hideStudioTooltip(); message();
 });

@@ -2,9 +2,9 @@
 
 **Updated:** 2026-10-09
 
-Breadcast turns phone cameras into one live program. S01 delivers a manual
-one-camera test candidate: event setup, QR joining, source audio, operator access,
-and continuous playback. Physical phone acceptance on the production host is
+Breadcast turns phone cameras into one live program. The current slices deliver a manual
+studio for up to five cameras: event setup, QR joining, source audio, operator
+access, continuous playback, and source health. Physical phone acceptance on the production host is
 pending. Real VAST, Cosmos, YOLO, semantic search, W&B reasoning, and generated
 speech remain unavailable until their sprint is verified.
 
@@ -19,7 +19,7 @@ flowchart LR
   Start --> View[Viewer video and audio]
 ```
 
-## Build and start S01
+## Build and start the studio
 
 Use Docker Engine with Docker Compose v2 on a host reachable by the phone and
 viewer. The host needs trusted HTTPS and reachable WebRTC TCP and UDP ports.
@@ -48,7 +48,7 @@ with path.open('x') as output:
     output.write(secrets.token_urlsafe(32) + '\n')
 os.chmod(path, 0o444)
 PY
-git rev-parse HEAD > .runtime/s01-revision.txt
+git rev-parse HEAD > .runtime/tested-revision.txt
 ```
 
 The token command refuses to replace an existing token. On a later checkout,
@@ -169,6 +169,37 @@ Run only the automated tests required for changed behavior and critical
 failures. The sprint handoff lists the checks actually run. No full-suite run is
 required merely because the code is being pushed. Production acceptance is
 pending until the checks above pass on the pushed SHA.
+
+## Required production check for S02
+
+Test the deployed `main` SHA. S01's phone check remains required; continue with:
+
+1. Prepare neutral event graphics before Start. Join five physical phones. Studio
+   must show occupied capacity and Reserved, Buffering, Live, Reconnecting, or
+   Removing states. Setup and joining remain off air until human Start.
+2. Try a sixth phone and simultaneous last-slot contenders. Exactly five leases
+   can be occupied; one contender wins the last slot. Direct unauthorized
+   publishing must also fail. Reserved and reconnecting phones count as occupied.
+3. Select one microphone. Cut to each ready camera and confirm that the selected
+   microphone stays selected. Use prepared graphics; unknown names and scores
+   must remain hidden. Clear graphics without stopping the program.
+4. Keep five phones and three separate viewer devices active for 15 minutes.
+   Every viewer must advance. Check local mute and reconnect. Record unexplained
+   stalls over one second, source-audio loss, black output, and encoder restarts.
+   Inspect diagnostics for bounded memory, disk, and queues.
+5. Disconnect/rejoin one phone, then remove a camera and reuse its slot. Studio
+   must clear the old preview and show the new source. The old phone token cannot
+   publish through the removed path. Expired leases cannot return to Live merely
+   because a delayed media update arrives. Removing capacity stays occupied until
+   the gateway confirms removal.
+6. Rotate the QR. The old join code cannot reserve a new lease. End/restart and
+   confirm holding, fresh camera authority, and a new human Start requirement.
+
+For a bounded local media check, run `./scripts/studio five-camera-check` after
+Compose configuration is ready. It checks five labeled synthetic cameras and
+three independent RTSP software readers. Reports are under
+`.runtime/five-camera-checks/`. This does not prove phone capture, browser WebRTC,
+viewer mute, or the full 15-minute production session. These remain manual checks.
 
 ## Logs, stop, restart, and rollback
 

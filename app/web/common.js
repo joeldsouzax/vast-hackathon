@@ -135,6 +135,10 @@ if (pageHeader) {
   pageHeader.innerHTML = `<a class="brand" href="${publicPath('/')}" aria-label="Breadcast home"><img src="${publicPath('/brand/breadcast-mark.svg')}" alt=""><span>breadcast<span class="brand-dot">.</span></span></a><nav class="page-tabs" aria-label="Studio pages">${[['broadcast','/','Broadcast'],['studio','/operator','Studio'],['join','/join','Join']].map(([page,href,label]) => `<a href="${publicPath(href)}"${page === current ? ' aria-current="page"' : ''}${page === 'join' ? ' data-join-nav' : ''}>${label}</a>`).join('')}</nav>`;
   for (const [index, link] of [...pageHeader.querySelectorAll('.page-tabs a')].entries()) link.prepend(studioIcon(['radio','clapperboard','camera'][index]));
 }
+function cameraStateLabel(camera) {
+  if (camera.state === 'ACTIVE') return camera.buffer_ready === false ? 'Buffering' : 'Live';
+  return {RESERVED: 'Reserved', RECONNECTING: 'Reconnecting', REVOKING: 'Removing'}[camera.state] || 'Unknown';
+}
 function updateJoinNavigation(url) {
   const link = document.querySelector('[data-join-nav]');
   if (link && url) link.href = url;

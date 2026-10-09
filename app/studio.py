@@ -195,9 +195,15 @@ class Leases:
                 self.db.execute("INSERT INTO leases (id,slot,client,path,state,reserved_until) VALUES (?,?,?,?,?,?)",
                                 (lease_id, slot, client, path, "RESERVED",
                                  time.monotonic() + self.cfg.reservation_seconds))
-                # Gateway API authorization is local and does not call back into this lock.
-                self.gateway(f"config/paths/add/{path}", {}, "POST")
+                # Preserve capacity before the external operation. A lost response
+                # can leave a real gateway path that must be fenced before reuse.
                 self.db.execute("COMMIT")
+                # Gateway API authorization is local and does not call back into this lock.
+                try:
+                    self.gateway(f"config/paths/add/{path}", {}, "POST")
+                except BaseException:
+                    self.db.execute("UPDATE leases SET state='REVOKING' WHERE id=?", (lease_id,))
+                    raise
                 return self.public(self.db.execute("SELECT * FROM leases WHERE id=?", (lease_id,)).fetchone())
             except BaseException:
                 if self.db.in_transaction:
@@ -231,6 +237,12 @@ class Leases:
             if not row or row["state"] == "REVOKING":
                 return
             now = time.monotonic()
+            if ((row['state'] == 'RESERVED' and now >= row['reserved_until']) or
+                (row['state'] == 'RECONNECTING' and row['disconnected_at'] is not None and
+                    now - row['disconnected_at'] >= self.cfg.reconnect_seconds)):
+                # Polling is not proof that this publisher was admitted in time.
+                self.db.execute("UPDATE leases SET state='REVOKING' WHERE id=?", (lease_id,))
+                return
             source = (path_info or {}).get("source") or {}
             incoming = (path_info or {}).get("inboundBytes", 0)
             online = (path_info or {}).get("online", False)
@@ -875,6 +887,10 @@ def main():
         from sprint_one_check import main as sprint_one_main
         sys.argv.pop(1)
         return sprint_one_main()
+    if sys.argv[1:2] == ['five-camera-check']:
+        from sprint_two_check import main as sprint_two_main
+        sys.argv.pop(1)
+        return sprint_two_main()
     if sys.argv[1:2] == ["check"]:
         from check import main as check_main
         sys.argv.pop(1)

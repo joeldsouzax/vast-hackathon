@@ -13,10 +13,13 @@ class Gateway:
     def __init__(self):
         self.paths = set()
         self.fail_remove = False
+        self.fail_add_after_apply = False
 
     def __call__(self, route, data=None, method=None):
         if route.startswith("config/paths/add/"):
             self.paths.add(route.removeprefix("config/paths/add/"))
+            if self.fail_add_after_apply:
+                raise OSError("Gateway applied add but response was lost")
         elif route.startswith("config/paths/remove/"):
             if self.fail_remove:
                 raise OSError("Gateway unavailable")
@@ -78,10 +81,52 @@ class AdmissionTests(unittest.TestCase):
         self.leases.release(old["lease_id"])
         self.assertEqual(len(self.leases.rows()), 0)
 
+    def test_uncertain_add_holds_capacity_until_path_is_fenced(self):
+        for _ in range(4):
+            self.reserve()
+        client = uuid.uuid4().hex
+        self.gateway.fail_add_after_apply = True
+        self.gateway.fail_remove = True
+        with self.assertRaises(OSError):
+            self.leases.reserve(client)
+        uncertain = next(row for row in self.leases.rows() if row["client"] == client)
+        token = self.leases.token(uncertain)
+        self.assertEqual(uncertain["state"], "REVOKING")
+        self.assertEqual(len(self.leases.rows()), 5)
+        self.assertEqual(len(self.gateway.paths), 5)
+        self.assertFalse(self.leases.allow_publish(uncertain["path"], token))
+        self.gateway.fail_add_after_apply = False
+        self.assertIsNone(self.reserve())
+        with self.assertRaises(OSError):
+            self.leases.release(uncertain["id"])
+        self.assertEqual(len(self.leases.rows()), 5)
+        self.assertIn(uncertain["path"], self.gateway.paths)
+        self.gateway.fail_remove = False
+        self.leases.release(uncertain["id"])
+        self.assertNotIn(uncertain["path"], self.gateway.paths)
+        self.assertEqual(len(self.leases.rows()), 4)
+        replacement = self.reserve()
+        self.assertEqual(replacement["slot"], uncertain["slot"])
+        self.assertNotEqual(replacement["source_path"], uncertain["path"])
+        self.assertFalse(self.leases.allow_publish(uncertain["path"], token))
+
     def test_ignored_permission_expires_reservation(self):
         with patch("studio.time.monotonic", return_value=100):
             lease = self.reserve()
         with patch("studio.time.monotonic", return_value=161):
+            self.assertEqual(self.leases.expired(), [lease["lease_id"]])
+            self.assertFalse(self.leases.allow_publish(lease["source_path"], lease["token"]))
+
+    def test_late_media_cannot_revive_expired_reservation(self):
+        with patch("studio.time.monotonic", return_value=100):
+            lease = self.reserve()
+        with patch("studio.time.monotonic", return_value=161):
+            self.leases.update_media(lease["lease_id"], {"online": True, "inboundBytes": 100,
+                "source": {"id": "late-publisher"}})
+            row = self.leases.rows()[0]
+            self.assertEqual(row["state"], "REVOKING")
+            self.assertEqual(row["epoch"], 0)
+            self.assertIsNone(row["last_media"])
             self.assertEqual(self.leases.expired(), [lease["lease_id"]])
             self.assertFalse(self.leases.allow_publish(lease["source_path"], lease["token"]))
 
@@ -99,6 +144,23 @@ class AdmissionTests(unittest.TestCase):
                                                       "source": {"id": "second"}})
         self.assertEqual(self.leases.rows()[0]["epoch"], 2)
         self.assertEqual(self.leases.rows()[0]["state"], "ACTIVE")
+
+    def test_late_media_cannot_revive_expired_reconnect(self):
+        with patch("studio.time.monotonic", return_value=100):
+            lease = self.reserve()
+            self.leases.update_media(lease["lease_id"], {"online": True, "inboundBytes": 100,
+                "source": {"id": "first"}})
+        with patch("studio.time.monotonic", return_value=101):
+            self.leases.update_media(lease["lease_id"], None)
+        with patch("studio.time.monotonic", return_value=122):
+            self.leases.update_media(lease["lease_id"], {"online": True, "inboundBytes": 50,
+                "source": {"id": "late-reconnect"}})
+            row = self.leases.rows()[0]
+            self.assertEqual(row["state"], "REVOKING")
+            self.assertEqual(row["epoch"], 1)
+            self.assertEqual(row["publisher_id"], "first")
+            self.assertEqual(self.leases.expired(), [lease["lease_id"]])
+            self.assertFalse(self.leases.allow_publish(lease["source_path"], lease["token"]))
 
     def test_connected_publisher_without_media_stays_reserved(self):
         lease = self.reserve()
