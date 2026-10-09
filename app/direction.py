@@ -6,6 +6,7 @@ from dataclasses import replace
 from fractions import Fraction
 import json
 import math
+import os
 import threading
 import time
 import uuid
@@ -65,7 +66,15 @@ class Direction:
             snapshot.control_revision!=app.control.revision or app.control.crew_paused or
             app.control.rehearsal['state']=='Running' or app.stop.is_set()):
             raise ValueError('Reviewed context or control changed')
-        if program and snapshot.program_revision!=app.program.revision:raise ValueError('Reviewed program cue changed')
+        camera=dependencies.get('commentary_camera')
+        if camera:
+            # Captions stay valid across graphics or other program changes while
+            # the same camera feed remains on air.
+            target=app.program.actual_target
+            if (app.program.requested!='LIVE' or target.get('kind')!='camera' or
+                    target.get('source_path')!=camera['source_path'] or target.get('epoch')!=camera['epoch']):
+                raise ValueError('Commentary camera changed')
+        elif program and snapshot.program_revision!=app.program.revision:raise ValueError('Reviewed program cue changed')
         if time.time()>=dependencies['deadline']:raise ValueError('Original decision deadline expired')
         if self.foundation.invalidated_evidence.intersection(dependencies['evidence_ids']):raise ValueError('Reviewed evidence was corrected')
         if dependencies.get('archive_session'):
@@ -77,7 +86,7 @@ class Direction:
             native=target.get('native') or {}
             if target.get('archive_source')!=session['source'] or target.get('source_path')!=session['source']['source_id'] or native.get('native_pts',-1)<session['reviewed_pts']:
                 raise ValueError('Archive source interval moved backward or changed')
-        for source_id,(slot,epoch,revision) in dependencies['sources'].items():
+        for source_id,(slot,epoch,revision) in ({} if camera else dependencies['sources']).items():
             current=app.get_source(slot)
             if not current or current.path!=source_id or current.epoch!=epoch or getattr(current,'timeline_revision',1)!=revision:
                 raise ValueError('Reviewed source lease, epoch, or mapping changed')
@@ -106,9 +115,11 @@ class Direction:
             for eid in refs:
                 matches=[a for a in allowed if a==eid] or ([a for a in allowed if a.startswith(eid[:12])] if len(eid)>=12 else [])
                 if len(matches)==1 and matches[0] not in resolved:resolved.append(matches[0])
-            if resolved:
-                intent=intent.model_copy(update={'evidence_ids':resolved})
-                refs=intent.evidence_ids
+            if not resolved and context['observations']:
+                # Small models often echo the schema placeholder; cite the newest reviewed observation.
+                resolved=[context['observations'][0]['evidence_id']]
+            intent=intent.model_copy(update={'evidence_ids':resolved})
+            refs=intent.evidence_ids
         if any(eid not in allowed for eid in refs):
             raise ValueError('Intent references evidence outside reviewed context: '+','.join(e[:16] for e in refs if e not in allowed)[:120])
         if role=='commentator':
@@ -125,6 +136,9 @@ class Direction:
         dependencies={'snapshot':snapshot,'evidence_ids':refs,'deadline':deadline,'sources':{}}
         archive_session=role=='commentator' and context['target'].get('archive_session')
         if archive_session:dependencies['archive_session']=context['target']['archive_session']
+        elif role=='commentator':
+            reviewed=context['target']['source']
+            dependencies['commentary_camera']={'source_path':reviewed['source_id'],'epoch':reviewed['epoch']}
         for source in (() if archive_session else snapshot.sources):
             current=self.app.get_source(source.slot)
             if current and current.path==source.source_id:
@@ -238,6 +252,21 @@ class Direction:
     def _end_reservation(self, reservation, reason):
         self.foundation.program_text(reservation.model_copy(update={'state':'canceled','reason':reason}),owner='controller')
 
+    def _speech(self, intent, dependencies, event):
+        """Return (pcm, asset, fallback). BREADCAST_SPEECH=off keeps commentary caption only."""
+        if os.environ.get('BREADCAST_SPEECH','on')=='off':return b'',None,'Speech disabled; caption only'
+        asset=None
+        try:
+            async def prepare():
+                async with asyncio.timeout(min(self.settings.role_timeout_s,dependencies['deadline']-time.time())):
+                    return await self.foundation.registry.speech(intent.text,self.foundation.storage,dependencies['deadline'],event_context=event)
+            speech=asyncio.run(prepare())
+            asset=speech.media
+            return decode_speech(speech,self.foundation.storage,intent.text,event,self.foundation.settings),asset,None
+        except Exception as error:
+            failure=public_failure(error,'speech');self.provider_failures['speech']=failure
+            return b'',asset,'Speech unavailable: '+failure['reason']
+
     def _prepare_speech(self, intent, dependencies, context, reservation):
         cue=None;asset=None
         try:
@@ -250,17 +279,7 @@ class Direction:
                 if len(self.prepared)>=2 or sum(c.memory_bytes for c in self.prepared.values())+self.settings.speech_asset_bytes>self.settings.speech_total_bytes:
                     raise ValueError('Speech preparation cannot reserve its bounded buffer')
             event=EventContext.model_validate(context['event'])
-            pcm=b'';asset=None;fallback=None
-            try:
-                async def prepare():
-                    async with asyncio.timeout(min(self.settings.role_timeout_s,dependencies['deadline']-time.time())):
-                        return await self.foundation.registry.speech(intent.text,self.foundation.storage,dependencies['deadline'],event_context=event)
-                speech=asyncio.run(prepare())
-                asset=speech.media
-                pcm=decode_speech(speech,self.foundation.storage,intent.text,event,self.foundation.settings)
-            except Exception as error:
-                failure=public_failure(error,'speech');self.provider_failures['speech']=failure
-                fallback='Speech unavailable: '+failure['reason']
+            pcm,asset,fallback=self._speech(intent,dependencies,event)
             self.check(dependencies)
             layer=None
             try:layer=caption_layer(self.app.program.graphics,intent.text)
@@ -292,8 +311,9 @@ class Direction:
             with self.lock:self.prepared[cue.id]=cue
             self._history(cue,'prepared')
             self._history(cue,'pending')
+            expected=self.app.control.expected({}) if dependencies.get('commentary_camera') else self.expected(snapshot,{})
             record=self.app.control.propose({'id':cue.id,'op':'commentary','args':{'cue_id':cue.id},
-                'expected':self.expected(snapshot,{}),'expires_at':dependencies['deadline']},
+                'expected':expected,'expires_at':dependencies['deadline']},
                 actor='Provider crew',dependencies=dependencies)
             if record['state'] not in ('Scheduled','Applying'):
                 self.discard(cue.id,record['reason']);self.drain_receipts()
@@ -424,7 +444,7 @@ class Direction:
             self.traces.append({'role':role,'stage':'error','utc':time.time(),'reason':type(error).__name__+': '+str(error)[:200]})
 
     COMMENTARY_S=4.0
-    COMMENTARY_HOLD=2
+    COMMENTARY_HOLD=3
 
     def _commentary_busy(self):
         pending=self.foundation.role_pending;active=self.foundation.role_active

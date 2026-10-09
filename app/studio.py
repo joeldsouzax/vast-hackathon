@@ -622,7 +622,12 @@ class App:
             try:
                 root = self.cfg.runtime / "recordings"
                 enabled = self.foundation.registry.capabilities()['storage']['ready']
-                pending = sorted(root.rglob("*.complete"))
+                pending = []
+                for notification in sorted(root.rglob("*.complete")):
+                    if notification.with_suffix(".owner").is_file():pending.append(notification)
+                    elif time.time()-notification.stat().st_mtime>60:
+                        # Orphans from earlier runs must not occupy the bounded pending window.
+                        notification.unlink(missing_ok=True);notification.with_suffix(".mp4").unlink(missing_ok=True)
                 for notification in pending[:self.foundation.settings.limits.pending_chunks]:
                     if self.stop.is_set():return
                     try:
@@ -693,8 +698,8 @@ class App:
                 for path in root.rglob("*.mp4"):
                     if time.time()-path.stat().st_mtime > 300 and not path.with_suffix(".complete").exists():
                         path.unlink(missing_ok=True);path.with_suffix(".owner").unlink(missing_ok=True)
-            except (OSError, ValueError, KeyError, StopIteration):
-                self.foundation.last_failure = "Recording finalization failed; inspect source coverage"
+            except (OSError, ValueError, KeyError, StopIteration) as error:
+                self.foundation.last_failure = f"Recording finalization failed; inspect source coverage ({type(error).__name__}: {str(error)[:160]})"
 
     def render(self, slot=1, seconds=4, speed=1, zoom=1, plan=None, source_ref=None, resolved=None, replay_id=None):
         if plan is not None and plan.get('schema_version')=='1.2' and resolved is None:

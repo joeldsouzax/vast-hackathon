@@ -45,11 +45,11 @@ def _caption_lines(draw, font, text, width):
 def caption_layer(graphics, text):
     if any(ord(c)<32 for c in text):raise ValueError('Caption must be plain text')
     draw=ImageDraw.Draw(Image.new('RGB',(1,1)))
-    for size in (20,17,15):
+    for size in (20,18,16,14):
         font=graphics.font(size,'dmsans')
         try:lines=_caption_lines(draw,font,text,graphics.w*.86);break
         except ValueError:
-            if size==15:raise
+            if size==14:raise
     step=round(size*1.4)
     layer=Image.new('RGBA',(graphics.w,graphics.h));draw=ImageDraw.Draw(layer)
     bottom=round(graphics.h*.95);top=bottom-12-step*len(lines)
