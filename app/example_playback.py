@@ -91,8 +91,10 @@ class ExamplePlayback:
                 leases.append(lease)
                 with self.lock:
                     self.assets[lease['source_path']] = video
+                # Loop the registered file so Start video can keep both sources
+                # available for director mixing without waiting for another Start.
                 command = ['ffmpeg', '-nostdin', '-hide_banner', '-loglevel', 'error',
-                    '-re', '-i', video['path'], '-map', '0:v:0', '-map', '0:a:0?',
+                    '-re', '-stream_loop', '-1', '-i', video['path'], '-map', '0:v:0', '-map', '0:a:0?',
                     '-filter_threads', '1', '-vf',
                     f'fps={cfg.fps},scale={cfg.width}:{cfg.height}:force_original_aspect_ratio=decrease,'
                     f'pad={cfg.width}:{cfg.height}:(ow-iw)/2:(oh-ih)/2',
@@ -130,14 +132,11 @@ class ExamplePlayback:
                 self.state = 'playing'
             for video in videos:
                 self.app.video_analysis.submit(video)
-            # Play once. Preserve the final delayed frames before returning to
-            # holding. Another Start creates fresh source identities.
+            # Keep looping until Stop video / end. A publisher exit is a fault;
+            # natural EOF is not expected while -stream_loop -1 is set.
             while not cancel.wait(.2) and not self.app.stop.is_set():
-                if any(p.poll() not in (None, 0) for p in processes):
+                if any(p.poll() is not None for p in processes):
                     raise StageError('Video playback failed; inspect the private server logs')
-                if all(p.poll() is not None for p in processes):
-                    cancel.wait(cfg.delay + 1)
-                    break
         except StageError as error:
             if not cancel.is_set() and not self.app.stop.is_set():
                 failure = str(error)

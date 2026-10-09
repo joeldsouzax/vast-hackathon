@@ -12,7 +12,8 @@ import uuid
 from foundation import canonical, operation_key
 from foundation_providers import CapabilityError
 from foundation_records import (Abstention, Interval, PublicSearchRequest, PublicSearchHit, PublicSearchResult,
-    ReplayCandidate, ReplayPlan12, SceneEvent, SearchQuery, SegmentWait, SegmentorResult, SourceEpoch)
+    ReplayCandidate, ReplayPlan12, SceneEvent, SearchQuery, SegmentPlan, SegmentWait, SegmentorResult,
+    ShotIntent, SourceEpoch)
 from replay_inputs import check_budget, resolve_plan, verify_dependencies, published_dependencies
 from provider_errors import public_failure
 
@@ -50,6 +51,36 @@ def fixture_segment(labels, context):
         start=end
     return {'op':'plan','source':source,'required':required,'action':action,'shots':shots,
             'reason':'Explicit retained-media fixture edit'}
+
+
+def deterministic_segment(context, scene, snapshot, chunks=None):
+    """Build a simple retained-media plan when the segmentor LLM format fails."""
+    observations=context.get('observations',[])
+    evidence=[o for o in observations if o['evidence_id'] in scene.evidence_ids]
+    if not evidence:return None
+    source=scene.source
+    base=float(Fraction(source.time_base))
+    # Align required to retained chunk ends so last-frame receipt verification matches.
+    if chunks:
+        native=Interval(start=min(m.native.start for m in chunks),end=max(m.native.end for m in chunks))
+    else:
+        native=scene.native
+    if (native.end-native.start)*base<0.2-1e-9:return None
+    shots=[];start=native.start;step=max(1,round(6/base))
+    while start<native.end:
+        end=min(start+step,native.end)
+        if (end-start)*base<0.2-1e-9:break
+        refs=[o['evidence_id'] for o in evidence if o['native']['start']<end and o['native']['end']>start]
+        if not refs:refs=[evidence[0]['evidence_id']]
+        shots.append(ShotIntent(source=source,native=Interval(start=start,end=end),
+            scene_revisions={scene.scene_id:scene.revision},evidence_ids=refs[:16],
+            reason='Deterministic lead-in, action and aftermath'))
+        start=end
+    if not shots:return None
+    plan=SegmentPlan(op='plan',source=source,action=native,required=native,shots=shots,
+        reason='Deterministic retained-media edit after segmentor format failure')
+    return SegmentorResult(payload=plan,snapshot=snapshot,origin='provider',
+        model_id='deterministic-segmentor',model_version='1')
 
 
 @dataclass
@@ -301,21 +332,37 @@ class ReplayWork:
             if len(visual_chunks)>self.settings.input_chunks or sum(m.media.size for m in visual_chunks.values())>self.settings.input_bytes:
                 raise ValueError('capacity_reached: combined segmentor media')
             context['target']['visual_windows']=[]
-            for selected_scene in selected:
-                visual=self._visual_context(context,selected_scene,deadline,max_frames=max(3,24//len(selected)),canceled=canceled)
-                context['target']['visual_windows'].append({'source':selected_scene.source.model_dump(),
-                    'frames':visual['target'].pop('visual_frames')})
-            if len(canonical(context).encode())>self.foundation.settings.limits.context_bytes:raise ValueError('Segmentor context exceeds 64 KiB')
             job['stages']['model_start_utc']=time.time()
-            async def plan_call():
-                for attempt in range(self.settings.attempts):
-                    job['model_attempts']=attempt+1
-                    try:return await self.foundation.registry.llm('segmentor',context,snapshot,deadline)
-                    except (ConnectionError,OSError) as error:
-                        if isinstance(error,TimeoutError) or attempt+1>=self.settings.attempts:raise
-                        check_budget(deadline)
-            result=asyncio.run(plan_call())
-            result=SegmentorResult.model_validate(result)
+            # Automatic demo/workshop replay does not wait on W&B segmentor schema
+            # success. Build a deterministic plan first; recall still uses the LLM.
+            result=None
+            scene_chunks=self.foundation.chunks(scene.source,scene.native)
+            if candidate.purpose=='automatic':
+                result=deterministic_segment(context,scene,snapshot,chunks=scene_chunks)
+                if result is not None:
+                    job['stages']['deterministic_fallback_utc']=time.time()
+            if result is None:
+                # Keep under context_bytes. Multi-source windows and JPEG frames grow fast.
+                frame_budget=max(2,min(12,24//len(selected)))
+                for selected_scene in selected:
+                    visual=self._visual_context(context,selected_scene,deadline,max_frames=frame_budget,canceled=canceled)
+                    context['target']['visual_windows'].append({'source':selected_scene.source.model_dump(),
+                        'frames':visual['target'].pop('visual_frames')})
+                self._fit_segmentor_context(context)
+                async def plan_call():
+                    for attempt in range(self.settings.attempts):
+                        job['model_attempts']=attempt+1
+                        try:return await self.foundation.registry.llm('segmentor',context,snapshot,deadline)
+                        except (ConnectionError,OSError) as error:
+                            if isinstance(error,TimeoutError) or attempt+1>=self.settings.attempts:raise
+                            check_budget(deadline)
+                try:
+                    result=SegmentorResult.model_validate(asyncio.run(plan_call()))
+                except Exception as error:
+                    failure=public_failure(error,'llm');job['provider_failure']=failure
+                    result=deterministic_segment(context,scene,snapshot,chunks=scene_chunks)
+                    if result is None:raise
+                    job['stages']['deterministic_fallback_utc']=time.time()
             job['stages']['model_end_utc']=time.time()
             mode=self.foundation.registry.require('llm').adapter
             if result.snapshot!=snapshot or result.origin!=('fixture' if mode=='fixture' else 'provider'):
@@ -343,7 +390,10 @@ class ReplayWork:
             if any(shot.mapping_revision is not None and
                 reviewed_mappings.get(operation_key(shot.source.model_dump()),{}).get('revision')!=shot.mapping_revision for shot in intent.shots):
                 raise ValueError('Segmentor mapping was not reviewed')
+            # resolve_plan rejects expiry more than 60s ahead (pin window).
+            pin_horizon=time.time()+min(60,self.foundation.settings.limits.pin_seconds)
             expiry=candidate.admitted_utc+self.settings.recall_expiry_s if candidate.purpose=='recall' else candidate.deadline_utc
+            expiry=min(expiry,pin_horizon,deadline)
             plan=ReplayPlan12(plan_id=candidate.preparation_id,event_id=snapshot.event_id,run_id=snapshot.run_id,
                 context_revision=snapshot.context_revision,configuration_revision=snapshot.configuration_revision,
                 snapshot=snapshot,input_kind='archive',source=intent.source,action=intent.action,required=intent.required,
@@ -359,8 +409,12 @@ class ReplayWork:
                     raise ValueError('Unknown receipt allows explicit recall only')
                 if not verified:raise ValueError('mapping_unknown: last included frame receipt; use explicit recall')
                 final=max(m.finalized_utc for m in chunks)
-                deadline=min(deadline,final+self.settings.preparation_s,
-                    max(m.last_receipt_utc-m.receipt_uncertainty_ms/1000 for m in verified)+self.settings.candidate_s)
+                # Keep the admit-time budget. Receipt age may only shorten when it
+                # still leaves enough time to render after finalization.
+                receipt_bound=max(m.last_receipt_utc-m.receipt_uncertainty_ms/1000 for m in verified)+self.settings.candidate_s
+                final_bound=final+self.settings.preparation_s
+                if min(receipt_bound,final_bound)>time.time()+5:
+                    deadline=min(deadline,receipt_bound,final_bound)
                 expiry=min(expiry,deadline)
                 plan=plan.model_copy(update={'expires_at':expiry})
                 job['stages']['required_media_finalized_utc']=final
@@ -391,11 +445,24 @@ class ReplayWork:
         finally:
             with self.lock:self.planning=False
 
+    def _fit_segmentor_context(self, context):
+        """Drop newest visual frames until the segmentor context fits context_bytes."""
+        limit=self.foundation.settings.limits.context_bytes
+        windows=context.get('target',{}).get('visual_windows') or []
+        while len(canonical(context).encode())>limit:
+            donors=[window for window in windows if window.get('frames')]
+            if not donors:
+                raise ValueError('Segmentor context exceeds 64 KiB')
+            # Prefer trimming the densest window so each source keeps some coverage.
+            max(donors,key=lambda window:len(window['frames']))['frames'].pop()
+        if windows and not any(window.get('frames') for window in windows):
+            raise ValueError('Segmentor visual context exceeds 64 KiB')
+
     def _visual_context(self, context, scene, deadline, max_frames=24, canceled=None):
         """At most 24 timestamped inspected frames and ten source seconds."""
         import base64
+        import io
         import av
-        from media import jpeg
         interval=Interval(start=max(scene.native.start,scene.native.end-round(10/float(Fraction(scene.source.time_base)))),end=scene.native.end)
         owner='segmentor-'+uuid.uuid4().hex
         try:
@@ -421,14 +488,19 @@ class ReplayWork:
                         if last is None or pts-last>=step:
                             image=frame.to_image()
                             if manifest['geometry']['rotation']:image=image.rotate(-manifest['geometry']['rotation'],expand=True)
-                            image.thumbnail((160,90))
+                            # Compact JPEG so multi-source contexts stay under context_bytes.
+                            image.thumbnail((96,54))
+                            encoded=io.BytesIO();image.save(encoded,format='JPEG',quality=45,optimize=True)
                             samples.append({'pts':pts,'time_base':scene.source.time_base,
                                 'chunk_id':manifest['chunk_id'],'file_pts':frame.pts,'file_time_base':str(frame.time_base),
-                                'image_base64':base64.b64encode(jpeg(image)).decode()});last=pts
+                                'image_base64':base64.b64encode(encoded.getvalue()).decode()});last=pts
                         if len(samples)>=max_frames:break
                 if len(samples)>=max_frames:break
             context['target']['visual_frames']=samples
-            if len(canonical(context).encode())>self.foundation.settings.limits.context_bytes:
+            limit=self.foundation.settings.limits.context_bytes
+            while samples and len(canonical(context).encode())>limit:
+                samples.pop();context['target']['visual_frames']=samples
+            if len(canonical(context).encode())>limit:
                 raise ValueError('Segmentor visual context exceeds 64 KiB')
             return context
         finally:self.foundation.release(owner)
@@ -565,6 +637,10 @@ class ReplayWork:
         for scene in scenes:
             key=self._automatic_key(scene)
             old=self.candidates.get(key)
+            # Failed/skipped segmentor work must not permanently block the scene.
+            if old and old.state in ('failed','skipped') and time.time()-old.admitted_utc>=20:
+                with self.lock:self.candidates.pop(key,None)
+                old=None
             if old:
                 continue
             if not self.settings.enabled or not self.app.control.program_started or self.app.control.crew_paused or not self.app.control.policy['replays_enabled']:continue
@@ -576,7 +652,10 @@ class ReplayWork:
             try:
                 chunks=self.foundation.chunks(scene.source,scene.native)
                 if not chunks or any(m.receipt_basis!='frame-receipt' or m.last_receipt_utc is None for m in chunks):continue
-                deadline=min(deadline,max(m.last_receipt_utc-m.receipt_uncertainty_ms/1000 for m in chunks)+self.settings.candidate_s)
+                # Prefer the remaining candidate budget from admit time. Receipt age
+                # only shortens when the receipt window is still ahead of now.
+                receipt_deadline=max(m.last_receipt_utc-m.receipt_uncertainty_ms/1000 for m in chunks)+self.settings.candidate_s
+                if receipt_deadline>now:deadline=min(deadline,receipt_deadline)
                 if deadline<=now:continue
                 self._admit(ReplayCandidate(candidate_id=key,scene_id=scene.scene_id,scene_revision=scene.revision,
                     source=scene.source,purpose='automatic',admitted_utc=now,deadline_utc=deadline,

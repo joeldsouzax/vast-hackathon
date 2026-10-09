@@ -3,8 +3,13 @@
   "videos": [
     {
       "id": "nyc-bike-gopro-chunk-0018",
-      "name": "NYC bike GoPro chunk 0018",
+      "name": "NYC bike GoPro",
       "uri": "s3://team-36-vss-chunks/team-36/20261008_073129_GOPR0130_chunk_0018.mp4"
+    },
+    {
+      "id": "sf-streets-cam2-chunk-0019",
+      "name": "SF streets cam 2",
+      "uri": "s3://team-36-vss-chunks/team-36/20261001_095927_sf2_chunk_0019.mp4"
     }
   ]
 }

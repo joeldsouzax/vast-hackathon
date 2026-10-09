@@ -98,10 +98,13 @@ class LiveRoles:
                     'Keep the chosen microphone independent of camera cuts. Never invent a ready replay ID.')
             else:
                 instructions+=('Describe only eligible action already on screen. Follow event language, style and pronunciations. '
-                    'Use a short sentence that fits eight seconds. Use reviewed aired history for callbacks. '
-                    'Avoid repeating pending or recent sentences. Silence is valid when evidence is weak.')
+                    'Use one short sentence of at most 80 characters. Use reviewed aired history for callbacks. '
+                    'Avoid repeating pending or recent sentences; vary wording and angle. '
+                    'When any eligible observation exists, prefer one lively evidence-backed line over silence. '
+                    'Cite only evidence_id values listed in observations. Abstain only when no observation supports a line.')
             output={'director':DirectorIntent,'commentator':CommentatorIntent,'segmentor':SegmentorIntent}[role]
-            agent=Agent(model,output_type=output,retries=0,instructions=instructions)
+            # Segmentor and commentator structured output fails often on the first call; allow repair retries.
+            agent=Agent(model,output_type=output,retries=(2 if role in ('segmentor','commentator') else 0),instructions=instructions)
             prompt_context=json.loads(json.dumps(context))
             frames=prompt_context.get('target',{}).pop('visual_frames',[])
             for window in prompt_context.get('target',{}).get('visual_windows',[]):
@@ -110,7 +113,7 @@ class LiveRoles:
             for frame in frames:
                 prompt.append(f"Inspected frame: native_pts={frame['pts']}, time_base={frame['time_base']}, chunk_id={frame['chunk_id']}")
                 prompt.append(BinaryContent(data=base64.b64decode(frame['image_base64']),media_type='image/jpeg'))
-            result=await agent.run(prompt,model_settings={'max_tokens':2048,'temperature':0})
+            result=await agent.run(prompt,model_settings={'max_tokens':2048,'temperature':0.8 if role=='commentator' else 0})
             self.verified.add(role)
             if role=='segmentor':return SegmentorResult(payload=result.output,snapshot=snapshot,
                 origin='provider',model_id=self.models[role],model_version='unknown')

@@ -2,7 +2,7 @@
 import os
 from pathlib import Path
 
-from foundation_records import FoundationSettings, ProviderConfig
+from foundation_records import FoundationSettings, Limits, ProviderConfig
 from provider_probe import assigned_values, ProbeFailure
 
 
@@ -43,7 +43,13 @@ def settings():
         endpoint=config.get('BREADCAST_WANDB_BASE_URL','https://api.inference.wandb.ai/v1'),secret_env='WANDB_API_KEY')
     providers['speech']=ProviderConfig(adapter='live',protocol='workshop-v1',version='unknown',
         endpoint=config.get('BREADCAST_TTS_URL'),model_id=config.get('BREADCAST_TTS_MODEL'),secret_env='BREADCAST_TTS_API_KEY')
+    # Workshop GPU/W&B latency is far above fixture budgets. Widen analyze,
+    # role, and replay windows so live proof can finish on this VM.
     return FoundationSettings(providers=providers,event={'event_id':'manual-event',
         'voice_id':config.get('ELEVENLABS_VOICE_ID') or config.get('BREADCAST_TTS_VOICE')},
-        direction={'enabled':True},replay={'enabled':True,'index_version':'breadcast-caption-index-1',
+        limits=Limits(live_deadline_s=120.0,call_timeout_s=90.0),
+        direction={'enabled':True,'role_timeout_s':60.0},
+        replay={'enabled':True,'candidate_s':120.0,'preparation_s':90.0,
+            'recall_s':90.0,'recall_expiry_s':120.0,'query_s':20.0,
+            'index_version':'breadcast-caption-index-1',
             'embedding_version':config.get('COSMOS_EMBED1_MODEL','unresolved-embedding-model')})

@@ -446,7 +446,7 @@ class FoundationHTTP(unittest.TestCase):
                     self.assertEqual(saved['program']['actual_target']['source_path'],source.source_id)
                     self.assertTrue(saved['source_health'][0]['buffer_ready'])
                     self.assertFalse(saved['crew_paused'])
-                    self.assertEqual(saved['policy']['minimum_shot_s'],5)
+                    self.assertEqual(saved['policy']['minimum_shot_s'],2)
                     health[1]['epoch']=2
                     renewed=app.foundation.reviewed_snapshot().runtime.source_health[0]
                     self.assertIsNone(renewed.buffer_ready)

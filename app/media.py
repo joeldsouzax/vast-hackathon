@@ -338,8 +338,51 @@ class Program:
         self.mixer=Mixer(self.direction_settings)
         self.event_mapping_reader=lambda _:None
         self.score_effective_ms=None
+        # Live-to-live camera transition. Program target switches immediately;
+        # only the pixels blend from the outgoing camera.
+        self.transition_style=os.environ.get('BREADCAST_TRANSITION','dissolve')
+        if self.transition_style not in ('dissolve','wipe','cut'):self.transition_style='dissolve'
+        try:transition_ms=float(os.environ.get('BREADCAST_TRANSITION_MS','600'))
+        except ValueError:transition_ms=600.0
+        self.transition_frames=max(0,min(round(transition_ms/1000*cfg.fps),3*cfg.fps))
+        self.transition=None
+        self.last_live=None
         (cfg.runtime / "graphics-package.json").write_text(json.dumps(self.graphics.manifest(), indent=2) + "\n")
         self.thread = threading.Thread(target=self._run, daemon=True)
+
+    def _transition_image(self, image, source, target):
+        """Blend from the previous live camera after a camera change. Caller holds the lock."""
+        previous=self.last_live
+        self.last_live={'path':source.path,'slot':source.slot,'image':image}
+        if self.transition_style=='cut' or not self.transition_frames:return image
+        if previous and previous['path']!=source.path:
+            self.transition={'from_path':previous['path'],'from_slot':previous['slot'],
+                'still':previous['image'],'start':self.frames_written}
+        state=self.transition
+        if not state:return image
+        step=self.frames_written-state['start']
+        if step>=self.transition_frames:
+            self.transition=None
+            return image
+        # Keep the outgoing camera moving when it is still live; else hold its last frame.
+        outgoing=self.source_getter(state['from_slot'])
+        frame=outgoing.at(target) if outgoing and outgoing.path==state['from_path'] else None
+        if frame:
+            try:
+                state['still']=Image.open(io.BytesIO(frame.data)).convert('RGB').resize(image.size)
+            except Exception:
+                pass
+        old=state['still'] if state['still'].size==image.size else state['still'].resize(image.size)
+        progress=(step+1)/(self.transition_frames+1)
+        eased=progress*progress*(3-2*progress)
+        if self.transition_style=='wipe':
+            edge=round(image.width*eased)
+            result=old.copy()
+            if edge>0:result.paste(image.crop((0,0,edge,image.height)),(0,0))
+            if 0<edge<image.width:
+                ImageDraw.Draw(result).rectangle((max(0,edge-3),0,min(image.width-1,edge+2),image.height),fill='#EFA845')
+            return result
+        return Image.blend(old,image,eased)
 
     def start(self):
         self.thread.start()
@@ -627,6 +670,7 @@ class Program:
                                     self.framing=None
                                 else:image=crop_pixels(image,self.framing['rect'],self.framing['geometry'])
                             actual_target['framing']=self.framing['rect'].model_dump() if self.framing else None
+                            image=self._transition_image(image,source,target)
                             audio_source = self.source_getter(self.audio_slot)
                             if not self.audio_muted and audio_source and audio_source.path == self.audio_source_path and audio_source.epoch==self.audio_epoch:
                                 audio = audio_source.audio_at(target)
@@ -634,6 +678,9 @@ class Program:
                             image, actual, label = self.holding.copy(), "HOLDING", ""
                             actual_target = {"kind": "holding"}
                             self.framing=None
+                            self.transition=None;self.last_live=None
+                    else:
+                        self.transition=None;self.last_live=None
                     try:
                         if self.graphics.event_package:
                             event_ms=actual_target.get('event_ms')

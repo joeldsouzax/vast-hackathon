@@ -160,7 +160,9 @@ class Registry:
         self.require('llm')
         if role not in ('director', 'commentator', 'segmentor'):
             raise ValueError('Unknown application role')
-        remaining = min(self.settings.limits.call_timeout_s, deadline_utc-time.time())
+        # Role callers already pass the eligibility deadline; do not shrink it
+        # again with call_timeout_s (that ceiling is for generic analyze work).
+        remaining = deadline_utc-time.time()
         if remaining <= 0: raise TimeoutError('LLM deadline expired')
         if context['snapshot'] != snapshot.model_dump(mode='json'):
             raise ValueError('Context does not match reviewed snapshot')

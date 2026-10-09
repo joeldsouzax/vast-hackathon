@@ -375,7 +375,8 @@ class Limits(Record):
 
 class DirectionSettings(Record):
     enabled: bool = False
-    role_timeout_s: Annotated[float, Field(gt=0, le=8)] = 8.0
+    # Workshop W&B round-trips often exceed the old 8s fixture cap.
+    role_timeout_s: Annotated[float, Field(gt=0, le=120)] = 8.0
     attempts: Annotated[int, Field(ge=1, le=2)] = 2
     speech_max_s: Annotated[float, Field(gt=0, le=8)] = 8.0
     speech_asset_bytes: Annotated[int, Field(gt=0, le=16777216)] = 16777216
@@ -390,11 +391,12 @@ class DirectionSettings(Record):
 
 class ReplaySettings(Record):
     enabled: bool = False
-    candidate_s: Annotated[float, Field(gt=0, le=30)] = 30.0
-    preparation_s: Annotated[float, Field(gt=0, le=15)] = 15.0
-    recall_s: Annotated[float, Field(gt=0, le=45)] = 45.0
-    recall_expiry_s: Annotated[float, Field(gt=0, le=60)] = 60.0
-    query_s: Annotated[float, Field(gt=0, le=5)] = 5.0
+    # Workshop segmentor vision calls need more than the old 15/30s fixture caps.
+    candidate_s: Annotated[float, Field(gt=0, le=180)] = 30.0
+    preparation_s: Annotated[float, Field(gt=0, le=120)] = 15.0
+    recall_s: Annotated[float, Field(gt=0, le=120)] = 45.0
+    recall_expiry_s: Annotated[float, Field(gt=0, le=180)] = 60.0
+    query_s: Annotated[float, Field(gt=0, le=30)] = 5.0
     query_records: Annotated[int, Field(ge=1, le=100)] = 100
     jobs: Annotated[int, Field(ge=1, le=20)] = 20
     attempts: Annotated[int, Field(ge=1, le=2)] = 2

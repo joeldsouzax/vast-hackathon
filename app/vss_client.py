@@ -132,9 +132,16 @@ class VssClient:
             raise VssFailure('VAST transport failed or returned an unsupported JSON response') from None
 
     def verify(self):
-        health=self.request('GET','/health',authenticated=False)
-        if (not isinstance(health,dict) or health.get('healthy') is False or health.get('ready') is False
-            or health.get('status') in ('error','unhealthy','failed')):
+        # Workshop ingress often serves the SPA HTML at /health. Treat a missing
+        # JSON health document as unknown and rely on login + /api/v1/config.
+        health=None
+        try:
+            health=self.request('GET','/health',authenticated=False)
+        except VssFailure as error:
+            if str(error)!='VAST transport failed or returned an unsupported JSON response':
+                raise
+        if health is not None and (not isinstance(health,dict) or health.get('healthy') is False
+            or health.get('ready') is False or health.get('status') in ('error','unhealthy','failed')):
             raise VssFailure('The configured VAST backend is unhealthy')
         login=self.request('POST','/api/v1/auth/login',payload={
             'username':self.values['USERNAME'],'password':self.values['PASSWORD']},authenticated=False)
@@ -153,6 +160,7 @@ class VssClient:
         self.config_sha256=hashlib.sha256(json.dumps(config,sort_keys=True).encode()).hexdigest()
         self.version=None
         for item in (health,config):
+            if not isinstance(item,dict):continue
             for field in ('backend_version','version'):
                 value=item.get(field)
                 if isinstance(value,str) and re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.+\-]{0,79}',value):

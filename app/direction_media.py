@@ -29,22 +29,32 @@ def crop_pixels(image, rect, geometry):
     return image.crop(box).resize(image.size,Image.Resampling.LANCZOS)
 
 
-def caption_layer(graphics, text):
-    if any(ord(c)<32 for c in text):raise ValueError('Caption must be plain text')
-    font=graphics.font(20,'dmsans');draw=ImageDraw.Draw(Image.new('RGB',(1,1)))
+def _caption_lines(draw, font, text, width):
     lines=['']
     for word in text.split():
         trial=(lines[-1]+' '+word).strip()
-        if draw.textlength(trial,font=font)>graphics.w*.86:
+        if draw.textlength(trial,font=font)>width:
             if not lines[-1] or len(lines)==2:raise ValueError('Caption does not fit two lines')
             lines.append(word)
-            if draw.textlength(word,font=font)>graphics.w*.86:raise ValueError('Caption word does not fit')
+            if draw.textlength(word,font=font)>width:raise ValueError('Caption word does not fit')
         else:lines[-1]=trial
     if not lines[0]:raise ValueError('Empty caption')
+    return lines
+
+
+def caption_layer(graphics, text):
+    if any(ord(c)<32 for c in text):raise ValueError('Caption must be plain text')
+    draw=ImageDraw.Draw(Image.new('RGB',(1,1)))
+    for size in (20,17,15):
+        font=graphics.font(size,'dmsans')
+        try:lines=_caption_lines(draw,font,text,graphics.w*.86);break
+        except ValueError:
+            if size==15:raise
+    step=round(size*1.4)
     layer=Image.new('RGBA',(graphics.w,graphics.h));draw=ImageDraw.Draw(layer)
-    bottom=round(graphics.h*.95);top=bottom-12-28*len(lines)
+    bottom=round(graphics.h*.95);top=bottom-12-step*len(lines)
     draw.rounded_rectangle((round(graphics.w*.05),top,round(graphics.w*.95),bottom),8,fill=(20,24,20,235))
-    for index,line in enumerate(lines):draw.text((graphics.w//2,top+6+index*28),line,font=font,fill='white',anchor='mt')
+    for index,line in enumerate(lines):draw.text((graphics.w//2,top+6+index*step),line,font=font,fill='white',anchor='mt')
     return layer
 
 

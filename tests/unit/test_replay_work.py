@@ -496,3 +496,16 @@ class ReplayContracts(unittest.TestCase):
         self.assertEqual(self.app.control.actions[first[0]]['state'],'Preparing')
         self.assertEqual(len(self.work.candidates),1)
         self.assertEqual(self.work._automatic_key(self.scene),self.work._automatic_key(self.work.scene(other['scene_id'],other['scene_revision'])))
+
+    def test_segmentor_visual_context_trims_to_context_bytes(self):
+        from foundation import canonical
+        # Oversized fake frames must be trimmed instead of failing prepare.
+        fat='A'*8000
+        context={'target':{'visual_windows':[
+            {'source':{'slot':1},'frames':[{'image_base64':fat} for _ in range(6)]},
+            {'source':{'slot':2},'frames':[{'image_base64':fat} for _ in range(6)]},
+        ]}}
+        self.assertGreater(len(canonical(context).encode()),self.f.settings.limits.context_bytes)
+        self.work._fit_segmentor_context(context)
+        self.assertLessEqual(len(canonical(context).encode()),self.f.settings.limits.context_bytes)
+        self.assertTrue(any(window['frames'] for window in context['target']['visual_windows']))
