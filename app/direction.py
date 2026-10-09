@@ -443,6 +443,42 @@ class Direction:
             self.state[role]='Unavailable';self.reason=failure['reason']
             self.traces.append({'role':role,'stage':'error','utc':time.time(),'reason':type(error).__name__+': '+str(error)[:200]})
 
+    GRAPHICS_S=14.0
+    BANNERS=(('headline','A fresh take.','You’re watching Breadcast.'),
+             ('toast-note','A little something fresh.','Stay for the good stuff.'),
+             ('wide-banner','Made to be shared.','Good views bring people together.'))
+    STINGERS=('toast-wipe','ribbon-sweep','iris-reveal','crumb-burst')
+    LOWERS=('lower-classic','lower-pill','lower-split','lower-portrait')
+
+    def _graphic(self, preset, title, subtitle, duration_s):
+        args={'graphics':{'op':'cue','preset':preset,'title':title,'subtitle':subtitle,'duration_s':duration_s}}
+        record=self.app.control.propose({'id':uuid.uuid4().hex,'op':'graphics','args':args,
+            'expected':self.app.control.expected({}),'expires_at':time.time()+5},actor='Provider crew')
+        self.traces.append({'role':'graphics','stage':'propose','utc':time.time(),'preset':preset,'state':record.get('state'),'reason':record.get('reason')})
+        return record
+
+    def _policy_graphics(self):
+        """Deterministic on-air dressing from prepared presets. Text is preset copy or the camera number only."""
+        program=self.app.program
+        if self.app.control.crew_paused or not self.app.control.program_started or program.actual!='LIVE':return
+        if any(r['state'] in ('Scheduled','Applying') for r in self.app.control.actions.values()):return
+        active=program.graphics.active
+        now=time.monotonic();state=self.__dict__.setdefault('_gfx',{'slot':None,'cuts':0,'banner':0,'next':0.0,'tried':0.0})
+        if now<state['tried']+1:return
+        state['tried']=now
+        if 'bug' not in active:
+            self._graphic('brand-bug','breadcast.','',600);return
+        if program.cue is not None or 'screen' in active or 'stinger' in active:return
+        slot=program.slot
+        if slot!=state['slot']:
+            state['slot']=slot;state['cuts']+=1
+            if state['cuts']%3==0:self._graphic(self.STINGERS[state['cuts']//3%len(self.STINGERS)],'breadcast.','',2)
+            else:self._graphic(self.LOWERS[state['cuts']%len(self.LOWERS)],f'Camera {slot}','Live on Breadcast',3)
+            state['next']=now+self.GRAPHICS_S;return
+        if now>=state['next'] and not any(s in active for s in ('lower','banner','ticker')) and not self._commentary_busy():
+            preset,title,subtitle=self.BANNERS[state['banner']%len(self.BANNERS)];state['banner']+=1
+            self._graphic(preset,title,subtitle,4);state['next']=now+self.GRAPHICS_S
+
     COMMENTARY_S=4.0
     COMMENTARY_HOLD=3
 
@@ -506,6 +542,8 @@ class Direction:
                 if not self.settings.enabled or self.app.control.crew_paused or self.app.control.rehearsal['state']=='Running':continue
                 if not self.app.control.program_started:continue
                 self._policy_rotate()
+                try:self._policy_graphics()
+                except Exception as error:self.traces.append({'role':'graphics','stage':'error','utc':time.time(),'reason':type(error).__name__+': '+str(error)[:160]})
                 live=self.app.program.actual!='HOLDING' and self.app.program.requested!='HOLDING'
                 commentary_tick=(int(time.monotonic()/self.COMMENTARY_S),self.app.program.revision)
                 if live and commentary_tick!=self.last_commentary and self.app.program.cue is None and \
