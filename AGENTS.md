@@ -34,6 +34,12 @@ diagram when the explanation needs one.
 
 ## Project rules
 
+- Merge every complete runnable sprint into `main` and push `main`. The user's
+  production system deploys `main` automatically. Do not leave a sprint release
+  only on a separate branch. Tag the release commit and provide its production
+  test steps. Write and run only tests required for changed behavior and critical
+  failures. Production acceptance remains pending until its required checks pass.
+
 This is a hackathon project for an autonomous live broadcasting studio. Read [README.md](README.md) and the relevant design document before implementing. Live camera input, event QR joining, and a server-enforced maximum of five cameras are required. Prove one camera first, then complete five-camera admission and playback validation.
 
 - Preserve the supplied stack: VAST ingestion/data orchestration, NVIDIA Cosmos video reasoning, YOLO detection/tracking, semantic search, and W&B-hosted application LLMs on the provided CoreWeave infrastructure. Cursor is the development environment, not a runtime dependency.

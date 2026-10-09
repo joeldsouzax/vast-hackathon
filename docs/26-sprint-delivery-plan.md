@@ -365,7 +365,7 @@ Previous working tag and tested rollback procedure:
 Evidence location and checksums:
 ```
 
-Implementation follows this plan. S01 is **implemented; release checks in progress**. S02–S07 are **not started**.
+Implementation follows this plan. S01 is **implemented as candidate `breadcast-s01-r01` for production testing on main**. S02–S07 are **not started**.
 Release commits and production acceptance are recorded in the sprint handoff.
 
 ## 11 Evidence and cumulative regression
@@ -420,7 +420,7 @@ record the blocker instead of inventing a pass.
 
 | Sprint | Implementation | Production acceptance |
 |---|---|---|
-| S01 | Code written; final main release checks and push in progress | Pending Docker image build, trusted HTTPS/WebRTC, one physical phone for five minutes, host restart and root/prefix checks |
+| S01 | Implemented; candidate `breadcast-s01-r01` releases through main | Pending Docker image build, trusted HTTPS/WebRTC, one physical phone for five minutes, host restart and root/prefix checks |
 | S02 | Not started | Pending |
 | S03 | Not started | Pending |
 | S04 | Not started | Pending |
