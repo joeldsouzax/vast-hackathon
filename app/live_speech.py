@@ -1,9 +1,10 @@
-"""Configured OpenAI-compatible speech output, decoded before mixer admission."""
+"""ElevenLabs and configured speech output, decoded before mixer admission."""
 import asyncio
 import os
 from pathlib import Path
 import tempfile
 import time
+from urllib.parse import quote
 
 import av
 import httpx
@@ -18,22 +19,77 @@ class LiveSpeech:
         self.config=registry.live.config
         self.model=None
         self.verified=False
-        self.protocol=self.config.get('BREADCAST_TTS_PROTOCOL','nvidia-nim')
+        self.protocol=self.config.get('BREADCAST_TTS_PROTOCOL','auto')
+        if self.protocol=='auto':self.protocol='elevenlabs' if self.config.get('ELEVENLABS_API_KEY') else 'nvidia-nim'
         self.voices=None
         self.version=None
+        self.voice_id=None
+        self.voice_name=None
 
-    def configured(self):return bool(self.config.get('BREADCAST_TTS_URL'))
+    def configured(self):return bool(self.config.get('ELEVENLABS_API_KEY')) if self.protocol=='elevenlabs' else bool(self.config.get('BREADCAST_TTS_URL'))
+
+    async def elevenlabs(self,client,event,deadline):
+        url=endpoint(self.config.get('BREADCAST_ELEVENLABS_BASE_URL','https://api.elevenlabs.io'))
+        if self.model is None:
+            models=await request(client,'GET',url+'/v1/models',deadline=deadline)
+            rows=[row for row in models if isinstance(row,dict) and row.get('can_do_text_to_speech') is True]
+            ids=[row['model_id'] for row in rows if isinstance(row.get('model_id'),str)]
+            selected=self.config.get('ELEVENLABS_MODEL_ID')
+            if not selected:selected=next((name for name in ('eleven_flash_v2_5','eleven_multilingual_v2') if name in ids),ids[0] if ids else None)
+            if selected not in ids:raise ValueError('No selected ElevenLabs speech model is available')
+            self.model=selected
+        selected=event.voice_id or self.config.get('ELEVENLABS_VOICE_ID')
+        if self.voices is None or selected and not any(v['voice_id']==selected for v in self.voices):
+            query='/v2/voices?page_size=100'+('&voice_ids='+quote(selected,safe='') if selected else '')
+            result=await request(client,'GET',url+query,deadline=deadline)
+            self.voices=[voice for voice in result.get('voices',[]) if isinstance(voice,dict) and isinstance(voice.get('voice_id'),str)]
+        if not selected:
+            voices=sorted(self.voices,key=lambda voice:(voice.get('category')!='premade',voice['voice_id']))
+            selected=voices[0]['voice_id'] if voices else None
+        voice=next((v for v in self.voices if v['voice_id']==selected),None)
+        if not voice:raise ValueError('The selected ElevenLabs voice is unavailable')
+        self.voice_id=selected;self.voice_name=voice.get('name')
+        return url+'/v1/text-to-speech/'+quote(selected,safe='')+'?output_format=mp3_44100_128'
+
+    def wav(self,path):
+        """Use the baseline MP3 response; do not require a paid WAV format."""
+        output=path.with_suffix('.wav');samples=0
+        try:
+            with av.open(str(path)) as source,av.open(str(output),'w',format='wav') as target:
+                stream=target.add_stream('pcm_s16le',rate=48000);stream.layout='mono'
+                resampler=av.AudioResampler(format='s16',layout='mono',rate=48000)
+                for frame in source.decode(audio=0):
+                    for normalized in resampler.resample(frame):
+                        samples+=normalized.samples
+                        if samples>48000*self.registry.settings.direction.speech_max_s:
+                            raise ValueError('Generated speech exceeds eight seconds')
+                        for packet in stream.encode(normalized):target.mux(packet)
+                for frame in resampler.resample(None):
+                    samples+=frame.samples
+                    if samples>48000*self.registry.settings.direction.speech_max_s:raise ValueError('Generated speech exceeds eight seconds')
+                    for packet in stream.encode(frame):target.mux(packet)
+                for packet in stream.encode(None):target.mux(packet)
+            path.unlink();return output
+        except BaseException:
+            output.unlink(missing_ok=True);raise
 
     async def synthesize(self,text,storage,deadline,event):
-        if not event.voice_id:raise ValueError('Select the configured speech voice in Event details')
-        url=endpoint(self.config.get('BREADCAST_TTS_URL'))
+        if not event.voice_id and self.protocol!='elevenlabs':raise ValueError('Select the configured speech voice in Event details')
+        url=endpoint(self.config.get('BREADCAST_TTS_URL')) if self.protocol!='elevenlabs' else None
         token=self.config.get('BREADCAST_TTS_API_KEY')
         remaining=deadline-time.time()
         if remaining<=0:raise TimeoutError('Speech deadline expired')
         path=None
         try:
-            async with asyncio.timeout(remaining),httpx.AsyncClient(follow_redirects=False) as client:
-                if self.protocol=='nvidia-nim':
+            key=self.config.get('ELEVENLABS_API_KEY')
+            default_headers={'xi-api-key':key} if self.protocol=='elevenlabs' and key else {}
+            async with asyncio.timeout(remaining),httpx.AsyncClient(follow_redirects=False,headers=default_headers) as client:
+                if self.protocol=='elevenlabs':
+                    if not key:raise ValueError('ElevenLabs API key is missing')
+                    speech_url=await self.elevenlabs(client,event,deadline)
+                    payload={'json':{'text':text,'model_id':self.model}}
+                    token=None
+                elif self.protocol=='nvidia-nim':
                     if self.voices is None:
                         await request(client,'GET',url+'/v1/health/ready',token=token,deadline=deadline)
                         metadata=await request(client,'GET',url+'/v1/metadata',token=token,deadline=deadline)
@@ -63,12 +119,12 @@ class LiveSpeech:
                         self.model,_=await discover(client,url,self.config.get('BREADCAST_TTS_MODEL'),token,deadline)
                     route='/v1/audio/speech'
                     payload={'json':{'model':self.model,'input':text,'voice':event.voice_id,'response_format':'wav'}}
-                else:raise ValueError('Speech protocol must be nvidia-nim or openai')
+                else:raise ValueError('Speech protocol must be elevenlabs, nvidia-nim or openai')
                 headers={'Authorization':'Bearer '+token} if token else {}
-                async with client.stream('POST',url+route,headers=headers,**payload,
+                async with client.stream('POST',speech_url if self.protocol=='elevenlabs' else url+route,headers=headers,**payload,
                     timeout=max(.01,deadline-time.time())) as response:
                     if not 200<=response.status_code<300:raise ValueError('Speech HTTP '+str(response.status_code))
-                    fd,temporary=tempfile.mkstemp(prefix='.speech-',suffix='.wav',dir=storage.root)
+                    fd,temporary=tempfile.mkstemp(prefix='.speech-',suffix='.mp3' if self.protocol=='elevenlabs' else '.wav',dir=storage.root)
                     path=Path(temporary);received=0
                     with os.fdopen(fd,'wb') as output:
                         async for part in response.aiter_bytes():
@@ -76,6 +132,7 @@ class LiveSpeech:
                             if received>self.registry.settings.direction.speech_asset_bytes:
                                 raise ValueError('Speech output exceeds the mixer asset limit')
                             output.write(part)
+            if self.protocol=='elevenlabs':path=self.wav(path)
             frames=samples=0
             with av.open(str(path)) as media:
                 if media.format.name!='wav' or len(media.streams.audio)!=1 or media.streams.video:
@@ -91,7 +148,7 @@ class LiveSpeech:
             asset=storage.put(path,'wav',frames)
             self.verified=True
             return SpeechResult(media=asset,duration_s=samples/rate,sample_rate=rate,channels=channels,
-                origin='provider',model_id=self.model,voice_id=event.voice_id,transcript=text,
+                origin='provider',model_id=self.model,voice_id=self.voice_id if self.protocol=='elevenlabs' else event.voice_id,transcript=text,
                 configuration_revision=self.registry.settings.configuration_revision)
         except httpx.HTTPError:raise ValueError('Speech transport failed') from None
         finally:

@@ -23,7 +23,9 @@ second VM/S3 video. The source is configurable. Camera-permission development
 and physical-phone acceptance are deferred and do not block this current build.
 Use a red Start video / Stop video button below the operator video. The program
 controller still owns airtime. Complete one runnable change before pushing main;
-use basic checks and let the user test the full flow on the VM.
+skip checks during connection work, per the latest user instruction. The user
+tests the full flow on the VM. The user selected ElevenLabs for spoken commentary
+and supplied its API key in the VM environment. Keep it outside Git and prompts.
 
 Original camera goals below remain future product goals. For this input phase,
 R02/R03/R06/R07 acceptance uses the registered server video and actual provider

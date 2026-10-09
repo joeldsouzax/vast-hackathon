@@ -447,7 +447,7 @@ record the blocker instead of inventing a pass.
 | S03 | Tenant probe and registered-video archive slice implemented; timing/tracking remain | Pending real VAST run; archive-slice checks skipped by user instruction |
 | S04 | VSS/Embed1 search and W&B visual planning connected to retained replay | Pending actual query, accepted model plan, rendered preview and playback |
 | S05 | W&B director connected to existing release/takeover controls | Pending eligible current evidence and a real accepted crew action |
-| S06 | W&B commentator and configured WAV speech transport connected to mixer | Pending actual TTS access and viewer audio proof |
+| S06 | W&B commentator and ElevenLabs speech connected to mixer; NVIDIA NIM optional | Pending actual account/model/voice use and viewer audio proof |
 | S07 | Not started | Pending |
 
 S01 local checks: 13 focused access, configuration, provenance, and existing

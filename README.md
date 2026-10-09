@@ -120,8 +120,26 @@ to **Release control**. This allows fresh W&B director and commentator proposals
 existing typed controller actions. A single input can produce commentary and
 replays; it cannot demonstrate switching between two distinct views.
 
-Speech uses NVIDIA Magpie TTS NIM when available. Set `BREADCAST_TTS_URL` to its
-base before `/v1`, keep `BREADCAST_TTS_PROTOCOL=nvidia-nim`, and set
+Speech now uses **ElevenLabs** when `ELEVENLABS_API_KEY` is present. Keep the key
+in the VM environment or ignored `.env`; Compose passes it to the server.
+`BREADCAST_TTS_PROTOCOL=auto` selects ElevenLabs from that key. If the existing
+`.env` explicitly selects `nvidia-nim`, change it to `auto` or `elevenlabs`, then
+recreate the container. No ElevenLabs URL or key goes to the browser.
+
+`ELEVENLABS_MODEL_ID` and `ELEVENLABS_VOICE_ID` are optional. Runtime model listing
+selects Flash v2.5 when available, then Multilingual v2, then another returned TTS
+model. Runtime voice listing selects an available voice, preferring a premade
+voice. Set an explicit voice ID or select it in Event details to override this.
+Diagnostics show the actual selected model and voice. An empty event voice
+delegates selection to the configured speech adapter.
+
+The adapter uses the [ElevenLabs speech API](https://elevenlabs.io/docs/api-reference/text-to-speech/convert).
+It requests standard MP3 and converts it to 48 kHz mono WAV locally. This avoids
+requiring access to a paid WAV output format. The existing cue path then mixes
+speech into the program. No audio request was run from this development session.
+
+The NVIDIA route remains configurable. Set `BREADCAST_TTS_URL` to its base before
+`/v1`, select `BREADCAST_TTS_PROTOCOL=nvidia-nim`, and set
 `BREADCAST_TTS_API_KEY` if it needs authentication. The app reads readiness,
 model metadata, and `/v1/audio/list_voices`, then sends a multipart request to
 `/v1/audio/synthesize`. Select a returned voice in `BREADCAST_TTS_VOICE` or Event
@@ -139,7 +157,7 @@ For an existing OpenAI-compatible speech service, select
 `POST /v1/audio/speech` with `model`, `input`, `voice`, and `response_format=wav`.
 Only configure a service that implements the chosen API.
 
-The W&B commentator supplies grounded text. The speech adapter generates WAV,
+The W&B commentator supplies grounded text. The speech adapter produces WAV,
 decodes it, and sends it through the existing prepared-cue path. The program mixer
 combines it with the selected source audio. Generated speech must fit eight seconds
 and its current evidence interval. The Viewer receives the mixed program audio.

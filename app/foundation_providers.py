@@ -37,6 +37,7 @@ class Registry:
                 ready=self.voice.configured()
                 results[boundary]={'adapter':'live','ready':ready,'live_verified':self.voice.verified,
                     'model_id':self.voice.model,'protocol':self.voice.protocol,'version':self.voice.version,
+                    'voice_id':self.voice.voice_id,'voice_name':self.voice.voice_name,
                     'reason':'Speech transport configured; event voice and VM audio proof required'
                         if ready else 'Text-to-speech endpoint is missing; captions only'}
                 continue

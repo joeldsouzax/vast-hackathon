@@ -77,6 +77,12 @@ WAV. [NVIDIA Dynamo voice APIs](https://docs.nvidia.com/dynamo/dev/multimodal/vo
 document the separate OpenAI-compatible speech route. Neither establishes a
 running speech service on this team's VM.
 
+The user then selected ElevenLabs. Its [speech conversion API](https://elevenlabs.io/docs/api-reference/text-to-speech/convert),
+[model listing](https://elevenlabs.io/docs/api-reference/models/list), and
+[voice listing](https://elevenlabs.io/docs/api-reference/voices/search) establish
+the key header, available speech identities, and standard MP3 output. The adapter
+converts MP3 locally rather than requiring a higher-tier WAV output format.
+
 
 ## Docker packaging checks
 

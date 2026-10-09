@@ -51,7 +51,7 @@ def caption_layer(graphics, text):
 def decode_speech(result, storage, text, event, settings):
     if result.transcript!=text:raise ValueError('Speech transcript does not match requested text')
     if result.configuration_revision!=settings.configuration_revision:raise ValueError('Speech configuration changed')
-    if result.origin=='provider' and result.voice_id!=event.voice_id:raise ValueError('Speech voice differs from reviewed voice')
+    if result.origin=='provider' and event.voice_id is not None and result.voice_id!=event.voice_id:raise ValueError('Speech voice differs from reviewed voice')
     limits=settings.direction
     if result.media.size>limits.speech_asset_bytes:raise ValueError('Speech file exceeds asset limit')
     path=storage.inspect(result.media)

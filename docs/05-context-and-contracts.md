@@ -941,3 +941,12 @@ count, sample rate, channels and duration are measured before mixer admission.
 verification of audible words. Voice quality, pronunciation, expressive delivery
 and actual spoken contents require production review. No endpoint is assumed
 from the supplied ASR service. Missing TTS access keeps the spoken gate open.
+
+The user selected ElevenLabs for speech. `ELEVENLABS_API_KEY` enables the default
+`auto` route; its secret stays server-side. Runtime model and voice listing select
+actual account capabilities. An explicit event voice must match the returned
+speech voice. A null event voice delegates default selection to the configured
+adapter, which records the actual voice ID. This is a selection rule, not a guessed
+voice identity. Standard ElevenLabs MP3 is decoded and converted to 48 kHz mono
+WAV before the existing duration, sample and mixer checks. No paid WAV format is
+required. Raw provider audio and synthesized assets stay in the runtime store.
