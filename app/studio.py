@@ -496,7 +496,7 @@ class App:
                 for lease_id in self.leases.expired():
                     self.release(lease_id)
                 self.control.start_ready_camera()
-            except (OSError, urllib.error.URLError, KeyError) as error:
+            except (OSError, urllib.error.URLError, KeyError, sqlite3.OperationalError) as error:
                 self.gateway_error = str(error)
                 if self.gateway_process.poll() is not None:
                     self.program.error = "MediaMTX exited; restart the experiment"

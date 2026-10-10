@@ -1,5 +1,6 @@
 """Authority, retries, delayed commits, source ownership, and exact command grammar."""
 import copy
+import sqlite3
 from pathlib import Path
 import tempfile
 import threading
@@ -32,6 +33,24 @@ class ControlContracts(unittest.TestCase):
     def proposal(self, op='live', **args):
         self.n += 1
         return {'id': f'p{self.n}', 'op': op, 'args': args, 'expected': self.c.expected(args), 'expires_at': time.time()+30}
+
+    def test_camera_monitor_recovers_after_temporary_database_io_error(self):
+        lease={'id':'test-lease','slot':1,'path':'camera/test','state':'RESERVED'}
+        errors=[]
+        def wait(_):
+            errors.append(self.app.gateway_error)
+            return len(errors)>2
+        with patch.object(self.app.stop,'wait',side_effect=wait), \
+                patch.object(self.app.cfg,'gateway',return_value={'items':[]}), \
+                patch.object(self.app.leases,'rows',return_value=[lease]), \
+                patch.object(self.app.leases,'update_media',side_effect=[sqlite3.OperationalError('disk I/O error'),None]) as update, \
+                patch.object(self.app.leases,'expired',return_value=[]), \
+                patch.object(self.c,'start_ready_camera') as start, \
+                patch.object(self.app,'gateway_process',SimpleNamespace(poll=lambda:None),create=True):
+            self.app.monitor()
+        self.assertEqual(update.call_count,2)
+        self.assertEqual(errors,[None,'disk I/O error',None])
+        start.assert_called_once()
 
     def test_retry_and_changed_id_contents(self):
         request = {'id': 'once', 'op': 'live', 'args': {'slot': 1}}

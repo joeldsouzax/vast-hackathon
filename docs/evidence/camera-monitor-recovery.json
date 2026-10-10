@@ -1,0 +1,49 @@
+{
+  "release": "breadcast-forever22-r11",
+  "checked_at": "2026-10-10T18:02:24.094293+00:00",
+  "incident": {
+    "host_disk_available_before": "128 MiB",
+    "guest_disk_available_before": "25 GiB",
+    "failure": "sqlite3.OperationalError: disk I/O error in camera monitor; monitor thread exited",
+    "observed_program": "HOLDING with requested LIVE and new ACTIVE leases without decoders"
+  },
+  "recovery": {
+    "scope": "colima-breadcast-local only",
+    "unused_build_cache_reclaimed_bytes": 874200000,
+    "guest_trim_completed": true,
+    "host_available_after": "1.7 GiB",
+    "existing_container_restarted": true,
+    "container_healthcheck": "passed",
+    "leases_sqlite_quick_check": "ok",
+    "foundation_sqlite_quick_check": "ok",
+    "auto_start_armed": true
+  },
+  "code_change": "Keep the camera monitor running after an OperationalError and clear the reported error after a successful poll.",
+  "focused_checks": {
+    "controller": 36,
+    "status": "passed"
+  },
+  "commentary_findings": {
+    "source_clock_reset_cut_short_event_line": true,
+    "black_recorded_frame_visually_confirmed": true,
+    "live_analysis_rejected_ambiguous_mapping": true,
+    "phone_preview_reported_normal": true,
+    "microphone_listening_not_the_cause_of_observed_silence": true
+  },
+  "pending": [
+    "Fresh physical-camera video and commentary after rejoin",
+    "External TURN account credentials for cameras on other networks"
+  ],
+  "deployment": {
+    "checked_at": "2026-10-10T18:03:06.829100+00:00",
+    "standard_rebuild_restart": "passed",
+    "healthcheck": "passed",
+    "physical_cameras": "awaiting rejoin"
+  },
+  "nix_cleanup": {
+    "command": "nix-collect-garbage",
+    "store_paths_deleted": 0,
+    "bytes_freed": 0,
+    "host_available_after": "1.6 GiB"
+  }
+}
