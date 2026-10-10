@@ -114,6 +114,14 @@ chunks, native clocks, reviewed snapshots and controller ownership.
   activity. The cue and delivery history retain basis and context revision.
   Context changes cancel both types. A new event line has a 12-second work budget.
   The model must not use event talk to make unsupported activity claims.
+  The demo's `event_talk_interval_s=120` policy limits event-only talk using
+  actual delivery times in the full program-text ledger. Pending event lines
+  block another event line; canceled unheard lines do not consume the interval.
+  With `foreground_priority=listen-first`, understood foreground words from the
+  selected unmuted microphone require a source caption or abstention before
+  spoken commentary. Completed caption/speech evidence releases that listening
+  turn. Background chatter and unknown words do not block narration. This does
+  not interrupt an already playing line or bypass evidence expiry.
 - At most one next speech cue can wait behind the active cue. Preparation can
   start in its final four seconds. The controller still checks source, context,
   deadline and complete audio fit before playout. Audio completion ends captions
@@ -123,7 +131,8 @@ chunks, native clocks, reviewed snapshots and controller ownership.
   Two completed lead turns are required before another co-commentator turn;
   after three, the next decision reserves the co-commentator or abstains.
   A lead cue already in progress can finish before the reserved turn.
-  captions and pending lines do not count. Both voices use the same queue.
+  Captions and pending lines do not count. Both voices use the same queue.
+  Listening priority overrides the speaker reservation without consuming it.
   Decorative graphics do not invalidate queued speech with a valid pinned
   camera/microphone or replay session. See [commentary pair](35-commentary-pair.md).
 - Gemini replay candidates prefer recent scenes. Preparation has at most 45

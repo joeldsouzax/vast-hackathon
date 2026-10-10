@@ -102,7 +102,9 @@ The laptop is configured for the [Forever 22 demo](docs/30-forever22-demo.md),
 with a custom New York cabbie voice and event talk between camera updates.
 Gemini also hears the selected microphone through recorded clips. It can leave
 a speaker audible, show a short **Heard:** quote, or comment over background
-chatter. The voice uses impatient, mock-angry delivery. See the
+chatter. Clear understood foreground speech gets a listening turn first.
+Event-only commentary is limited to once every two minutes. The voice uses
+impatient, mock-angry delivery. See the
 [audio behavior and limits](docs/31-source-audio.md).
 Scene commentary now prioritizes visible people, movement, readable text and
 understood speech. Meaning summaries can appear in labeled graphics. Short scene

@@ -129,6 +129,9 @@ class Direction:
         if any(eid not in allowed for eid in refs):
             raise ValueError('Intent references evidence outside reviewed context: '+','.join(e[:16] for e in refs if e not in allowed)[:120])
         if role=='commentator':
+            listening=self._listening_evidence(context)
+            if listening and intent.delivery=='speech':
+                raise ValueError('Let the selected microphone speak before adding commentary')
             if intent.speaker not in self._speaker_options(context):
                 raise ValueError('Speaker is not eligible for the next commentary turn')
             if intent.delivery=='source_caption' and intent.speaker!='lead':
@@ -142,6 +145,8 @@ class Direction:
                 raise ValueError('Event commentary requires the current event brief and live view')
             if event_bridge and refs:
                 raise ValueError('Event commentary must not claim camera evidence')
+            if event_bridge and not self._event_talk_allowed(context):
+                raise ValueError('Event introduction cooldown: use scene evidence or listen')
             if not refs and not event_bridge and not (result.origin=='fixture' and intent.text in disclosures):
                 raise ValueError('Commentary requires reviewed evidence')
             if any(row['text'] in (intent.text,'Heard: '+intent.text) for row in context['aired']+context['pending']):
@@ -501,11 +506,48 @@ class Direction:
                     'title':r['args']['graphics'].get('title'),'state':r['state']}
                     for r in tuple(self.app.control.actions.values()) if r['op']=='graphics' and
                     r.get('cue_ids') and r['state'] in ('On air','Finished')][-20:]
-        if role=='commentator':context['allowed_speakers']=self._speaker_options(context)
+        if role=='commentator':
+            context['commentary_policy']={'listen_evidence_ids':self._listening_evidence(context),
+                'event_talk_allowed':self._event_talk_allowed(context)}
+            context['allowed_speakers']=self._speaker_options(context)
         return context
 
     @staticmethod
+    def _listening_evidence(context):
+        if context['event'].get('audio_policy',{}).get('foreground_priority')!='listen-first':return []
+        if context['target'].get('archive_session'):return []
+        microphone=context['target'].get('microphone',{})
+        if microphone.get('muted',True):return []
+        # A completed quote or reaction has already given this point a turn.
+        heard={eid for row in context['aired'] if row.get('state')=='completed'
+            for eid in row.get('evidence_ids',[])}
+        return [o['evidence_id'] for o in context['observations']
+            if o['evidence_id'] not in heard and o.get('audio',{}).get('speech')=='foreground'
+            and o['audio'].get('transcript','').strip() and o['audio'].get('meaning','').strip()
+            and o['source']['source_id']==microphone.get('source_path')
+            and o['source']['epoch']==microphone.get('epoch')]
+
+    def _event_talk_allowed(self,context):
+        interval=context['event'].get('editorial_policy',{}).get('event_talk_interval_s')
+        if interval is None:return True
+        interval=max(0,min(3600,float(interval)))
+        now_ms=self.app.program.frames_written*1000/self.app.cfg.fps
+        # Use the delivery ledger, not the truncated model history. Captions and
+        # interrupted speech also count if viewers received event copy.
+        with self.foundation.lock:
+            rows=self.foundation._records('program_text',run=self.app.control.run_id)
+        for row in rows:
+            text=json.loads(row['body'])
+            if text.get('basis')!='event_context':continue
+            if text['state'] in ('prepared','pending','started'):return False
+            if text['state'] in ('completed','interrupted','aired'):
+                end=text.get('last_program_ms')
+                if end is not None and now_ms-end<interval*1000:return False
+        return True
+
+    @staticmethod
     def _speaker_options(context):
+        if Direction._listening_evidence(context):return ['lead']
         if not context['event'].get('co_commentator'):return ['lead']
         if any(r.get('speaker')=='co_commentator' for r in context['pending']):return ['lead']
         leads=0

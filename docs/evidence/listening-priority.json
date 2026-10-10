@@ -1,0 +1,51 @@
+{
+  "release": "breadcast-forever22-r10",
+  "focused_checks": {
+    "direction": 42,
+    "status": "passed"
+  },
+  "provider_checks": {
+    "scope": "real Gemini requests with private scripted speech and quiet contexts; not live microphone acceptance",
+    "results": [
+      {
+        "case": "foreground",
+        "intent": {
+          "op": "commentary",
+          "text": "Our app translates live speech into captions.",
+          "basis": "action",
+          "delivery": "source_caption",
+          "speaker": "lead",
+          "evidence_ids": [
+            "private-heard"
+          ],
+          "reason": "Display clear foreground attendee speech quote as source caption while they have the floor."
+        },
+        "model": "gemini-3.8-flash",
+        "seconds": 2.461
+      },
+      {
+        "case": "quiet",
+        "intent": {
+          "op": "abstain",
+          "reason": "There are no video or audio observations available to describe, and event talk is disallowed by commentary policy."
+        },
+        "model": "gemini-3.8-flash",
+        "seconds": 1.776
+      }
+    ]
+  },
+  "pending": [
+    "Physical-phone and public-viewer listening check after restart",
+    "Measured delay from a live attendee sentence to a listening turn"
+  ],
+  "deployment": {
+    "checked_at": "2026-10-10T17:53:34.999860+00:00",
+    "healthcheck": "passed",
+    "context_revision": 10,
+    "foreground_priority": "listen-first",
+    "event_talk_interval_s": "120",
+    "both_voices_preserved": true,
+    "camera_count": 0,
+    "auto_start_armed": true
+  }
+}

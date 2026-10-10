@@ -339,6 +339,62 @@ class DirectionContracts(unittest.TestCase):
             line={'op':'commentary','text':self.phrase,'reason':'Fixture commentary'}
             self.d.validate(self.result(line,context),'commentator',context,time.time()+6)
 
+    def test_listen_first_yields_to_understood_speech_then_allows_reaction(self):
+        context=self.audio_context(meaning='A voice demo')
+        context['event']['audio_policy']['foreground_priority']='listen-first'
+        context['event']['co_commentator']={'voice_id':'Charon','style':'Calm'}
+        context['aired']=[{'channel':'speech','state':'completed','speaker':'lead','text':'A previous call.'}]*3
+        self.assertEqual(self.d._speaker_options(context),['lead'])
+        line={'op':'commentary','text':self.phrase,'reason':'Commentary'}
+        with self.assertRaisesRegex(ValueError,'microphone speak'):
+            self.d.validate(self.result(line,context),'commentator',context,time.time()+6)
+        quote={'op':'commentary','delivery':'source_caption','text':'We built a voice demo.',
+            'evidence_ids':['heard-words'],'reason':'Listen first'}
+        self.d.validate(self.result(quote,context),'commentator',context,time.time()+6)
+        context['aired'].append({'channel':'caption','state':'completed','text':'Heard: We built a voice demo.',
+            'evidence_ids':['heard-words']})
+        self.assertEqual(self.d._listening_evidence(context),[])
+        self.assertEqual(self.d._speaker_options(context),['co_commentator'])
+        line['speaker']='co_commentator'
+        self.d.validate(self.result(line,context),'commentator',context,time.time()+6)
+
+    def test_listening_needs_selected_unmuted_understood_foreground_words(self):
+        from copy import deepcopy
+        context=self.audio_context(meaning='A voice demo')
+        context['event']['audio_policy']['foreground_priority']='listen-first'
+        for change in ('muted','other_source','other_epoch','background','no_meaning','no_transcript','archive'):
+            changed=deepcopy(context)
+            mic=changed['target']['microphone'];audio=changed['observations'][0]['audio']
+            if change=='muted':mic['muted']=True
+            elif change=='other_source':mic['source_path']='camera/other'
+            elif change=='other_epoch':mic['epoch']=99
+            elif change=='background':audio['speech']='background'
+            elif change=='no_meaning':audio['meaning']=''
+            elif change=='no_transcript':audio['transcript']=''
+            else:changed['target']['archive_session']={'revision':1}
+            with self.subTest(change=change):self.assertEqual(self.d._listening_evidence(changed),[])
+
+    def test_event_talk_cooldown_uses_actual_delivery_not_truncated_model_history(self):
+        context=self.context('commentator');context['event']['title']='Forever 22'
+        context['event']['editorial_policy']['event_talk_interval_s']='120'
+        self.assertTrue(self.d._event_talk_allowed(context))
+        text=ProgramText(cue_id='intro',event_id=self.s.event_id,run_id=self.s.run_id,
+            text='Welcome.',state='completed',event_ms=None,program_revision=self.app.program.revision,
+            basis='event_context',origin='controller',channel='speech',first_program_ms=0,last_program_ms=1000)
+        self.f.program_text(text,owner='controller')
+        self.app.program.frames_written=100*self.app.cfg.fps
+        self.assertFalse(self.d._event_talk_allowed(context))
+        line={'op':'commentary','basis':'event_context','text':'Another introduction.','reason':'Event filler'}
+        capabilities=self.f.registry.capabilities()
+        with patch.object(self.f.registry,'gemini',object()),patch.object(self.f.registry,'capabilities',return_value=capabilities):
+            with self.assertRaisesRegex(ValueError,'cooldown'):
+                self.d.validate(self.result(line,context),'commentator',context,time.time()+6)
+        self.app.program.frames_written=122*self.app.cfg.fps
+        self.assertTrue(self.d._event_talk_allowed(context))
+        self.f.program_text(text.model_copy(update={'cue_id':'unplayed','state':'canceled',
+            'first_program_ms':None,'last_program_ms':None}),owner='controller')
+        self.assertTrue(self.d._event_talk_allowed(context))
+
     def test_source_quote_has_no_tts_and_mic_changes_cancel_it(self):
         context=self.audio_context()
         line={'op':'commentary','delivery':'source_caption','text':'We built a voice demo.',
