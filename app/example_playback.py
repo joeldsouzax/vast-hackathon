@@ -35,7 +35,8 @@ class ExamplePlayback:
                 raise PermissionError('This event has ended')
             if self.state in ('starting', 'playing', 'stopping'):
                 return self.status()
-            load_config(self.app.cfg.server_videos_config)
+            if not load_config(self.app.cfg.server_videos_config).videos:
+                raise StageError('Sample video playback is disabled for this event; join a live camera')
             self.state = 'starting'
             self.reason = ''
             self.cancel = threading.Event()

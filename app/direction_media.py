@@ -135,6 +135,8 @@ class PreparedCue:
     audio_inflight: bool=False
     caption_inflight: bool=False
     cancel_reason: str | None=None
+    basis: str='action'
+    context_revision: int | None=None
 
     def valid(self):
         return not self.canceled and time.time()<self.expires_at and self.guard()

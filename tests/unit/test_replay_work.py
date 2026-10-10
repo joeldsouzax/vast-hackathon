@@ -214,7 +214,7 @@ class ReplayContracts(unittest.TestCase):
         self.assertTrue(self.work.ticket_valid(self.app.program.replay_ticket))
 
     def test_R20_R23_settings_capabilities_and_limits(self):
-        for changes in ({'jobs':21},{'ready_assets':3},{'query_s':6.},{'memory_bytes':268435457},{'recall_s':45.,'recall_expiry_s':30.}):
+        for changes in ({'jobs':21},{'ready_assets':3},{'query_s':31.},{'memory_bytes':268435457},{'recall_s':45.,'recall_expiry_s':30.}):
             with self.assertRaises(ValidationError):ReplaySettings.model_validate(changes)
         self.f.settings.replay=self.f.settings.replay.model_copy(update={'input_bytes':1})
         with self.assertRaisesRegex(ValueError,'capacity'):resolve_plan(self.app,self.plan,'overbudget',time.time()+15)

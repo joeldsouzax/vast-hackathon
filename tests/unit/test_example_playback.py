@@ -20,12 +20,15 @@ class VideoButton(unittest.TestCase):
                     self.assertEqual(client.post('/api/examples/start',json={}).status_code,403)
                     headers={'Authorization':'Bearer '+'x'*32}
                     self.assertEqual(client.post('/api/examples/start',json={'path':'/etc/passwd'},headers=headers).status_code,409)
+                    self.assertEqual(client.post('/api/examples/start',json={},headers=headers).status_code,409)
+                    self.assertFalse(app.examples.status()['configured'])
                     self.assertEqual(client.post('/api/examples/stop',json={},headers=headers).json()['state'],'stopped')
             finally:app.close()
 
     def test_stop_during_loading_never_starts_media(self):
         with tempfile.TemporaryDirectory() as folder:
-            app=App(Config(Path(folder),'http://localhost'))
+            reference=Path(__file__).resolve().parents[2]/'config/server-videos.reference.json'
+            app=App(Config(Path(folder),'http://localhost',server_videos_config=reference))
             entered=threading.Event();release=threading.Event()
             def loading(*args,**kwargs):
                 entered.set();release.wait(2);return []

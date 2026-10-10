@@ -137,7 +137,7 @@ class Coordinator:
             direction.check(direction.dependencies[record['id']])
 
     def _validate_args(self, op, args):
-        fields = {'live': {'slot', 'independent'}, 'audio': {'slot', 'muted'}, 'replay': {'replay_id'},
+        fields = {'live': {'slot', 'independent'}, 'audio': {'slot', 'muted'}, 'replay': {'replay_id','transition'},
                   'holding': set(), 'graphics': {'graphics','effective_event_ms'}, 'prepare': {'slot', 'seconds', 'speed', 'zoom', 'plan', 'search_id','scene_id','scene_revision'},
                   'cancel': {'job_id'}, 'takeover': set(), 'resume': set(),
                   'policy': set(self.policy), 'rehearsal': {'slot'},
@@ -146,6 +146,8 @@ class Coordinator:
             raise ValueError('Unknown operation or unsupported fields')
         if op == 'graphics' and not isinstance(args.get('graphics'), dict):
             raise ValueError('Expected a graphics command')
+        if 'transition' in args and args['transition'] not in ('toast-wipe','ribbon-sweep','crumb-burst','iris-reveal'):
+            raise ValueError('Unknown replay transition')
         if 'effective_event_ms' in args and (args['graphics'].get('op')!='score' or args['effective_event_ms'] is not None and type(args['effective_event_ms']) is not int):
             raise ValueError('Effective event time belongs to a human-confirmed score')
         for key in ('replay_id', 'job_id'):
@@ -245,7 +247,8 @@ class Coordinator:
             return
         result = self.app.program.command(op, revision, slot, replay, args.get('independent', False),
                                           args.get('graphics'), prepared=prepared, muted=args.get('muted', False),rect=args.get('rect'),
-                                          geometry_revision=args.get('geometry_revision'))
+                                          geometry_revision=args.get('geometry_revision'),replay_transition=args.get('transition',
+                                              'ribbon-sweep' if op=='replay' and self.app.foundation.registry.gemini else None))
         if op=='replay':self.app.program.replay_ticket=self.app.replay_work.tickets.get('play-'+record['id'])
         record['program_revision'] = result['revision']
         if record['actor']=='Human' and op in ('live','replay'):
@@ -276,8 +279,11 @@ class Coordinator:
                 self._state(record, 'Rejected', 'Action belongs to a prior or missing run')
                 return copy.deepcopy(record)
             if isinstance(op, str) and op in AIR:
-                self._takeover()
-                record['takeover'] = True
+                if getattr(self.app.cfg,'crew_mode','automatic')=='automatic' and self.app.foundation.registry.gemini:
+                    self._invalidate('Operator command replaced pending proposals')
+                else:
+                    self._takeover()
+                    record['takeover'] = True
             authority = self.revision
         # Text binding can be expensive. No media or coordinator lock is held.
         try:
@@ -408,6 +414,10 @@ class Coordinator:
                 self._fresh(record)
                 if record['op'] not in AIR | {'prepare', 'cancel'}:
                     raise ValueError('Crew cannot change human authority or official facts')
+                if record['op']=='replay' and self.app.foundation.registry.gemini:
+                    raise ValueError('Replay is ready for operator approval; select Play replay')
+                if record['op'] in ('live','holding','crop','reset_crop') and self.app.foundation.registry.gemini:
+                    raise ValueError('The operator owns live view changes')
                 if record['op'] == 'graphics' and record['args'].get('graphics', {}).get('op') == 'score':
                     raise ValueError('Official facts require the human confirmation form')
                 if record['op'] == 'cancel':

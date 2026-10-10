@@ -343,16 +343,22 @@ class ReplayWork:
             if len(visual_chunks)>self.settings.input_chunks or sum(m.media.size for m in visual_chunks.values())>self.settings.input_bytes:
                 raise ValueError('capacity_reached: combined segmentor media')
             context['target']['visual_windows']=[]
-            job['stages']['model_start_utc']=time.time()
             # Automatic demo/workshop replay does not wait on W&B segmentor schema
             # success. Build a deterministic plan first; recall still uses the LLM.
             result=None
             scene_chunks=self.foundation.chunks(scene.source,scene.native)
-            if candidate.purpose=='automatic' and not self.foundation.registry.gemini:
+            if candidate.purpose=='automatic' and not self.foundation.registry.gemini and self.foundation.registry.require('llm').adapter=='live':
                 result=deterministic_segment(context,scene,snapshot,chunks=scene_chunks)
                 if result is not None:
                     job['stages']['deterministic_fallback_utc']=time.time()
             if result is None:
+                # The editor needs the selected scenes, not commentary history
+                # or unrelated windows that crowd inspected frames out of context.
+                selected_ids={s.scene_id for s in selected}
+                evidence_ids={eid for s in selected for eid in s.evidence_ids}
+                context['scenes']=[s for s in context['scenes'] if s['scene_id'] in selected_ids]
+                context['observations']=[o for o in context['observations'] if o['evidence_id'] in evidence_ids]
+                context['aired']=[];context['pending']=[]
                 # Keep under context_bytes. Multi-source windows and JPEG frames grow fast.
                 frame_budget=max(2,min(12,24//len(selected)))
                 for selected_scene in selected:
@@ -361,6 +367,7 @@ class ReplayWork:
                         'frames':visual['target'].pop('visual_frames')})
                 self._fit_segmentor_context(context)
                 async def plan_call():
+                    job['stages']['model_start_utc']=time.time()
                     for attempt in range(self.settings.attempts):
                         job['model_attempts']=attempt+1
                         try:return await self.foundation.registry.llm('segmentor',context,snapshot,deadline)
@@ -419,11 +426,13 @@ class ReplayWork:
             if candidate.purpose=='automatic':
                 if not chunks or any(m.last_receipt_utc is None or m.receipt_basis!='frame-receipt' for m in chunks):
                     raise ValueError('Unknown receipt allows explicit recall only')
-                if not verified:raise ValueError('mapping_unknown: last included frame receipt; use explicit recall')
+                if not verified and not self.foundation.registry.gemini:
+                    raise ValueError('mapping_unknown: last included frame receipt; use explicit recall')
                 final=max(m.finalized_utc for m in chunks)
                 # Keep the admit-time budget. Receipt age may only shorten when it
                 # still leaves enough time to render after finalization.
-                receipt_bound=max(m.last_receipt_utc-m.receipt_uncertainty_ms/1000 for m in verified)+self.settings.candidate_s
+                receipt_bound=(max(m.last_receipt_utc-m.receipt_uncertainty_ms/1000 for m in verified)+self.settings.candidate_s
+                    if verified else candidate.deadline_utc)
                 final_bound=final+self.settings.preparation_s
                 if self.foundation.registry.gemini or min(receipt_bound,final_bound)>time.time()+5:
                     deadline=min(deadline,receipt_bound,final_bound)
@@ -501,7 +510,7 @@ class ReplayWork:
                             image=frame.to_image()
                             if manifest['geometry']['rotation']:image=image.rotate(-manifest['geometry']['rotation'],expand=True)
                             # Compact JPEG so multi-source contexts stay under context_bytes.
-                            image.thumbnail((96,54))
+                            image.thumbnail((320,180))
                             encoded=io.BytesIO();image.save(encoded,format='JPEG',quality=45,optimize=True)
                             samples.append({'pts':pts,'time_base':scene.source.time_base,
                                 'chunk_id':manifest['chunk_id'],'file_pts':frame.pts,'file_time_base':str(frame.time_base),
@@ -646,6 +655,7 @@ class ReplayWork:
                             if job:job.update(state='queued',reason='New reviewed aftermath evidence')
         with self.foundation.lock:
             scenes=[SceneEvent.model_validate_json(r['body']) for r in self.foundation._records('scene',run=self.app.control.run_id)]
+        if self.foundation.registry.gemini:scenes.reverse()
         for scene in scenes:
             key=self._automatic_key(scene)
             old=self.candidates.get(key)
@@ -668,7 +678,7 @@ class ReplayWork:
                 # only shortens when the receipt window is still ahead of now.
                 receipt_deadline=max(m.last_receipt_utc-m.receipt_uncertainty_ms/1000 for m in chunks)+self.settings.candidate_s
                 if self.foundation.registry.gemini or receipt_deadline>now:deadline=min(deadline,receipt_deadline)
-                if deadline<=now:continue
+                if deadline<=now+(8 if self.foundation.registry.gemini else 0):continue
                 self._admit(ReplayCandidate(candidate_id=key,scene_id=scene.scene_id,scene_revision=scene.revision,
                     source=scene.source,purpose='automatic',admitted_utc=now,deadline_utc=deadline,
                     preparation_id=uuid.uuid4().hex,state='queued'))

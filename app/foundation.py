@@ -432,6 +432,9 @@ class Foundation:
                 self.gap(source,Interval(start=a.native.end,end=b.native.start),'Missing finalized chunk')
                 start=b.native.start
         selected=[c for c in selected if c.native.end>start]
+        # A short window can begin in the gap immediately before its first chunk.
+        # Use actual retained coverage; never manufacture the missing ticks.
+        start=max(start,selected[0].native.start)
         interval=Interval(start=start,end=end)
         snapshot=snapshot or self.reviewed_snapshot()
         key=operation_key(source.event_id,source.run_id,source.source_id,source.epoch,interval.model_dump(),'analysis',self.settings.configuration_revision)
@@ -643,7 +646,7 @@ class Foundation:
                     'started': {'completed','interrupted'}}
                 if text.state not in transitions.get(previous.state,set()):
                     raise ValueError('Aired/canceled history is immutable')
-                stable=('cue_id','event_id','run_id','text','event_ms','program_revision','evidence_ids','origin','channel','session_id')
+                stable=('cue_id','event_id','run_id','text','event_ms','program_revision','evidence_ids','basis','context_revision','origin','channel','session_id')
                 if any(getattr(previous,key)!=getattr(text,key) for key in stable):
                     raise ValueError('Cue identity and text cannot change during delivery')
             self.db.execute("UPDATE records SET active=0 WHERE kind='program_text' AND id=?",(text.cue_id,))
@@ -676,10 +679,13 @@ class Foundation:
                 obs=Observation.model_validate_json(row['body'])
                 if obs.source!=source or obs.native.start<cutoff:continue
                 if role=='commentator' and obs.native.end>eligible.end:continue
-                # Expired jobs stay inspectable, outside live director context.
+                # Leave time for line generation, speech and actual playout.
+                # Older evidence remains inspectable in archive context.
                 job=self.db.execute('SELECT deadline,body,state FROM jobs WHERE key=?',(obs.job_key,)).fetchone()
                 if role=='commentator' and not archive and job and job['state']=='archive_completed':continue
-                if role=='director' and (not job or job['state']=='archive_completed' or job['deadline']<=time.time() or json.loads(job['body']).get('deadline_basis')!='frame-receipt'):continue
+                live_role=role=='director' or role=='commentator' and self.registry.gemini and not archive
+                reserve=min(10.0,self.settings.direction.role_timeout_s) if role=='commentator' and self.registry.gemini and not archive else 0
+                if live_role and (not job or job['state']=='archive_completed' or job['deadline']<=time.time()+reserve or json.loads(job['body']).get('deadline_basis')!='frame-receipt'):continue
                 ordinal=self.db.execute("SELECT ordinal FROM evidence_versions WHERE id=?",(obs.evidence_id,)).fetchone()[0]
                 if ordinal>snapshot.evidence_revision:continue
                 observations.append(obs)
@@ -789,11 +795,20 @@ class Foundation:
         if self.registry.live:self.submit_role('connect',lambda:asyncio.run(self.registry.prepare()))
 
     def _next(self):
+        # An archive call for a live source used to hold its per-source lock for
+        # up to 45s, preventing new live windows from being analyzed.
+        receiving=set()
+        if self.registry.gemini:
+            snapshot=self.reviewed_snapshot()
+            if snapshot.runtime:
+                receiving={h.source_id for h in snapshot.runtime.source_health
+                    if h.last_frame_age_s is not None and h.last_frame_age_s<1}
         with self.transaction():
             rows=self.db.execute("SELECT * FROM jobs WHERE state IN ('queued','archive_queued') AND run=? ORDER BY CASE state WHEN 'queued' THEN 0 ELSE 1 END,updated",(self.run_id,)).fetchall()
             for row in rows:
                 if row['source'] in self.active_sources:continue
                 archive=row['state']=='archive_queued'
+                if archive and json.loads(row['body'])['source']['source_id'] in receiving:continue
                 if row['deadline']<=time.time() and not archive and self.registry.live:
                     self.db.execute("UPDATE jobs SET state='archive_queued',error='Live deadline expired; retained for archive' WHERE key=?",(row['key'],))
                     continue

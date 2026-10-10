@@ -57,7 +57,7 @@ def load_config(path):
     if type(data.get('schema_version')) is not int or data['schema_version']!=1:
         raise StageError('Server video configuration requires schema_version 1')
     rows=data.get('videos')
-    if not isinstance(rows,list) or not 1<=len(rows)<=2:raise StageError('Configure one or two server videos')
+    if not isinstance(rows,list) or not 0<=len(rows)<=2:raise StageError('Configure up to two server videos; an empty list selects live cameras only')
     videos=[];ids=set()
     for row in rows:
         if not isinstance(row,dict) or set(row)-{'id','name','uri','version_id','expected_sha256'}:

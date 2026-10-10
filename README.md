@@ -4,29 +4,38 @@
 
 Breadcast turns video inputs into one program. Gemini supplies video reasoning,
 object detection, crew decisions, embeddings and speech. Supabase stores private
-clips and the vector database. The current input is the bundled video. Physical
-camera checks remain deferred. The Supabase backend is deployed. The laptop
+clips and the vector database. The active demo uses live hackathon cameras;
+the football reference is disabled. Five-phone validation remains manual. The Supabase backend is deployed. The laptop
 media host is running with a temporary public HTTPS address. The public URL
 played holding frames in local Chrome. Inference and playback on another
 network remain pending.
 
-## Play the uploaded video
+## Stream the hackathon
 
-Open Studio and enter the operator credential. Click the red **Start video**
+Use the event QR to join up to five cameras. Preview the camera, then select
+**Start sharing**. In Studio, select **Go live** below the program video. It uses
+the selected ready camera, or the first ready camera. Use the camera tiles to
+change views. **Hold broadcast** returns to holding. See the
+[Forever 22 setup and demo steps](docs/30-forever22-demo.md).
+
+## Reference video (disabled)
+
+For development only, set `BREADCAST_SERVER_VIDEOS_CONFIG_SOURCE=./config/server-videos.reference.json`
+and restart. Open Studio and enter the operator credential. Click the red **Start video**
 button directly below the program video. It loads the bundled clip, starts its
 media stream, and selects it through the program controller. **Stop video** stops
-that source and returns its program to holding. The clip plays once; Start can
-play it again. No camera permission is required.
+that source and returns its program to holding. The clip loops until stopped.
+No camera permission is required.
 
 The clip is `_sample-videos/15449351-hd_1920_1080_60fps.mp4`, imported from the
 teammate's `lukas-wip` branch. Its actual metadata is 1280×720, about 20 seconds,
 with H.264 video and AAC audio. Its filename does not define its dimensions.
 
-[config/server-videos.json](config/server-videos.json) selects the input. The
-bundled clip works by default. Your teammate can change `uri` to another `file:`
+[config/server-videos.json](config/server-videos.json) is empty for live cameras.
+The reference configuration selects the bundled clip. A developer can change `uri` to another `file:`
 path or `s3://bucket/key`. Relative file paths resolve from the JSON file's folder.
 If changing the input, update or remove `expected_sha256`; a mismatch rejects it.
-One or two entries are supported; use this one video until the second is available.
+Zero, one or two entries are supported. Zero disables sample playback.
 
 Compose mounts that config read-only. `BREADCAST_SERVER_VIDEOS_CONFIG_SOURCE`
 selects its host path. `BREADCAST_S3_ENDPOINT_URL` or the VM's `S3_ENDPOINT` selects
@@ -54,7 +63,7 @@ These model-card choices are available in the authenticated account catalog:
 
 | Task | Default model | Selection |
 |---|---|---|
-| Video and crew | `gemini-3.8-flash` | Multimodal input and structured decisions; low thinking for current video and medium for replay editing |
+| Video and crew | `gemini-3.8-flash` | Multimodal input and structured decisions; low thinking for short live decisions and bounded replay edits |
 | Object boxes | `gemini-robotics-er-2-preview` | Spatial reasoning on sampled frames |
 | Spoken commentary | `gemini-3.8-flash-lite-tts` | Short, single-speaker speech with low latency as the design goal |
 | Search embeddings | `gemini-embedding-2` | 768-dimension caption vectors in Supabase pgvector |
@@ -76,14 +85,19 @@ clip receipt is required before the replay becomes ready. Preview and Play keep
 the existing program controller contract.
 
 Prepare event graphics, then use **Start video**. It releases the crew in
-Automatic mode. **Take control** pauses the crew. Gemini director proposals use
-current evidence for camera changes and automatic replay playback. A ready asset
-alone cannot start playback. **Return live** interrupts a replay. Missing access
+Automatic mode. **Take control** pauses the crew. Gemini commentary and graphics
+run automatically. Gemini prepares replays, but **Play replay** requires the
+operator. Automatic camera cuts are disabled. **Return live** interrupts a replay. Missing access
 shows a provider failure while manual video playback remains available.
 
 With `BREADCAST_SPEECH=on`, Gemini turns grounded commentary into speech. The
 runtime converts it to 48 kHz mono WAV and mixes it with source audio. Partial
 speech does not go on air. Caption-only output is not a speech pass.
+
+The laptop is configured for the [Forever 22 demo](docs/30-forever22-demo.md),
+with a custom New York cabbie voice and event talk between camera updates.
+The server permits at most five camera slots. Actual phone playback still needs
+the venue check in that guide.
 
 Supabase hosts the backend function, private storage and vector database. A
 separate persistent media host runs FFmpeg, MediaMTX, Studio and Viewer. The user

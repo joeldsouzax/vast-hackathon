@@ -6,6 +6,10 @@ if (!client) { client = crypto.randomUUID().replaceAll('-', ''); sessionStorage.
 // A direct Join tab also resolves the current event code without taking a camera slot.
 const joinReady = api('/api/viewer').then(state => {
   updateJoinNavigation(state.join_url);
+  if (state.event_title) {
+    document.querySelector('.join-description').textContent = `Join cameras for ${state.event_title}. Up to ${state.camera_limit} cameras. Your feed may appear in the broadcast.`;
+    document.title = `${state.event_title} · Join camera`;
+  }
   if (!code) {
     code = new URL(state.join_url).searchParams.get('code');
     history.replaceState(null, '', publicPath('/join') + '?code=' + encodeURIComponent(code));

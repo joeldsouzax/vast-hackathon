@@ -1,0 +1,225 @@
+{
+  "recorded_utc": "2026-10-10T16:34:27.856794+00:00",
+  "scope": "Real Gemini/Supabase calls and laptop sample playback; focused contract checks. No claim of full event acceptance.",
+  "event": {
+    "title": "The New Agentic Economy Hackathon",
+    "context_revision": 3,
+    "source": "https://luma.com/1ofx14ov",
+    "camera_limit": 5,
+    "prepared_assets": 25
+  },
+  "voice": {
+    "provider": "Gemini Voice Design",
+    "synthesis_model": "gemini-3.8-flash-lite-tts",
+    "preview_duration_s": 5.04,
+    "synthesis_elapsed_s": 1.477745,
+    "first_chunk_s": 0.731545,
+    "chunks": 58,
+    "preview_sha256": "7649a0f6ae0898d4364f2329de719c88b77b992b4230df3ecd8d086e4effcd97"
+  },
+  "speech_runs": [
+    {
+      "run_id": "5c6cfedde784458e8502b7b220af6953",
+      "speech": [
+        {
+          "cue_id": "2e8592eceeef4c568054772212b50903-speech",
+          "text": "Welcome to the room, folks! Fresh builds cooking live today in New York City.",
+          "state": "completed",
+          "reason": null,
+          "first_sample": 1632000,
+          "last_sample": 1879680,
+          "basis": null,
+          "context_revision": null
+        },
+        {
+          "cue_id": "d9299e64d43c4b33b3b61f6d470a71de-speech",
+          "text": "Look at that traffic jam in the box! Nobody's giving an inch!",
+          "state": "completed",
+          "reason": null,
+          "first_sample": 2345600,
+          "last_sample": 2549120,
+          "basis": null,
+          "context_revision": null
+        },
+        {
+          "cue_id": "7d865bc9236548c19f124e214888f882-speech",
+          "text": "Over at Betaworks today, builders are wiring up voice and agentic pipelines!",
+          "state": "completed",
+          "reason": null,
+          "first_sample": 4307200,
+          "last_sample": 4595200,
+          "basis": null,
+          "context_revision": null
+        }
+      ]
+    },
+    {
+      "run_id": "a7b88743fa8441e9a681dda5d21be068",
+      "speech": [
+        {
+          "cue_id": "5dff780986444666961bce41330b29b7-speech",
+          "text": "Live from Betaworks! Better move fast before gridlock hits.",
+          "state": "completed",
+          "reason": null,
+          "first_sample": 1644800,
+          "last_sample": 1880960,
+          "basis": null,
+          "context_revision": null
+        },
+        {
+          "cue_id": "400449d99d5d49bead42b31b714309c2-speech",
+          "text": "Builders are cooking up live agentic workflows today!",
+          "state": "completed",
+          "reason": null,
+          "first_sample": 1913600,
+          "last_sample": 2103680,
+          "basis": null,
+          "context_revision": null
+        },
+        {
+          "cue_id": "f8543c8ad926488fb4515c3f7465e638-speech",
+          "text": "DeepMind's backing the crew today, so step on the gas, folks!",
+          "state": "completed",
+          "reason": null,
+          "first_sample": 2620800,
+          "last_sample": 2818560,
+          "basis": null,
+          "context_revision": null
+        },
+        {
+          "cue_id": "7c70a01b06754b169c62f94a3034e9cf-speech",
+          "text": "Blue cuts through traffic and slides one toward the box!",
+          "state": "completed",
+          "reason": null,
+          "first_sample": 2848000,
+          "last_sample": 3026560,
+          "basis": null,
+          "context_revision": null
+        },
+        {
+          "cue_id": "dd12396d8e334c89a31294ee551d91c6-speech",
+          "text": "Now a scrap right by the goalpost! Nobody giving an inch!",
+          "state": "completed",
+          "reason": null,
+          "first_sample": 3116800,
+          "last_sample": 3322240,
+          "basis": null,
+          "context_revision": null
+        },
+        {
+          "cue_id": "3fd3d83cec63467aba3ad80841a294f5-speech",
+          "text": "White shirts scrambling near the net, looking like Midtown rush hour!",
+          "state": "completed",
+          "reason": null,
+          "first_sample": 4854400,
+          "last_sample": 5059840,
+          "basis": null,
+          "context_revision": null
+        },
+        {
+          "cue_id": "7cb84a10a9f3443f8019ef16b3094bd9-speech",
+          "text": "Breadcast is handling live commentary and vector search on the fly!",
+          "state": "completed",
+          "reason": null,
+          "first_sample": 5206400,
+          "last_sample": 5425280,
+          "basis": null,
+          "context_revision": null
+        },
+        {
+          "cue_id": "f78c9d64c1ae421ab1cb09407162f73b-speech",
+          "text": "Whistle blows, play stops, and a guy's parked on the turf!",
+          "state": "interrupted",
+          "reason": "Operator command replaced pending proposals",
+          "first_sample": 5436800,
+          "last_sample": 5497600,
+          "basis": null,
+          "context_revision": null
+        }
+      ]
+    },
+    {
+      "run_id": "d0013603002a475fa7d28a45121530df",
+      "speech": []
+    }
+  ],
+  "replay": {
+    "id": "2ddd3238749641e4883baf8568105619",
+    "run_id": "d0013603002a475fa7d28a45121530df",
+    "duration_s": 1.0,
+    "plan_hash": "211a875fc112b8181400445cfc935f981c16a8d1cca1acceb209ab61a2845118",
+    "sha256": "63b5e07a042647bad3302d0ecc2ebef32079c39ddf354532867db3d1c0d00b65",
+    "decode_passed": true,
+    "continuous_pts": true,
+    "output_frames": 15,
+    "render_s": 0.17933918800008541,
+    "stages": {
+      "required_media_finalized_utc": 1791649894.567508,
+      "last_included_frame_receipt_utc": 1791649894.211499,
+      "receipt_uncertainty_ms": 133.33333333333266,
+      "evidence_available_utc": null,
+      "model_start_utc": 1791649900.6226227,
+      "model_end_utc": 1791649908.2946,
+      "plan_validated_utc": 1791649908.2955208,
+      "media_pinned_utc": 1791649908.3400192,
+      "render_start_utc": 1791649908.34161,
+      "render_end_utc": 1791649908.5223172,
+      "output_validated_utc": 1791649908.5238626,
+      "asset_ready_utc": 1791649909.3920577,
+      "opportunity_reviewed_utc": null,
+      "proposal_accepted_utc": null,
+      "first_encoder_frame": null,
+      "last_encoder_frame": null,
+      "return_submitted_utc": null,
+      "return_applied_monotonic_s": null,
+      "viewer_replay_utc": null,
+      "viewer_return_utc": null,
+      "candidate_admitted_utc": 1791649899.7095132
+    },
+    "supabase_receipt": {
+      "id": "58b345e807e5887de82aba8483bde77d41a697864c5cc4e3c69296e27dc9a0da",
+      "sha256": "63b5e07a042647bad3302d0ecc2ebef32079c39ddf354532867db3d1c0d00b65",
+      "bucket": "breadcast-clips"
+    },
+    "model_to_ready_s": 8.769,
+    "last_frame_receipt_to_ready_s": 15.181,
+    "played_on_air": false
+  },
+  "focused_checks": {
+    "direction": {
+      "passed": 27
+    },
+    "camera_admission": {
+      "passed": 10
+    },
+    "replay_work": {
+      "passed": 26
+    },
+    "media_transition": {
+      "passed": 2
+    }
+  },
+  "observed_limitations": [
+    "Some live model calls still exceed their original freshness windows; expired speech is discarded.",
+    "Commentary alignment with current camera action is not frame-accurate.",
+    "The last sample run lost its selected input; a separate camera arrived but was not selected on air.",
+    "The validated replay remains operator-approved; on-air entry, progress and return are pending manual checks.",
+    "Physical one-phone and five-phone operation, viewer audio perception and a second-network viewer require manual checks.",
+    "Broad acceptance checks were skipped."
+  ],
+  "live_camera_switch": {
+    "event": "The New Agentic Economy Hackathon",
+    "context_revision": 4,
+    "sample_configured": false,
+    "sample_state": "stopped",
+    "program": "HOLDING",
+    "replay_cards": 0,
+    "camera_limit": 5,
+    "setup_ready": true,
+    "run_id": "3ed44461d9fb4041861f6695b35f56d6",
+    "sample_start_status": 409,
+    "sample_start_body": {
+      "error": "Sample video playback is disabled for this event; join a live camera"
+    }
+  }
+}

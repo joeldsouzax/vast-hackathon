@@ -73,7 +73,7 @@ class DirectionContracts(unittest.TestCase):
         self.assertTrue(output['package']['ready']);self.assertTrue(output['package']['preloaded'])
         self.assertEqual(self.app.program.revision,revision)
         self.assertEqual(self.app.program.graphics.score['home_score'],None)
-        self.assertEqual(len(output['package']['assets']),7)
+        self.assertEqual(len(output['package']['assets']),25)
         for asset in output['package']['assets']:self.assertEqual(len(asset['sha256']),64)
         self.assertTrue(self.d.status()['setup']['ready'])
 
@@ -148,6 +148,29 @@ class DirectionContracts(unittest.TestCase):
         disclosure={'op':'commentary','text':self.phrase,'reason':'Fixture disclosure'}
         context['pending']=[{'text':self.phrase}]
         with self.assertRaisesRegex(ValueError,'repeats'):self.d.validate(self.result(disclosure,context),'commentator',context,time.time()+5)
+
+    def test_event_talk_requires_named_context_and_has_no_action_citations(self):
+        context=self.context('commentator')
+        line={'op':'commentary','basis':'event_context','text':'Welcome to Forever 22.','evidence_ids':[], 'reason':'Event welcome'}
+        capabilities=self.f.registry.capabilities()
+        with patch.object(self.f.registry,'gemini',object()), patch.object(self.f.registry,'capabilities',return_value=capabilities):
+            with self.assertRaisesRegex(ValueError,'current event brief'):
+                self.d.validate(self.result(line,context),'commentator',context,time.time()+5)
+            context['event']['title']='Forever 22'
+            intent,dependencies=self.d.validate(self.result(line,context),'commentator',context,time.time()+5)
+            self.assertEqual(intent.basis,'event_context')
+            self.assertEqual(dependencies['evidence_ids'],[])
+            self.assertEqual(set(dependencies['sources']),{self.s.source_id})
+            line['basis']='action'
+            with self.assertRaisesRegex(ValueError,'requires reviewed'):
+                self.d.validate(self.result(line,context),'commentator',context,time.time()+5)
+
+    def test_gemini_replay_needs_operator_approval(self):
+        with patch.object(self.f.registry,'gemini',object()):
+            result=self.c.propose({'id':'automatic-replay','op':'replay','args':{'replay_id':'example'},
+                'expected':self.c.expected({'replay_id':'example'}),'expires_at':time.time()+5},actor='Provider crew')
+        self.assertEqual(result['state'],'Rejected')
+        self.assertIn('operator approval',result['reason'])
 
     def test_D07_unknown_ambiguous_and_discontinuous_mapping(self):
         from live_timing import match_recording

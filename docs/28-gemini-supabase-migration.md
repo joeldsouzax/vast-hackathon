@@ -37,7 +37,7 @@ Search results must match the current local scene record before playback.
 
 The existing internal `cosmos` boundary now names Gemini video analysis. It is
 retained for schema compatibility. The `yolo` boundary now uses Gemini object
-reasoning on at most three sampled frames from each recorded window. Results
+reasoning on one recent sampled frame from each two-second recorded window. Results
 retain the inspected JPEG hash, dimensions, exact native interval and normalized
 boxes. These are frame observations, not calibrated detector confidence or
 cross-frame tracks. Automatic crops remain unavailable.
@@ -52,7 +52,7 @@ This proves catalog access only. No inference or latency pass is claimed.
 | Task | Selected model | Why it fits |
 |---|---|---|
 | Current video, director, commentator | `gemini-3.8-flash` | Its [model card](https://deepmind.google/models/model-cards/gemini-3-8-flash/) supports video, images and text. Its [API capabilities](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash) support structured output. Use low thinking to limit response time. |
-| Visual replay editing | `gemini-3.8-flash` | The same multimodal model can inspect timestamped replay frames. Use medium thinking for this less urgent planning task. |
+| Visual replay editing | `gemini-3.8-flash` | The same multimodal model inspects timestamped replay frames. Low thinking keeps bounded edits within the preparation budget. |
 | Frame object boxes | `gemini-robotics-er-2-preview` | Its [model card](https://deepmind.google/models/model-cards/gemini-robotics-er-2/) describes spatial and temporal reasoning. The [standard API variant](https://ai.google.dev/gemini-api/docs/models/gemini-robotics-er-2-preview) supports structured output. Its Live streaming variant does not; the standard model fits this clip/SSE flow. |
 | Short live commentary speech | `gemini-3.8-flash-lite-tts` | The [model guide](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash-lite-tts) favors low latency and single-speaker speech. The optional Flash TTS variant favors acting nuance and voice fidelity. |
 | Search | `gemini-embedding-2` | The [model guide](https://ai.google.dev/gemini-api/docs/models/gemini-embedding-2) supports semantic search and recommends 768 among its vector sizes. This implementation embeds validated captions. |
@@ -86,14 +86,15 @@ Diagnostics record chunk count, time to first chunk, completion time and actual
 returned model version. These fields are measurements from an actual request,
 not predicted latency.
 
-Live evidence keeps its original eight-second deadline. Gemini mode uses model
-proposals for cuts and replays; code-only camera rotation and replay playback
-are disabled in this mode. Existing prepared-graphics rules remain. Search keeps its
+Live evidence keeps its original 20-second deadline. Each role gets at most
+12 seconds within that deadline, including speech preparation and delivery.
+The former eight-second budget expired before speech could fit. Gemini mode keeps
+camera selection and replay playback under operator control. Timed decorative graphics are also disabled. Automatic
+overlays need cited evidence and an eligible prepared purpose. Search keeps its
 five-second total budget. Late analysis can enter the archive. Gemini segmentor
-failure does not produce a substitute code-selected edit. A ready automatic
-replay needs a fresh Gemini director proposal with replay-opportunity evidence.
-The controller remains the only owner of airtime. Explicit operator replay
-controls remain available.
+failure does not produce a substitute code-selected edit. A ready replay requires
+the operator's **Play replay** action. The controller remains the only owner of
+airtime. See the [current event setup and evidence](30-forever22-demo.md).
 
 Clip objects use content hashes and a private bucket. The runtime reads back
 stored bytes and checks SHA-256 before saving the clip record. Ambiguous uploads

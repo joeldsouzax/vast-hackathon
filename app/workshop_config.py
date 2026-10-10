@@ -51,9 +51,11 @@ def settings():
         providers['yolo']=ProviderConfig(adapter='live',protocol='gemini-supabase-v1',version='unknown')
         return FoundationSettings(providers=providers,
             event={'event_id':'manual-event','voice_id':config.get('BREADCAST_GEMINI_VOICE')},
-            limits=Limits(live_deadline_s=8.0,call_timeout_s=8.0,retries=0),
-            direction={'enabled':True,'role_timeout_s':8.0},
-            replay={'enabled':True,'candidate_s':30.0,'preparation_s':15.0,
+            # One original budget covers analysis, a cited line, TTS, and delivery.
+            # The former 8s window expired before speech could be prepared.
+            limits=Limits(window_s=2.0,step_s=2.0,concurrency=4,live_deadline_s=20.0,call_timeout_s=10.0,retries=0),
+            direction={'enabled':True,'role_timeout_s':12.0},
+            replay={'enabled':True,'candidate_s':60.0,'preparation_s':45.0,
                 'recall_s':45.0,'recall_expiry_s':60.0,'query_s':5.0,
                 'index_version':'breadcast-gemini-caption-768-v1','embedding_version':embedding})
     if os.environ.get('BREADCAST_PROVIDER_STACK')!='workshop':

@@ -310,6 +310,7 @@ class App:
         self.foundation = Foundation(cfg.runtime, self.control.run_id,
             FoundationSettings.load(cfg.foundation_config) if cfg.foundation_config else __import__('workshop_config').settings(),
             snapshot=self.foundation_snapshot)
+        self.program.graphics.activate_package(self.program.graphics.prepare_package(self.foundation.event_context()))
         self.direction = Direction(self)
         self.replay_work = ReplayWork(self)
         self.program.replay_guard=self.replay_work.ticket_valid

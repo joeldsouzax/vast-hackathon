@@ -35,6 +35,54 @@ chunks, native clocks, reviewed snapshots and controller ownership.
 - Partial SSE JSON has no decision authority. A response must finish with STOP
   and pass its strict schema, source bounds, model identity and snapshot checks.
   Live work keeps its original deadline. Late archive work cannot refresh it.
+- Gemini mode assigns a 20-second live budget at first frame receipt. The role
+  budget is at most 12 seconds and is bounded by the original evidence deadline.
+  Analysis, line generation, speech preparation and playout share that deadline.
+  This replaces the eight-second Gemini budget, which expired before speech
+  could fit. It does not change the program delay or prove visual alignment.
+  Live commentary excludes expired and archive-only observations.
+- Gemini uses two-second analysis windows. Object detection samples one recent
+  frame, with up to eight requested boxes. This is sampled detection, not tracking.
+- Gemini uses four bounded workers so speech, current analysis, direction and
+  replay preparation can progress in parallel. Each role still has one pending
+  request and one active request. Archive analysis for a source waits while that
+  source receives live frames; it cannot hold the source lock ahead of live work.
+- Automatic Gemini action graphics require cited evidence and an eligible prepared
+  purpose. All 24 templates preload from the versioned event context on startup.
+  The director sees their purpose, animation, text binding and eligibility.
+  Runtime titles and subtitles bind cited facts into these templates. Official
+  scores remain operator-owned. Opening, countdown and closing cards require
+  explicit event timing or phase, not an inference from camera motion.
+- A replay command can select one of the four existing stingers. The accepted
+  replay command owns its short entry and return transitions. Entry holds the
+  first source frame until the transition ends. The replay progress bar uses
+  actual output-frame position. Current score graphics stay hidden in replay.
+- Gemini cannot propose replay playback, camera cuts, holding or framing changes.
+  Only an operator action starts replay. Commentary, graphics and replay
+  preparation remain automatic. Prepared branding needs no action citation.
+- Gemini commentary distinguishes `basis=action` from `basis=event_context`.
+  Action lines require exact reviewed evidence IDs and keep the original evidence
+  deadline. Event talk requires a named current event brief, empty action evidence
+  and the same live source. It may state stable supplied event facts, not current
+  activity. The cue and delivery history retain basis and context revision.
+  Context changes cancel both types. A new event line has a 12-second work budget.
+  The model must not use event talk to make unsupported activity claims.
+- At most one next speech cue can wait behind the active cue. Preparation can
+  start in its final four seconds. The controller still checks source, context,
+  deadline and complete audio fit before playout. Audio completion ends captions
+  without waiting for the whole original expiry window. Expiry is never extended.
+- Gemini replay candidates prefer recent scenes. Preparation has at most 45
+  seconds from required-media finalization, within the original 60-second
+  candidate budget. Archive readiness does not authorize airtime. If the selected
+  end is inside a recorded chunk, its exact last-frame receipt remains unknown;
+  no receipt-latency pass is reported. Operator approval is required for playback.
+- Commentary stays valid across decorative overlay changes when its source,
+  epoch, mapping, control revision and original deadline still match. Replay
+  commentary also retains the accepted replay session and playback ticket.
+  A source change, takeover, evidence correction or deadline still cancels it.
+- In Automatic mode, individual operator media commands replace pending
+  proposals without pausing the crew. Take control explicitly pauses it;
+  Release resumes it. Start video includes Release in its controller transaction.
 - Supabase holds private original/chunk/replay bytes and immutable clip records.
   A clip receipt requires a stored-byte SHA-256 match. A rendered replay needs
   this receipt before Ready. Supabase does not own program state.

@@ -43,6 +43,33 @@ SPECS = (
 )
 CATALOG = {row[0]: dict(zip(('id', 'name', 'category', 'slot', 'title', 'subtitle', 'motion'), row)) for row in SPECS}
 
+PURPOSES = {
+    'opening':'Introduce the supplied event before action starts',
+    'countdown':'Count down to an operator-supplied start time',
+    'break':'Mark an observed break or stoppage',
+    'closing':'Close an officially finished event',
+    'spotlight':'Explain a notable cited moment during a quiet interval',
+    'matchup':'Introduce supplied competitors during a quiet interval',
+    'lower-classic':'Identify a supplied person or explain a cited action',
+    'lower-pill':'Brief identification or short action label',
+    'lower-split':'Pair a cited headline with a short explanation',
+    'lower-portrait':'Spotlight a verified participant; do not invent an identity',
+    'caption':'Show a concise evidence-backed observation',
+    'ticker':'Summarize confirmed event facts during a quiet interval',
+    'headline':'Highlight a notable visible action',
+    'toast-note':'Brief update on a changed event fact or visible action',
+    'wide-banner':'Summarize a cited turning point during a quiet interval',
+    'brand-bug':'Identify the broadcast service without covering action',
+    'status-bug':'Identify actual LIVE or REPLAY program state',
+    'corner-label':'Label a visible action without covering captions',
+    'score-compact':'Show only operator-confirmed score and clock',
+    'score-wide':'Show only operator-confirmed score and clock',
+    'toast-wipe':'Short replay entry and return wipe',
+    'ribbon-sweep':'Sliding replay entry and return transition',
+    'crumb-burst':'Playful replay entry and return transition',
+    'iris-reveal':'Replay entry and return reveal',
+}
+
 
 def text(value, name, limit=120):
     if not isinstance(value, str) or len(value) > limit or any(ord(c) < 32 for c in value):
@@ -381,7 +408,7 @@ class Graphics:
                         layer.alpha_composite(old.crop((sx-6, split_y, sx+43, y+49)), (sx-6, split_y))
                         draw.line((sx-6, y+8+int((1-flip)*37), sx+42, y+8+int((1-flip)*37)), fill=GOLD, width=3)
         elif slot == 'stinger':
-            t = min(1, age/2)
+            t = min(1, age/(p.duration or 2))
             if spec['motion'] == 'wipe':
                 dx = int(-self.w+self.w*ease(t/.4)) if t < .4 else int(self.w*ease((t-.6)/.4)) if t > .6 else 0
                 layer.alpha_composite(self.logo_sizes[90], (275, 67))
@@ -422,7 +449,7 @@ class Graphics:
                 self.active.pop(slot); cue = None
             # Current official facts must not be presented over historical replay video.
             has_screen = ('screen' in self.active or 'screen' in self.retiring) and mode != 'REPLAY'
-            suppressed = (mode == 'REPLAY' and slot != 'bug') or (has_screen and slot not in ('screen', 'bug', 'stinger')) or (slot=='score' and not self.official_eligible)
+            suppressed = (mode == 'REPLAY' and slot not in ('bug','stinger')) or (has_screen and slot not in ('screen', 'bug', 'stinger')) or (slot=='score' and not self.official_eligible)
             if cue and not suppressed:
                 score = self.score if slot == 'score' else cue.prepared.score or self.score
                 painted, covers = self.paint(frame, cue, now, mode, score)
@@ -470,6 +497,8 @@ class Graphics:
             'closing':('Thanks for watching.',title),
             'brand-bug':('breadcast.',''),
         }
+        for key in CATALOG:
+            bindings.setdefault(key,('', ''))
         prepared={};assets=[]
         for key,(heading,subtitle) in bindings.items():
             command=self.prepare({'op':'cue','preset':key,'title':heading,'subtitle':subtitle,'duration_s':4})

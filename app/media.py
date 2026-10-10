@@ -314,6 +314,7 @@ class Program:
         self.replay_revision = None
         self.replay: Replay | None = None
         self.replay_index = 0
+        self.replay_transitions = None
         self.replay_ticket = None
         self.replay_guard=lambda ticket:True
         self.revision = 0
@@ -389,13 +390,20 @@ class Program:
 
     def command(self, action: str, revision: int, slot: int = 1,
                 replay: Replay | None = None, independent: bool = False, graphics: dict | None = None, prepared=None,
-                muted: bool = False, rect=None, geometry_revision=None) -> dict:
+                muted: bool = False, rect=None, geometry_revision=None, replay_transition=None) -> dict:
         # Bind text outside the media lock. A stale revision still prevents applying it.
         prepared = prepared if prepared is not None else (self.graphics.prepare(graphics) if action == "graphics" else None)
+        transitions=None
+        if action=='replay' and replay_transition:
+            if replay_transition not in ('toast-wipe','ribbon-sweep','crumb-burst','iris-reveal'):
+                raise ValueError('Unknown replay transition')
+            transitions=tuple(self.graphics.prepare({'op':'cue','preset':replay_transition,
+                'title':label,'subtitle':'','duration_s':.6}) for label in ('REPLAY','LIVE'))
         with self.lock:
             if revision != self.revision:
                 raise ValueError("Program revision changed; refresh and retry")
             if action == "live":
+                returning=self.requested=='REPLAY'
                 source = self.source_getter(slot)
                 if (slot != self.slot or (source and self.primary_source_path not in (None, source.path))) and not independent:
                     raise ValueError("Capture sync is unknown; acknowledge an independent view change")
@@ -404,6 +412,8 @@ class Program:
                 self.requested, self.replay = "LIVE", None
                 self.replay_ticket=None
                 self.graphics.clear_cover()
+                if returning and self.replay_transitions:self.graphics.apply(self.replay_transitions[1],time.monotonic())
+                self.replay_transitions=None
                 self.framing=None
                 self.cancel_commentary('Picture changed')
             elif action == "holding":
@@ -425,8 +435,10 @@ class Program:
                     raise ValueError("Replay is not validated and ready")
                 self.requested, self.replay = "REPLAY", replay
                 self.replay_index = 0
+                self.replay_transitions=transitions
                 self.replay_revision = self.revision + 1
                 self.graphics.clear_cover()
+                if transitions:self.graphics.apply(transitions[0],time.monotonic())
                 self.framing=None
                 self.cancel_commentary('Replay session changed')
             elif action in ('crop','reset_crop'):
@@ -558,7 +570,7 @@ class Program:
                         with self.lock:
                             voice=b''
                             if cue and self.cue is cue and cue.valid():
-                                if cue.pcm and voice_offset!=cue.offset:
+                                if cue.offset<len(cue.pcm) and voice_offset!=cue.offset:
                                     self.cancel_commentary('Speech sample sequence is discontinuous')
                                 else:voice=cue.pcm[voice_offset:voice_offset+cfg.audio_size]
                                 cue.audio_inflight=bool(voice)
@@ -618,23 +630,26 @@ class Program:
                             self.replay_ticket=None
                             self.framing=None
                             self.cancel_commentary('Archive dependency unavailable' if revoked else 'Replay finished; return to live')
+                            if not revoked and self.replay_transitions:self.graphics.apply(self.replay_transitions[1],now)
+                            self.replay_transitions=None
                             self.revision += 1
                             self.log("replay_finished", revision=self.revision)
                         else:
                             image = Image.open(io.BytesIO(self.replay.frames[self.replay_index])).convert("RGB")
                             actual_target = {"kind": "replay", "id": self.replay.id,
                                              "output_frame": self.replay_index, "command_revision": self.replay_revision}
-                            self.replay_index += 1
+                            if not ('stinger' in self.graphics.active or 'stinger' in self.graphics.retiring):
+                                self.replay_index += 1
                             shot = next((s for s in self.replay.report.get("source_map", [])
-                                         if s["output_frame_start"] <= self.replay_index - 1 < s["output_frame_end"]), None)
+                                         if s["output_frame_start"] <= actual_target['output_frame'] < s["output_frame_end"]), None)
                             speed = shot["speed"] if shot else self.replay.speed
                             actual, label = "REPLAY", f"REPLAY  {speed:g}x"
                             if shot:
                                 actual_target.update(source_id=shot["source_id"], speed=speed, edit=shot["edit"])
-                                native_frame=next((f for f in shot.get('native_frames',[]) if f['output_frame']==self.replay_index-1),None)
+                                native_frame=next((f for f in shot.get('native_frames',[]) if f['output_frame']==actual_target['output_frame']),None)
                                 actual_target.update(source_path=shot['retained_media']['source_path'],epoch=shot['source_epoch'],
                                     native=native_frame['native'] if native_frame else None,
-                                    event_ms=shot['event_start_ms']+(self.replay_index-1-self.cfg.fps*shot['output_start_ms']/1000)*1000/self.cfg.fps*speed if shot.get('event_start_ms') is not None else None)
+                                    event_ms=shot['event_start_ms']+(actual_target['output_frame']-self.cfg.fps*shot['output_start_ms']/1000)*1000/self.cfg.fps*speed if shot.get('event_start_ms') is not None else None)
                                 if shot.get('source'):
                                     actual_target['archive_source']=shot['source']
                                     mapping_rate=(shot['event_end_ms']-shot['event_start_ms'])/(shot['source_end_ms']-shot['source_start_ms']) if shot.get('event_start_ms') is not None else None
@@ -708,8 +723,9 @@ class Program:
                     if cue:
                         changed=any(actual_target.get(key)!=value for key,value in cue.target.items())
                         changed=changed or actual_target.get('kind') in ('camera','replay') and not actual_target.get('native')
-                        if changed or not cue.valid() or self.frames_written>=cue.end_frame:
-                            if self.frames_written>=cue.end_frame and cue.valid() and not changed:
+                        speech_done=bool(cue.pcm and cue.delivered.get('speech',{}).get('terminal') and cue.offset==len(cue.pcm))
+                        if changed or not cue.valid() or self.frames_written>=cue.end_frame or speech_done:
+                            if (self.frames_written>=cue.end_frame or speech_done) and cue.valid() and not changed:
                                 if cue.caption is not None:
                                     delivered=cue.delivered.get('caption',{})
                                     self._cue_receipt(cue,'caption','completed' if 'first' in delivered else 'expired')
@@ -731,6 +747,10 @@ class Program:
                         box = draw.textbbox((0, 0), label, font=self.font)
                         draw.rounded_rectangle((12, 12, box[2] + 36, 49), radius=7, fill="#253028")
                         draw.text((24, 15), label, font=self.font, fill="#EFA845" if actual == "REPLAY" else "#F7F4EC")
+                    if actual=='REPLAY' and self.replay:
+                        progress=(actual_target['output_frame']+1)/len(self.replay.frames)
+                        draw.rectangle((14,51,174,54),fill='#253028')
+                        draw.rectangle((14,51,14+round(160*progress),54),fill='#EFA845')
                     self.frame = jpeg(image)
                     rendered_revision = self.revision
                 audio_queue.put((audio,cue if cue and self.frames_written>=cue.start_frame else None,voice_offset,self.frames_written), timeout=2)

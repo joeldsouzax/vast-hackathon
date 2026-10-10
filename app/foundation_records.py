@@ -36,7 +36,7 @@ class EventContext(Record):
     branding: dict[str, str] = Field(default_factory=dict)
     editorial_policy: dict[str, str] = Field(default_factory=dict)
     audio_policy: dict[str, str] = Field(default_factory=dict)
-    commentary_style: str = Field(default='spicy, funny, witty, and playful; evidence-backed callbacks, varied jokes, expressive delivery, deliberate pauses',min_length=1,max_length=2048)
+    commentary_style: str = Field(default='funny, witty live play-by-play with occasional brief analysis grounded in visible action; upbeat conversational delivery, playful warmth, quick punchlines, varied evidence-backed callbacks, natural emphasis and short pauses; leave room for event sound',min_length=1,max_length=2048)
     language: str = Field(default='en',min_length=1,max_length=32)
     pronunciations: dict[str, str] = Field(default_factory=dict)
     voice_id: str | None = Field(default=None,max_length=192)
@@ -323,6 +323,8 @@ class ProgramText(Record):
     event_ms: int | None
     program_revision: Nonnegative
     evidence_ids: list[ID] = Field(default_factory=list)
+    basis: Literal['action', 'event_context'] = 'action'
+    context_revision: Positive | None = None
     origin: Literal['fixture', 'controller']
     channel: Literal['speech', 'caption', 'intent', 'legacy'] = 'legacy'
     session_id: ID | None = None
@@ -370,7 +372,7 @@ class ProviderConfig(Record):
 class Limits(Record):
     window_s: Annotated[float, Field(gt=0, le=12)] = 6.0
     step_s: Annotated[float, Field(gt=0, le=12)] = 2.0
-    concurrency: Annotated[int, Field(ge=1, le=2)] = 2
+    concurrency: Annotated[int, Field(ge=1, le=4)] = 2
     call_timeout_s: Annotated[float, Field(gt=0)] = 10.0
     live_deadline_s: Annotated[float, Field(gt=0)] = 8.0
     retries: Annotated[int, Field(ge=0, le=2)] = 2
@@ -476,6 +478,8 @@ class FramingIntent(Record):
 class GraphicIntent(Record):
     op: Literal['graphics']
     preset: ID
+    title: str | None = Field(default=None, min_length=1, max_length=80)
+    subtitle: str | None = Field(default=None, max_length=120)
     duration_s: Annotated[float, Field(gt=0, le=8)] = 4.0
     evidence_ids: list[ID] = Field(default_factory=list, max_length=32)
     reason: str = Field(min_length=1, max_length=256)
@@ -490,6 +494,7 @@ class HoldIntent(Record):
 class ReplayIntent(Record):
     op: Literal['replay']
     replay_id: ID
+    transition: Literal['toast-wipe','ribbon-sweep','crumb-burst','iris-reveal'] = 'ribbon-sweep'
     evidence_ids: list[ID] = Field(min_length=1, max_length=32)
     reason: str = Field(min_length=1, max_length=256)
 
@@ -507,6 +512,7 @@ DirectorIntent = Annotated[Abstention | CameraIntent | FramingIntent | GraphicIn
 class CommentaryIntent(Record):
     op: Literal['commentary']
     text: str = Field(min_length=1, max_length=240)
+    basis: Literal['action', 'event_context'] = 'action'
     evidence_ids: list[ID] = Field(default_factory=list, max_length=32)
     reason: str = Field(min_length=1, max_length=256)
 

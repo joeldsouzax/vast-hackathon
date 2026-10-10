@@ -180,7 +180,7 @@ def web_api(app, *, manage_lifecycle=True):
         return send(200,stored['result']) if stored['state']=='complete' else send(503,{'reason':'provider_unavailable','error':'Search did not complete'})
 
     for path,fn in {
-        '/api/viewer':lambda:{'join_url':app.join_url()},'/api/status':app.status,
+        '/api/viewer':lambda:{'join_url':app.join_url(),'event_title':app.foundation.event_context().title,'camera_limit':5},'/api/status':app.status,
         '/api/graphics/catalog':app.program.graphics.manifest,'/api/replay-context':app.replay_context.summary,
     }.items():
         def endpoint(fn=fn):return send(200,fn())

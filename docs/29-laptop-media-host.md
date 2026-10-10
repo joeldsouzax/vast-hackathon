@@ -1,5 +1,9 @@
 # Laptop media host
 
+The current event setup, speech/replay repair evidence and five-camera demo steps
+are in the [Forever 22 demo record](30-forever22-demo.md). The initial startup
+observations below describe the first release.
+
 The laptop runs the persistent media runtime. Supabase hosts the Gemini function,
 private clips and vector database. The public pages are available through a
 temporary Cloudflare Quick Tunnel. Studio and Viewer also receive program video

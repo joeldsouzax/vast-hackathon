@@ -77,7 +77,7 @@ def verify_dependencies(foundation, plan):
             position=shot.native.start
             for start,end in sorted(intervals):
                 if start<=position:position=max(position,end)
-            if position<shot.native.end:raise ValueError('coverage_gap')
+            if position<shot.native.end:raise ValueError('coverage_gap: cited views do not cover the shot')
         # All angles must be linked to the same supported action; overlap is insufficient.
         associations={foundation._observation(eid).association_key for s in plan.shots for eid in s.evidence_ids}
         if len({operation_key(s.source.model_dump()) for s in plan.shots})>1 and (None in associations or len(associations)!=1):
@@ -109,7 +109,7 @@ def _frames(resolution, cfg, deadline, canceled, memory_left):
                 if frame.pts is None or frame.duration<=0:raise ValueError('Frame timing is unknown')
                 pts=frame.pts+manifest.timeline_offset_pts
                 end=pts+frame.duration
-                if previous is not None and pts!=previous:raise ValueError('coverage_gap')
+                if previous is not None and pts!=previous:raise ValueError('coverage_gap: recorded frame timestamps are not contiguous')
                 previous=end
                 if end<=resolution.native.start:continue
                 if pts>=resolution.native.end:break

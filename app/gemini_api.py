@@ -11,13 +11,33 @@ import httpx
 from provider_errors import ProviderFailure, http_failure
 
 MODEL = re.compile(r'[A-Za-z0-9][A-Za-z0-9._-]{0,191}')
-SCHEMA_KEYS = {'$defs', '$ref', 'type', 'title', 'description', 'enum', 'items',
-    'minItems', 'maxItems', 'minimum', 'maximum', 'anyOf', 'properties',
-    'additionalProperties', 'required'}
+SCHEMA_KEYS = {'$defs', '$ref', 'type', 'description', 'enum', 'items',
+    'anyOf', 'properties', 'required', 'additionalProperties'}
+
+
+def pcm24k(mime):
+    """Accept equivalent MIME spellings only for the mono PCM format we request."""
+    if not isinstance(mime, str):
+        return False
+    media, *parts = mime.lower().split(';')
+    if media.strip() not in ('audio/l16', 'audio/pcm'):
+        return False
+    expected = {'codec': 'pcm', 'rate': '24000', 'channels': '1'}
+    seen = set()
+    for part in parts:
+        key, separator, value = part.strip().partition('=')
+        key = key.strip()
+        if not separator or key in seen or key not in expected or value.strip().strip('"') != expected[key]:
+            return False
+        seen.add(key)
+    return True
 
 
 def json_schema(value):
-    """Convert Pydantic schema metadata; local validation keeps every constraint."""
+    """Use a bounded-shape schema; nested bounds caused Gemini HTTP 400.
+
+    Local Pydantic validation still enforces bounds and rejects extra fields.
+    """
     if isinstance(value, list):
         return [json_schema(item) for item in value]
     if not isinstance(value, dict):
@@ -105,7 +125,7 @@ class GeminiAPI:
             generation=None, output_limit=131072):
         config = {'maxOutputTokens': 4096, **(generation or {})}
         if schema is not None:
-            config['responseFormat'] = {'text': {'mimeType': 'application/json', 'schema': json_schema(schema)}}
+            config['responseFormat'] = {'text': {'mimeType': 'APPLICATION_JSON', 'schema': json_schema(schema)}}
         payload = {'contents': [{'role': 'user', 'parts': parts}], 'generationConfig': config}
         if instructions:
             payload['systemInstruction'] = {'parts': [{'text': instructions}]}
@@ -156,8 +176,7 @@ class GeminiAPI:
                             text.append(value)
                         if 'inlineData' in part:
                             inline = part['inlineData']
-                            if inline.get('mimeType') not in ('audio/L16;codec=pcm;rate=24000', 'audio/pcm;rate=24000',
-                                    'audio/l16', 'audio/L16'):
+                            if not pcm24k(inline.get('mimeType')):
                                 raise ValueError
                             value = base64.b64decode(inline['data'], validate=True)
                             audio_bytes += len(value)

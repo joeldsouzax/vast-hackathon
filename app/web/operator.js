@@ -210,8 +210,21 @@ function cameraCard(camera) {
   else clearCameraPreview(image, cameraStateLabel(camera));
 }
 let examplesBusy = false;
+function readyLiveCamera() {
+  const ready = (state?.cameras || []).filter(camera => camera.state === 'ACTIVE' && camera.buffer_ready);
+  return ready.find(camera => camera.source_path === state?.program.primary_source_path) || ready[0];
+}
 function examplesState(examples) {
   const button = document.querySelector('#example-video'), status = document.querySelector('#example-video-status');
+  if (examples && !examples.configured) {
+    const live = state?.program.actual === 'LIVE' || state?.program.actual === 'REPLAY';
+    const camera = readyLiveCamera();
+    button.textContent = live ? 'Hold broadcast' : 'Go live';
+    button.disabled = examplesBusy || !operatorAuthorized || (!live && !camera);
+    status.textContent = live ? '' : camera ? `Ready to use Camera ${camera.slot}.` : 'Join a camera with the event QR to go live.';
+    status.hidden = !status.textContent;
+    return;
+  }
   const stopping = examples?.state === 'stopping', starting = examples?.state === 'starting';
   const active = ['starting', 'playing', 'stopping'].includes(examples?.state);
   button.textContent = active ? 'Stop video' : 'Start video';
@@ -223,9 +236,20 @@ function examplesState(examples) {
 }
 document.querySelector('#example-video').onclick = async () => {
   const examples = state?.examples;
+  if (examples && !examples.configured && operatorAuthorized && !examplesBusy) {
+    const live = state.program.actual === 'LIVE' || state.program.actual === 'REPLAY';
+    const camera = readyLiveCamera();
+    if (!live && !camera) return;
+    if (!live && programVideo.muted) document.querySelector('#monitor-audio').click();
+    examplesBusy = true; examplesState(examples);
+    try { await command(live ? 'holding' : 'live', live ? {} : {slot: camera.slot, independent: true}); }
+    finally { examplesBusy = false; examplesState(state?.examples); }
+    return;
+  }
   if (examplesBusy || !operatorAuthorized || !['stopped', 'starting', 'playing', 'failed'].includes(examples?.state)) return;
   const action = ['starting', 'playing'].includes(examples.state) ? 'stop' : 'start';
   if (action === 'start' && !examples.configured) return;
+  if (action === 'start' && programVideo.muted) document.querySelector('#monitor-audio').click();
   examplesBusy = true; examplesState(examples);
   try {
     const result = await api(`/api/examples/${action}`, {});

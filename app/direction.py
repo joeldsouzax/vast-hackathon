@@ -74,7 +74,7 @@ class Direction:
             if (app.program.requested!='LIVE' or target.get('kind')!='camera' or
                     target.get('source_path')!=camera['source_path'] or target.get('epoch')!=camera['epoch']):
                 raise ValueError('Commentary camera changed')
-        elif program and snapshot.program_revision!=app.program.revision:raise ValueError('Reviewed program cue changed')
+        elif program and not dependencies.get('archive_session') and snapshot.program_revision!=app.program.revision:raise ValueError('Reviewed program cue changed')
         if time.time()>=dependencies['deadline']:raise ValueError('Original decision deadline expired')
         if self.foundation.invalidated_evidence.intersection(dependencies['evidence_ids']):raise ValueError('Reviewed evidence was corrected')
         if dependencies.get('archive_session'):
@@ -86,7 +86,7 @@ class Direction:
             native=target.get('native') or {}
             if target.get('archive_source')!=session['source'] or target.get('source_path')!=session['source']['source_id'] or native.get('native_pts',-1)<session['reviewed_pts']:
                 raise ValueError('Archive source interval moved backward or changed')
-        for source_id,(slot,epoch,revision) in ({} if camera else dependencies['sources']).items():
+        for source_id,(slot,epoch,revision) in ({} if camera and not self.foundation.registry.gemini else dependencies['sources']).items():
             current=app.get_source(slot)
             if not current or current.path!=source_id or current.epoch!=epoch or getattr(current,'timeline_revision',1)!=revision:
                 raise ValueError('Reviewed source lease, epoch, or mapping changed')
@@ -108,7 +108,7 @@ class Direction:
         if isinstance(intent,Abstention):return intent,None
         refs=intent.evidence_ids
         allowed={o['evidence_id']:o for o in context['observations']}
-        if role=='commentator' and refs and not self.foundation.registry.gemini:
+        if role=='commentator' and refs and mode=='live' and not self.foundation.registry.gemini:
             # Resolve truncated IDs by unique prefix, then drop invented IDs.
             # The line must still rest on at least one reviewed observation.
             resolved=[]
@@ -126,20 +126,43 @@ class Direction:
             # Empty references permit only the exact fixture disclosure. Live claims need evidence.
             speech=self.foundation.registry.labels.get('speech',{})
             disclosures=[speech.get('text')]+[v['text'] for v in speech.get('variants',[])]
-            if not refs and not (result.origin=='fixture' and intent.text in disclosures):
+            event_bridge=(self.foundation.registry.gemini and intent.basis=='event_context' and
+                bool(context['event'].get('title')) and not context['target'].get('archive_session'))
+            if intent.basis=='event_context' and not event_bridge:
+                raise ValueError('Event commentary requires the current event brief and live view')
+            if event_bridge and refs:
+                raise ValueError('Event commentary must not claim camera evidence')
+            if not refs and not event_bridge and not (result.origin=='fixture' and intent.text in disclosures):
                 raise ValueError('Commentary requires reviewed evidence')
             if any(row['text']==intent.text for row in context['aired']+context['pending']):
                 raise ValueError('Commentary repeats pending or delivered text')
+        if intent.op=='graphics' and self.foundation.registry.gemini:
+            if intent.preset not in {g['id'] for g in context.get('prepared_graphics',[])}:
+                raise ValueError('Automatic overlay requires reviewed evidence and an eligible prepared purpose')
+            if any(cue.prepared.title==intent.title for cue in self.app.program.graphics.active.values()):
+                raise ValueError('Action label is already visible')
+            entry=next(g for g in context['prepared_graphics'] if g['id']==intent.preset)
+            if not refs and entry['text_binding']!='prepared':
+                raise ValueError('Action overlays require reviewed evidence')
+            if entry['slot'] in ('screen','lower') and self.app.program.cue is not None:
+                raise ValueError('Keep the caption area clear during commentary')
+            if entry['text_binding']=='evidence' and not intent.title:
+                raise ValueError('Action overlay needs a cited short title')
+            if entry['text_binding']!='evidence' and (intent.title is not None or intent.subtitle is not None):
+                raise ValueError('This template uses prepared or official text')
+            if any(slot in self.app.program.graphics.active for slot in ('screen','stinger','lower','banner','ticker')):
+                raise ValueError('An information overlay is already active')
         if intent.op=='crop':
             if not intent.rect or not refs or not any(d['confidence']>=.6 for eid in refs for d in allowed[eid]['detections']):
                 raise ValueError('Live crop requires geometry and subject evidence')
         dependencies={'snapshot':snapshot,'evidence_ids':refs,'deadline':deadline,'sources':{}}
         archive_session=role=='commentator' and context['target'].get('archive_session')
         if archive_session:dependencies['archive_session']=context['target']['archive_session']
-        elif role=='commentator' and not self.foundation.registry.gemini:
+        elif role=='commentator':
             reviewed=context['target']['source']
             dependencies['commentary_camera']={'source_path':reviewed['source_id'],'epoch':reviewed['epoch']}
         for source in (() if archive_session else snapshot.sources):
+            if role=='commentator' and source.source_id!=context['target']['source']['source_id']:continue
             current=self.app.get_source(source.slot)
             if current and current.path==source.source_id:
                 reviewed=snapshot.decoder_revisions.get(source.source_id)
@@ -209,6 +232,7 @@ class Direction:
             reservation=ProgramText(cue_id=(action_id or uuid.uuid4().hex)+'-intent',event_id=snapshot.event_id,
                 run_id=snapshot.run_id,text=intent.text,state='pending',event_ms=context['target'].get('event_ms'),
                 program_revision=snapshot.program_revision,evidence_ids=intent.evidence_ids,origin='controller',
+                basis=intent.basis,context_revision=snapshot.context_revision,
                 channel='intent',session_id=f'{snapshot.run_id}:{snapshot.program_revision}')
             self.foundation.program_text(reservation,owner='controller',reserve=True)
             self.state[role]='Ready'
@@ -228,7 +252,7 @@ class Direction:
                 reviewed=next((s for s in snapshot.sources if s.slot==intent.slot),None)
                 if reviewed and snapshot.runtime.program.audio_source_path==reviewed.source_id:
                     self.state[role]='Holding';return None
-        elif op=='replay':args={'replay_id':intent.replay_id}
+        elif op=='replay':args={'replay_id':intent.replay_id,**({'transition':intent.transition} if self.foundation.registry.gemini else {})}
         elif op=='urgent_return':op='live';args={'slot':intent.slot,'independent':True}
         elif op=='return_live':
             if snapshot.runtime.program.requested=='LIVE':
@@ -244,7 +268,9 @@ class Direction:
             if not package or package['manifest']['context_revision']!=snapshot.context_revision:
                 raise ValueError('Event graphics package is not ready for reviewed context')
             prepared=self.app.program.graphics.prepared_graphic(intent.preset,intent.duration_s)
-            args={'graphics':{'op':'cue','preset':intent.preset,'title':prepared.title,'subtitle':prepared.subtitle,'duration_s':intent.duration_s}}
+            args={'graphics':{'op':'cue','preset':intent.preset,'title':intent.title or prepared.title,
+                'subtitle':intent.subtitle if intent.subtitle is not None else '' if intent.title else prepared.subtitle,
+                'duration_s':intent.duration_s}}
         aid=action_id or uuid.uuid4().hex
         request={'id':aid,'op':op,'args':args,'expected':self.expected(snapshot,args),'expires_at':dependencies['deadline']}
         return self.app.control.propose(request,actor='Provider crew',dependencies=dependencies)
@@ -300,6 +326,7 @@ class Direction:
                     frames=min(frames,len(program.replay.frames)-program.replay_index-2)
                 if frames<=0:raise ValueError('Commentary window expired before preparation')
                 if pcm and math.ceil(len(pcm)/self.app.cfg.audio_size)>frames:
+                    if self.foundation.registry.gemini:raise ValueError('Speech cannot fit its original window; prepare a fresh line')
                     pcm=b'';fallback='Speech cannot fit its original window'
                 if not pcm and layer is None:raise ValueError('No eligible commentary media')
                 target={key:value for key,value in program.actual_target.items() if key in ('kind','source_path','epoch','id','command_revision')}
@@ -307,11 +334,12 @@ class Direction:
                 session_revision=dependencies.get('archive_session',{}).get('revision',snapshot.program_revision)
                 cue=PreparedCue(aid,f'{snapshot.run_id}:{session_revision}',intent.text,pcm,layer,start,start+frames,
                     dependencies['deadline'],snapshot.program_revision,target,
-                    lambda:self._guard(dependencies),intent.evidence_ids,context['target'].get('event_ms'),asset)
+                    lambda:self._guard(dependencies),intent.evidence_ids,context['target'].get('event_ms'),asset,
+                    basis=intent.basis,context_revision=snapshot.context_revision)
             with self.lock:self.prepared[cue.id]=cue
             self._history(cue,'prepared')
             self._history(cue,'pending')
-            expected=self.app.control.expected({}) if dependencies.get('commentary_camera') else self.expected(snapshot,{})
+            expected=self.app.control.expected({}) if dependencies.get('commentary_camera') or dependencies.get('archive_session') else self.expected(snapshot,{})
             record=self.app.control.propose({'id':cue.id,'op':'commentary','args':{'cue_id':cue.id},
                 'expected':expected,'expires_at':dependencies['deadline']},
                 actor='Provider crew',dependencies=dependencies)
@@ -333,7 +361,9 @@ class Direction:
 
     def _guard(self, dependencies):
         try:return self.check(dependencies)
-        except ValueError:return False
+        except ValueError as error:
+            self.traces.append({'role':'speech','stage':'cue-invalid','utc':time.time(),'reason':str(error)[:200]})
+            return False
 
     def _history(self, cue, state, channel=None, receipt=None, reason=None):
         channels=[channel] if channel else (['speech'] if cue.pcm else [])+(['caption'] if cue.caption is not None else [])
@@ -342,6 +372,7 @@ class Direction:
             self.foundation.program_text(ProgramText(cue_id=cue.id+'-'+kind,event_id=self.foundation.settings.event.event_id,
                 run_id=self.app.control.run_id,text=cue.text,state=state,event_ms=cue.event_ms,
                 program_revision=cue.program_revision,evidence_ids=cue.evidence_ids,origin='controller',channel=kind,
+                basis=cue.basis,context_revision=cue.context_revision,
                 session_id=cue.session_id,first_program_ms=round(first/(48 if kind=='speech' else self.app.cfg.fps/1000)) if first is not None else None,
                 last_program_ms=round(last/(48 if kind=='speech' else self.app.cfg.fps/1000)) if last is not None else None,
                 first_sample=first if kind=='speech' else None,last_sample=last if kind=='speech' else None,reason=reason),owner='controller')
@@ -393,7 +424,29 @@ class Direction:
             context['event']['participants']=[]
             context['target']['archive_session']={'asset_id':self.app.program.replay.id,'revision':self.app.program.replay_revision,
                 'source':source.model_dump(mode='json'),'reviewed_pts':point,'output_frame':self.app.program.actual_target.get('output_frame')}
-        elif role=='director':context['ready_replays']=self.app.replay_work.ready()
+        elif role=='director':
+            context['ready_replays']=self.app.replay_work.ready()
+            if self.foundation.registry.gemini:
+                from graphics import CATALOG, PURPOSES
+                package=self.app.program.graphics.event_package
+                context['prepared_graphics']=[]
+                if package and package['manifest']['context_revision']==snapshot.context_revision:
+                    latest=next((o for o in context['observations'] if o.get('view')),None)
+                    quiet=bool(latest and latest.get('replay_opportunity') in ('quiet','stoppage','recap'))
+                    context['graphics_catalog']=[]
+                    for key,spec in CATALOG.items():
+                        reason=None
+                        if spec['slot']=='stinger':reason='Select with replay.transition; never interrupt action as decoration'
+                        elif key in ('opening','countdown','closing'):reason='Requires an explicit event phase or start time; not inferred from camera motion'
+                        elif spec['slot']=='score' and self.app.program.graphics.score.get('authority')!='operator-confirmed':reason='Official score is unknown'
+                        elif spec['slot']=='screen' and (not quiet or self.app.program.actual=='REPLAY'):reason='Needs a quiet live interval'
+                        elif key=='matchup' and not context['event'].get('participants'):reason='Participant identities are unknown'
+                        binding='prepared' if key=='brand-bug' else 'official' if spec['slot']=='score' else 'evidence'
+                        entry={'id':key,'name':spec['name'],'slot':spec['slot'],'motion':spec['motion'],
+                            'purpose':PURPOSES[key],'text_binding':binding,'unavailable_reason':reason}
+                        context['graphics_catalog'].append(entry)
+                        if reason is None:context['prepared_graphics'].append(entry)
+                context['active_graphics']=[cue.summary() for cue in self.app.program.graphics.active.copy().values()]
         return context
 
     def _decide(self, role):
@@ -410,7 +463,9 @@ class Direction:
                 source=SourceEpoch.model_validate(target['archive_source'])
             if not source:raise ValueError('Reviewed source is unavailable')
             context=self._context(role,source,snapshot)
-            if context['status']=='unavailable' or not context['observations']:
+            event_bridge=(role=='commentator' and self.foundation.registry.gemini and
+                self.app.program.actual=='LIVE' and bool(context['event'].get('title')))
+            if context['status']=='unavailable' or not context['observations'] and not event_bridge:
                 self.traces.append({'role':role,'stage':'skip','utc':time.time(),'reason':'no eligible observations'});return
             # Give the role the full role_timeout for the model call. Evidence
             # job deadlines only gate eligibility; shrinking the HTTP budget to
@@ -426,9 +481,11 @@ class Direction:
                 with self.foundation.lock:
                     jobs=[self.foundation.db.execute('SELECT deadline,body FROM jobs WHERE key=?',(o['job_key'],)).fetchone() for o in context['observations']]
                 fresh=[job['deadline'] for job in jobs if job and json.loads(job['body']).get('deadline_basis')=='frame-receipt' and job['deadline']>time.time()+minimum_budget]
-                if not fresh:
+                if not fresh and not event_bridge:
                     self.traces.append({'role':role,'stage':'skip','utc':time.time(),'reason':'no fresh live evidence'});return
-                if self.foundation.registry.gemini:deadline=min(deadline,max(fresh))
+                # Cited action deadlines still apply in validate(). Event talk
+                # depends on the reviewed brief, not expired camera evidence.
+                if self.foundation.registry.gemini and fresh and not event_bridge:deadline=min(deadline,max(fresh))
             self.state[role]='Thinking'
             self.traces.append({'role':role,'stage':'model-start','utc':time.time(),'deadline_utc':deadline})
             async def call():
@@ -439,7 +496,14 @@ class Direction:
             result=asyncio.run(call())
             self.provider_failures.pop(role,None)
             self.traces.append({'role':role,'stage':'model-end','utc':time.time(),'model_id':result.model_id,'version':result.model_version,'origin':result.origin})
-            self.dispatch(result,role,context,deadline)
+            try:self.dispatch(result,role,context,deadline)
+            except ValueError as error:
+                # A current-state rejection is not a provider response-format failure.
+                self.state[role]='Waiting';self.reason=str(error)
+                self.traces.append({'role':role,'stage':'rejected','utc':time.time(),'reason':str(error)[:200]})
+        except ValueError as error:
+            self.state[role]='Waiting';self.reason=str(error)[:200]
+            self.traces.append({'role':role,'stage':'waiting','utc':time.time(),'reason':self.reason})
         except Exception as error:
             failure=public_failure(error,'llm');self.provider_failures[role]=failure
             self.state[role]='Unavailable';self.reason=failure['reason']
@@ -566,17 +630,21 @@ class Direction:
                     try:self._policy_replay()
                     except Exception as error:self.traces.append({'role':'replay','stage':'error','utc':time.time(),'reason':type(error).__name__+': '+str(error)[:160]})
                     self._policy_rotate()
-                try:self._policy_graphics()
-                except Exception as error:self.traces.append({'role':'graphics','stage':'error','utc':time.time(),'reason':type(error).__name__+': '+str(error)[:160]})
+                    try:self._policy_graphics()
+                    except Exception as error:self.traces.append({'role':'graphics','stage':'error','utc':time.time(),'reason':type(error).__name__+': '+str(error)[:160]})
                 live=self.app.program.actual!='HOLDING' and self.app.program.requested!='HOLDING'
-                commentary_tick=(int(time.monotonic()/self.COMMENTARY_S),self.app.program.revision)
-                if live and commentary_tick!=self.last_commentary and self.app.program.cue is None and \
-                        'commentator' not in self.foundation.role_active:
+                gemini=bool(self.foundation.registry.gemini)
+                commentary_tick=(int(time.monotonic()/(1 if gemini else self.COMMENTARY_S)),self.app.program.revision)
+                cue=self.app.program.cue
+                near_end=gemini and cue is not None and bool(cue.pcm) and (len(cue.pcm)-cue.offset)/96000<=4
+                queued=any(c is not cue for c in self.prepared.values())
+                preparing=bool({'commentator','speech'} & (self.foundation.role_active | self.foundation.role_pending.keys()))
+                if live and commentary_tick!=self.last_commentary and (cue is None or near_end) and not queued and not preparing:
                     self.last_commentary=commentary_tick
                     self.foundation.submit_role('commentator',lambda:self._decide('commentator'))
                 # While replay prepare owns a worker, skip director calls so the
                 # segmentor is not stuck behind 60s director timeouts.
-                if self.app.replay_work.planning or 'segmentor' in self.foundation.role_pending:
+                if not self.foundation.registry.gemini and (self.app.replay_work.planning or 'segmentor' in self.foundation.role_pending):
                     continue
                 snapshot=self.foundation.reviewed_snapshot()
                 trigger=(snapshot.evidence_revision,snapshot.program_revision,snapshot.control_revision,
