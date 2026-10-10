@@ -12,12 +12,15 @@ network remain pending.
 
 ## Stream the hackathon
 
-Use the event QR to join up to five cameras. Tap **Join camera** and allow camera
-access. Sharing and recording start automatically. The preview fills the phone
+Open `/join` directly on the public broadcast address, or use the event QR.
+Studio does not need to be open. Tap **Join camera** and allow camera and
+microphone access. The microphone is selected by default. Sharing and recording start automatically. The preview fills the phone
 screen. In automatic mode, the first ready camera goes live without another tap.
 Use the camera tiles to change views. **Hold broadcast** returns to holding and
 stays there until you select **Go live**. Later joins do not change the view. See the
 [Forever 22 setup and demo steps](docs/30-forever22-demo.md).
+Viewer and Studio playback try sound by default. If the browser blocks automatic
+sound, select **Tap for sound**. A later mute remains local to that browser.
 
 ## Reference video (disabled)
 

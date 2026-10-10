@@ -1,0 +1,36 @@
+{
+  "scope": "browser UI with mocked media playback; no public program changes",
+  "results": [
+    {
+      "browser_blocks_sound": false,
+      "tries_sound_first": true,
+      "user_can_unmute": true,
+      "explicit_mute_survives_retry": true,
+      "errors": []
+    },
+    {
+      "browser_blocks_sound": true,
+      "tries_sound_first": true,
+      "user_can_unmute": true,
+      "explicit_mute_survives_retry": true,
+      "errors": []
+    }
+  ],
+  "camera": {
+    "scope": "synthetic browser capture and mocked publisher",
+    "microphone_checked_by_default": true,
+    "published_audio_tracks": 1,
+    "one_join_starts_sharing": true,
+    "studio_required": false
+  },
+  "pending": [
+    "Physical phone permissions and audible viewer playback"
+  ],
+  "deployment": {
+    "healthcheck": "passed",
+    "anonymous_join_and_viewer_http": 200,
+    "join_microphone_checked": true,
+    "viewer_defaults_unmuted": true,
+    "public_join_code_resolves": true
+  }
+}

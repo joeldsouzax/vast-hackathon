@@ -42,11 +42,11 @@ const folder=path.resolve(process.argv[2]||'.runtime/autonomous-studio'),url=pro
   for(const b of geometry.controls)assert(b.x>=geometry.video.x&&b.y>=geometry.video.y&&b.right<=geometry.video.right&&b.bottom<=geometry.video.bottom);
   assert.equal(geometry.nativeControls,false);assert.equal(geometry.statusVisible,false);
   await page.locator('#takeover').focus();await page.locator('#studio-tooltip').waitFor({state:'visible'});assert((await page.locator('#studio-tooltip').innerText()).includes('control'));await page.keyboard.press('Escape');
-  const audioBefore=await state();assert(await page.locator('#program').evaluate(v=>v.muted));
-  await page.locator('#monitor-audio').click();assert.equal(await page.locator('#program').evaluate(v=>v.muted),false);
+  const audioBefore=await state();const wasMuted=await page.locator('#program').evaluate(v=>v.muted);
+  await page.locator('#monitor-audio').click();assert.equal(await page.locator('#program').evaluate(v=>v.muted),!wasMuted);
   assert((await page.locator('#studio-tooltip').innerText()).includes('browser only'));
   const audioAfter=await state();assert.equal(audioAfter.program.revision,audioBefore.program.revision);assert.equal(audioAfter.program.audio_source_path,audioBefore.program.audio_source_path);assert.equal(audioAfter.program.audio_muted,audioBefore.program.audio_muted);
-  await page.locator('#monitor-audio').click();assert(await page.locator('#program').evaluate(v=>v.muted));
+  await page.locator('#monitor-audio').click();assert.equal(await page.locator('#program').evaluate(v=>v.muted),wasMuted);
   await page.locator('#program-fullscreen').click();await page.waitForFunction(()=>document.fullscreenElement===document.querySelector('.monitor-frame')&&document.querySelector('#program-fullscreen').getAttribute('aria-label')==='Exit fullscreen');
   await page.locator('#program-fullscreen').click();await page.waitForFunction(()=>!document.fullscreenElement&&document.querySelector('#program-fullscreen').getAttribute('aria-label')==='Enter fullscreen');
   checks.push({id:'PROGRAM_OVERLAY',passed:true,geometry,tooltip_labels:true,local_audio_only:true,fullscreen:true});

@@ -25,6 +25,14 @@ Hold broadcast and Take control disable automatic startup. Later cameras do not
 replace the live view or interrupt a replay. Replay playback still needs approval.
 No operator browser needs to stay open for automatic startup to work.
 
+Open the public `/join` address directly. It resolves the current event code;
+there is no need to open Studio to get a QR. Microphone sharing is checked by
+default. The phone preview stays muted to prevent feedback. Viewer and Studio
+playback try to start with sound. If the browser blocks sound, video continues
+muted and the control shows **Tap for sound**. A deliberate local mute is kept
+on player retries. These controls do not change the selected broadcast microphone.
+The controller's broadcast microphone already defaults to unmuted.
+
 The commentary pause also had a source-identity cause: the active decoder had
 advanced to epoch 4, but the AI ledger only knew epochs 1–3. Both crew roles
 reported `Reviewed source is unavailable` while camera playback stayed live.
@@ -40,7 +48,12 @@ portrait and landscape previews fill the viewport, and Stop ends capture.
 It did not publish a test camera or prove physical-phone WebRTC. See
 [the browser evidence](evidence/one-tap-camera.json).
 
-After restart, refresh Studio and use its new QR on the phone. Tap **Join camera**
-once and allow permission. Confirm the full-screen preview, automatic live view,
+After restart, open `/join` directly on the phone. Tap **Join camera**
+once and allow camera and microphone permission. Confirm the full-screen preview, automatic live view,
 recorded clips and resumed commentary. Try Hold, then join another camera: Hold
 must remain selected. These phone and venue checks remain manual.
+
+The [default audio check](evidence/default-audio.json) used synthetic camera
+capture and mocked browser playback. It verified the default audio track,
+sound-first playback, the blocked-sound control and explicit mute on retry.
+It does not prove physical-phone permissions or audible public playback.

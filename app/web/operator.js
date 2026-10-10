@@ -532,13 +532,11 @@ document.querySelector('#collapse-crew').onclick = event => {
   const button = event.currentTarget; button.replaceChildren(studioIcon(collapsed ? 'panel-right-open' : 'panel-right-close')); button.setAttribute('aria-label', collapsed ? 'Open crew' : 'Collapse crew'); button.dataset.tooltip = collapsed ? 'Show the Crew conversation.' : 'Hide the Crew panel to make more room for video.'; button.setAttribute('aria-expanded', String(!collapsed)); if (tooltipTrigger === button) showControlTooltip(button);
 };
 const programVideo = document.querySelector('#program'), programFrame = document.querySelector('.monitor-frame');
-document.querySelector('#monitor-audio').onclick = event => {
-  programVideo.muted = !programVideo.muted;
-  const button = event.currentTarget; button.replaceChildren(studioIcon(programVideo.muted ? 'volume-x' : 'volume-2'));
-  button.setAttribute('aria-pressed', String(!programVideo.muted)); button.setAttribute('aria-label', programVideo.muted ? 'Listen to program audio' : 'Mute local playback');
-  button.dataset.tooltip = programVideo.muted ? 'Listen in this browser only. This does not change the broadcast microphone.' : 'Mute playback in this browser only. Broadcast audio stays unchanged.';
+setupProgramAudio(programVideo, document.querySelector('#monitor-audio'));
+programVideo.addEventListener('volumechange', () => {
+  const button = document.querySelector('#monitor-audio');
   if (tooltipTrigger === button) showControlTooltip(button);
-};
+});
 document.querySelector('#program-fullscreen').onclick = async () => {
   try {if (document.fullscreenElement) await document.exitFullscreen(); else await programFrame.requestFullscreen();} catch (error) {message(error.message);}
 };

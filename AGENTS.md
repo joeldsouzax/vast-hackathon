@@ -68,6 +68,10 @@ diagram when the explanation needs one.
   after browser permission. Remove the second Start sharing step. Fill the phone
   viewport with its local preview. In automatic mode, the first ready camera
   starts the program through the controller; no separate Go live is required.
+  The public `/join` page must work without opening Studio. Camera microphone
+  sharing and local program playback default to unmuted. If browser autoplay
+  blocks sound, keep video playing and show a clear tap-for-sound control.
+  Preserve an explicit later mute. Keep the phone's own preview muted.
   A later Hold broadcast or Take control must win. Later joins do not cut away
   from the selected view or interrupt replay.
   Work one runnable change at a time. Push complete changes to `main` promptly.

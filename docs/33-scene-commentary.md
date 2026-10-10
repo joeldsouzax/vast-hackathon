@@ -82,7 +82,7 @@ The full historical suite and five-camera venue check were not run.
 
 ## Manual release check
 
-1. Refresh Studio and join the current QR from the phone. Enable its microphone.
+1. Open the public `/join` address directly on the phone. Allow camera and microphone access.
    Sharing starts with Join. The first ready camera starts the live program.
 2. Show a clear short sign and a table with visible people. Move the camera
    slowly. Check descriptions, counts and read text against the actual scene.

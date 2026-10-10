@@ -52,9 +52,9 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
     await studio.locator('#close-drawer').click();
     await studio.waitForFunction(() => !document.querySelector('#asset-drawer').open);
     // The mute button is local. Other viewers retain their own state.
-    await viewers[0].getByRole('button', {name: 'Listen to program audio', exact: true}).click();
-    assert.equal(await viewers[1].locator('#program').evaluate(v => v.muted), true);
-    assert.equal(await viewers[2].locator('#program').evaluate(v => v.muted), true);
+    const otherMute = await Promise.all(viewers.slice(1).map(page => page.locator('#program').evaluate(v => v.muted)));
+    await viewers[0].locator('#monitor-audio').click();
+    assert.deepEqual(await Promise.all(viewers.slice(1).map(page => page.locator('#program').evaluate(v => v.muted))), otherMute);
     checks.local_mute = true;
     await viewers[0].reload();await viewers[0].waitForFunction(() => document.querySelector('#program').videoWidth === 640);
     checks.reload = true;

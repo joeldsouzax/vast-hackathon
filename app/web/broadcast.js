@@ -38,7 +38,7 @@ async function refresh() {
     document.querySelector('#join-hint').textContent = local
       ? 'Sharing from your phone? Connect this studio to a reachable HTTPS address first.'
       : joinOrigin.protocol === 'http:' ? 'Open the HTTPS demo link to share a phone camera.'
-      : 'Scan to join. Allow camera access, then select Start sharing.';
+      : 'Tap Join camera and allow camera and microphone access. Sharing and broadcasting start automatically.';
     document.querySelector('#join-link').href = state.join_url; document.querySelector('#join-link').hidden = false;
     await loadQR(state.join_url);
   } catch (error) {
@@ -51,14 +51,7 @@ refresh(); setInterval(refresh, 1500);
 
 const viewerVideo = document.querySelector('#program'), viewerFrame = document.querySelector('.monitor-frame');
 for (const button of document.querySelectorAll('[data-icon]')) button.append(studioIcon(button.dataset.icon));
-document.querySelector('#monitor-audio').onclick = event => {
-  viewerVideo.muted = !viewerVideo.muted;
-  const button = event.currentTarget;
-  button.replaceChildren(studioIcon(viewerVideo.muted ? 'volume-x' : 'volume-2'));
-  button.setAttribute('aria-pressed', String(!viewerVideo.muted));
-  button.setAttribute('aria-label', viewerVideo.muted ? 'Listen to program audio' : 'Mute local playback');
-  button.title = viewerVideo.muted ? 'Listen in this browser only.' : 'Mute playback in this browser only.';
-};
+setupProgramAudio(viewerVideo, document.querySelector('#monitor-audio'));
 document.querySelector('#program-fullscreen').onclick = async () => {
   try {if (document.fullscreenElement) await document.exitFullscreen(); else await viewerFrame.requestFullscreen();} catch (error) {message(error.message);}
 };

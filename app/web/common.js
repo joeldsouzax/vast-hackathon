@@ -117,6 +117,37 @@ function message(value = '') {
   if (element.textContent !== value) element.textContent = value;
   if (element.hidden !== !value) element.hidden = !value;
 }
+async function startProgramPlayback(video) {
+  try { await video.play(); }
+  catch (error) {
+    if (error.name !== 'NotAllowedError' || video.muted) return;
+    // Keep the picture moving when the browser requires a gesture for sound.
+    video.dataset.soundBlocked = 'true';
+    video.muted = true;
+    video.dispatchEvent(new Event('volumechange'));
+    try { await video.play(); } catch (_) {}
+  }
+}
+function setupProgramAudio(video, button) {
+  function update() {
+    const blocked = video.muted && video.dataset.soundBlocked === 'true';
+    button.replaceChildren(studioIcon(video.muted ? 'volume-x' : 'volume-2'));
+    if (blocked) button.append(document.createTextNode('Tap for sound'));
+    button.classList.toggle('sound-blocked', blocked);
+    button.setAttribute('aria-pressed', String(!video.muted));
+    button.setAttribute('aria-label', video.muted ? 'Listen to program audio' : 'Mute local playback');
+    button.title = button.dataset.tooltip = blocked ? 'Your browser needs a tap to play sound.' :
+      video.muted ? 'Listen in this browser only.' : 'Mute playback in this browser only.';
+  }
+  video.addEventListener('volumechange', update);
+  button.onclick = () => {
+    delete video.dataset.soundBlocked;
+    video.muted = !video.muted;
+    update();
+    startProgramPlayback(video);
+  };
+  update();
+}
 let hlsLibrary;
 function loadHlsLibrary() {
   if (window.Hls) return Promise.resolve(window.Hls);
@@ -151,10 +182,10 @@ function playHlsProgram(video, error) {
         player = new Hls({lowLatencyMode: false, maxLiveSyncPlaybackRate: 1.5});
         player.on(Hls.Events.ERROR, (_, data) => {if (data.fatal) retry();});
         player.on(Hls.Events.MEDIA_ATTACHED, () => player?.loadSource(url));
-        player.on(Hls.Events.MANIFEST_PARSED, () => {if (active()) video.play().catch(() => {});});
+        player.on(Hls.Events.MANIFEST_PARSED, () => {if (active()) startProgramPlayback(video);});
         player.attachMedia(video);
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = url; video.play().catch(() => {});
+        video.src = url; startProgramPlayback(video);
       } else {
         error('This browser cannot play the stream. Use a current Chrome or Safari browser.');
       }
@@ -178,7 +209,9 @@ function playProgram(video, error) {
   const reader = new MediaMTXWebRTCReader({
     url: `${location.origin}${publicPath('/media/program/whep')}`,
     onError: value => {if (!isOperatorPage || (operatorAuthorized && revision === operatorSessionRevision)) error(value);},
-    onTrack: (event) => {if (!isOperatorPage || (operatorAuthorized && revision === operatorSessionRevision)) video.srcObject = event.streams[0];},
+    onTrack: (event) => {if (!isOperatorPage || (operatorAuthorized && revision === operatorSessionRevision)) {
+      video.srcObject = event.streams[0]; startProgramPlayback(video);
+    }},
   });
   window.addEventListener('pagehide', () => reader.close(), {once: true});
   return reader;
