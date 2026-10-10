@@ -127,7 +127,7 @@ This metadata request does not verify SSE inference.
 
 Ignored `.env.supabase` and `.env.media` files are prepared with private
 credentials. The Gemini key belongs only in `.env.supabase` for hosted inference.
-The laptop uses ignored `.env` for its origin, TURN configuration and runtime
+The laptop uses ignored `.env` for its origin, HLS viewer transport and runtime
 settings. `.env.media` remains the optional cloud-host template. Preserve
 its operator and runtime credentials when completing or repeating deployment.
 

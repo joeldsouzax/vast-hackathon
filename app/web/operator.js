@@ -247,7 +247,7 @@ async function refresh() {
     document.querySelector('#end').hidden = false;
     if (!reader) {
       loadProgramPoster().catch(() => {});
-      reader = playProgram(document.querySelector('#program'), error => { message(`Viewer: ${error}`); });
+      reader = playProgram(document.querySelector('#program'), error => { message(error ? `Viewer: ${error}` : ''); });
     }
     const p = state.program;
     const analysis=state.video_analysis || {state:'idle'};

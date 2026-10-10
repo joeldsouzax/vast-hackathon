@@ -2,21 +2,18 @@
 
 The laptop runs the persistent media runtime. Supabase hosts the Gemini function,
 private clips and vector database. The public pages are available through a
-temporary Cloudflare Quick Tunnel. Video uses WebRTC with configured TURN relays.
-TURN passes media between the laptop and viewers on other networks.
+temporary Cloudflare Quick Tunnel. Studio and Viewer also receive program video
+through this tunnel, using HLS. HLS sends short video segments over HTTPS.
 
 ```mermaid
 flowchart LR
-  Viewer[Viewer browser] --> Tunnel[Cloudflare HTTPS]
-  Tunnel --> Laptop[Laptop runtime]
-  Laptop --> TURN[TURN relay]
-  TURN --> Viewer
+  Viewer[Viewer browser] <--> Tunnel[Cloudflare HTTPS]
+  Tunnel <--> Laptop[Laptop runtime]
   Laptop --> Supabase[Supabase backend]
   Supabase --> Gemini[Gemini API]
 ```
 
-The tunnel carries pages and media session requests. The TURN relay carries
-video when a direct media connection is unavailable. Gemini streaming runs
+The tunnel carries pages and program video. Gemini streaming runs
 between the laptop and Supabase, independently of browser playback.
 
 ## Current state
@@ -27,16 +24,26 @@ failed because a public origin had only a loopback ICE address. Clearing
 `BREADCAST_ICE_HOSTS` corrected that failure. ICE addresses identify possible
 media connection endpoints.
 
-The program remains in holding. The agent did not start the bundled video.
-Public video playback, TURN allocation, Gemini inference, speech, clip receipts,
-vectors and latency remain unverified. Acceptance checks were skipped under the
-user's standing instruction. The authoritative observations are in the
-[host record](evidence/laptop-media-host.json).
+The first Viewer connection failed with HTTP 500. The configured free TURN
+endpoint did not accept TCP connections on ports 80 or 443. MediaMTX waited for
+connection candidates, and the application's ten-second proxy timeout escaped
+as an unhandled error. The repair uses HLS for viewing and maps gateway timeouts
+to HTTP 504. It also maps connection failures to HTTP 503.
+
+The public URL now plays holding frames in local Chrome. The focused repair
+observation recorded 48 decoded frames, no dropped frames and no failed media
+requests. This does not prove playback from a second network. The program remains
+in holding after restart; the agent did not start the bundled video. Gemini
+inference, speech, clip receipts, vectors and end-to-end latency remain unverified.
+Broad acceptance checks remain skipped under the user's standing instruction.
+See the [startup record](evidence/laptop-media-host.json) and
+[Viewer repair record](evidence/viewer-hls-repair.json).
 
 The laptop has 24 GiB RAM. Its isolated `breadcast-local` Colima profile has
 4 CPUs, 6 GiB RAM and a 30 GiB data disk. Its Docker context is
 `colima-breadcast-local`. The existing `breadcast-experiment` profile remains
-separate. HTTP binds to `127.0.0.1:9080`. Media uses TCP and UDP port 9189.
+separate. HTTP binds to `127.0.0.1:9080`. WebRTC still uses TCP and UDP port 9189;
+HLS viewing does not use those ports.
 
 ## Check status
 
@@ -81,17 +88,26 @@ BREADCAST_HTTP_BIND=127.0.0.1
 BREADCAST_HTTP_PORT=9080
 BREADCAST_PORT=8080
 BREADCAST_WEBRTC_PORT=9189
+BREADCAST_VIEWER_TRANSPORT=hls
 BREADCAST_ICE_HOSTS=''
-BREADCAST_ICE_SERVERS=/run/breadcast/tls/ice-servers.json
+BREADCAST_ICE_SERVERS=''
 BREADCAST_OPERATOR_TOKEN_SOURCE=.runtime/operator-token
 BREADCAST_CPUS=4
 ```
 
 `BREADCAST_PUBLIC_URL` must match the current tunnel origin. Supabase server
 credentials and the shared function credential also remain in ignored `.env`.
-The TURN file is ignored `.runtime/tls/ice-servers.json`. It uses the provider's
-published static authentication configuration and TCP fallback. Actual relay
-availability and playback remain pending; this is shared external infrastructure.
+The old TURN file remains in ignored `.runtime/tls/ice-servers.json`, but the
+runtime no longer loads it. Public camera publishing still needs a verified
+WebRTC route. This repair changes program viewing only. Physical camera and
+five-camera validation remain deferred.
+
+MediaMTX serves HLS on loopback port 8888 inside the container. The app proxies
+only `/media/program/hls/` assets. No camera HLS route or upstream credential is
+public. The player is hls.js v1.7.0, already bundled in the pinned MediaMTX v1.20.1
+image; it requires no browser CDN request. The stream retains H.264 video and
+Opus audio. Chrome playback was observed; other browser and audio acceptance
+checks remain pending. HLS adds buffering; end-to-end delay was not measured.
 
 Cloudflared is installed through Homebrew. The current tunnel runs in the
 background. Its PID and log are in `.runtime/laptop-tunnel.pid` and
@@ -114,9 +130,12 @@ The current `caffeinate` process prevents idle sleep while the tunnel runs. Its
 PID is in `.runtime/laptop-caffeinate.pid`. Keep the laptop powered, connected to
 the internet and awake. Closing the lid or stopping the tunnel can end access.
 
-The media configuration follows the provider's
-[Open Relay static authentication guide](https://www.metered.ca/tools/openrelay/)
-and [MediaMTX TURN support](https://mediamtx.org/docs/features/webrtc-specific-features).
+The current media route uses [MediaMTX HLS support](https://mediamtx.org/docs/read/hls)
+and the pinned server's
+[HLS proxy configuration](https://github.com/bluenviron/mediamtx/blob/v1.20.1/mediamtx.yml).
+The previous TURN attempt used the provider's
+[published static authentication settings](https://www.metered.ca/tools/openrelay/),
+but those settings did not establish a connection from this laptop.
 
 ## Manual release check
 

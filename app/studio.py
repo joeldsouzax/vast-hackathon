@@ -106,8 +106,11 @@ class Config:
     operator_token: str = field(default="", init=False, repr=False)
     server_videos_config: Path = ROOT.parent / 'config/server-videos.json'
     crew_mode: str = 'automatic'
+    viewer_transport: str = 'webrtc'
 
     def __post_init__(self):
+        if self.viewer_transport not in ('webrtc', 'hls'):
+            raise ValueError('BREADCAST_VIEWER_TRANSPORT must be webrtc or hls')
         if self.crew_mode not in ('automatic', 'human'):
             raise ValueError('BREADCAST_CREW_MODE must be automatic or human')
         self.public_url=public_origin(self.public_url)
@@ -370,7 +373,11 @@ class App:
                 "authHTTPExclude": [{"action": "api"}],
                 "api": True, "apiAddress": f"127.0.0.1:{9997 + cfg.offset}",
                 "rtsp": True, "rtspAddress": f"127.0.0.1:{8554 + cfg.offset}", "rtspTransports": ["tcp"],
-                "rtmp": False, "srt": False, "moq": False, "hls": False,
+                "rtmp": False, "srt": False, "moq": False,
+                "hls": cfg.viewer_transport == 'hls', "hlsAddress": f"127.0.0.1:{8888 + cfg.offset}",
+                "hlsVariant": "fmp4", "hlsSegmentDuration": "1s", "hlsSegmentMaxSize": "8M",
+                # The public proxy exposes only program assets; this credential stays local.
+                "hlsCDNSecret": cfg.program_token,
                 "webrtc": True, "webrtcAddress": f"127.0.0.1:{8889 + cfg.offset}",
                 "webrtcLocalUDPAddress": f"{os.environ.get('BREADCAST_WEBRTC_UDP_BIND','')}:{cfg.webrtc_port}",
                 "webrtcLocalTCPAddress": f":{cfg.webrtc_port}",
@@ -954,6 +961,7 @@ def main():
     serve.add_argument("--ice-host", action="append", help="Reachable media IP or DNS name")
     serve.add_argument("--ice-servers", type=Path, default=os.environ.get('BREADCAST_ICE_SERVERS') or None, help="JSON array of MediaMTX STUN/TURN settings")
     serve.add_argument("--webrtc-port",type=int,default=int(os.environ['BREADCAST_WEBRTC_PORT']) if os.environ.get('BREADCAST_WEBRTC_PORT') else None)
+    serve.add_argument('--viewer-transport', choices=('webrtc', 'hls'), default=os.environ.get('BREADCAST_VIEWER_TRANSPORT', 'webrtc'))
     serve.add_argument("--tls-cert",default=os.environ.get('BREADCAST_TLS_CERT') or None)
     serve.add_argument("--tls-key",default=os.environ.get('BREADCAST_TLS_KEY') or None)
     serve.add_argument("--delay", type=float, default=float(os.environ.get('BREADCAST_DELAY','3')))
@@ -1019,7 +1027,8 @@ def main():
                  ice_servers=tuple(json.loads(args.ice_servers.read_text())) if args.ice_servers else (),
                  print_access=not args.quiet, foundation_config=args.foundation_config or None,program_proof=args.program_proof,webrtc_port=args.webrtc_port,
                  public_path_prefix=args.public_path_prefix, operator_auth=operator_auth, operator_token_file=args.operator_token_file,
-                 server_videos_config=args.server_videos_config, crew_mode=args.crew_mode)
+                 server_videos_config=args.server_videos_config, crew_mode=args.crew_mode,
+                 viewer_transport=args.viewer_transport)
     app = App(cfg)
     server = uvicorn.Server(uvicorn.Config(web_api(app), host=cfg.bind, port=cfg.port, workers=1,
         reload=False, access_log=False, log_level="warning", proxy_headers=False,

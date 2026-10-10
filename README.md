@@ -6,8 +6,9 @@ Breadcast turns video inputs into one program. Gemini supplies video reasoning,
 object detection, crew decisions, embeddings and speech. Supabase stores private
 clips and the vector database. The current input is the bundled video. Physical
 camera checks remain deferred. The Supabase backend is deployed. The laptop
-media host is running with a temporary public HTTPS address. Inference and
-public video playback checks remain pending.
+media host is running with a temporary public HTTPS address. The public URL
+played holding frames in local Chrome. Inference and playback on another
+network remain pending.
 
 ## Play the uploaded video
 
@@ -87,9 +88,10 @@ speech does not go on air. Caption-only output is not a speech pass.
 Supabase hosts the backend function, private storage and vector database. A
 separate persistent media host runs FFmpeg, MediaMTX, Studio and Viewer. The user
 selected the laptop for this host. It uses an isolated Colima profile, a
-Cloudflare Quick Tunnel for pages, and an Open Relay TURN configuration for
-public media. TURN relays video when viewers cannot reach the laptop directly.
-Public playback still needs a real viewer check. Supabase
+Cloudflare Quick Tunnel for pages and HLS program video. HLS sends short video
+segments over HTTPS. Set `BREADCAST_VIEWER_TRANSPORT=hls` for this route; it adds
+playback buffering. Camera publishing still uses WebRTC and needs a verified
+media route. Playback on another network still needs a viewer check. Supabase
 Edge Functions cannot run this persistent media runtime.
 
 ```mermaid
@@ -170,18 +172,21 @@ The origin must contain no path, credentials, or query. Put `/app` only in
 `BREADCAST_PUBLIC_PATH_PREFIX`. A reverse proxy must preserve the configured
 prefix on forwarded paths and carry the media HTTP requests. It must expose the
 app through trusted HTTPS; HTTP on a remote phone does not allow camera access.
-No particular proxy or hosting provider has been verified for this release.
+The laptop's Cloudflare tunnel served pages and HLS holding video in Chrome.
+Physical-phone acceptance remains pending.
 
 For direct HTTPS, put the trusted certificate chain and matching private key in
 `.runtime/tls/cert.pem` and `.runtime/tls/key.pem`. Make both files readable by
 container user 10001. The Compose mount is read-only. A self-signed certificate
 with a browser warning does not pass physical-phone acceptance.
 
-Set `BREADCAST_ICE_HOSTS` to reachable DNS names or IP addresses if the public
+For WebRTC, set `BREADCAST_ICE_HOSTS` to reachable DNS names or IP addresses if the public
 origin's host does not lead to the media host. It contains no URLs or port
 numbers. Open the configured `BREADCAST_WEBRTC_PORT` on TCP and UDP; its default
 is `8189`. HTTPS proxying alone does not forward these ports. A network that
 requires TURN needs a verified TURN service before its media test can pass.
+For Viewer and Studio playback through an HTTPS-only tunnel, set
+`BREADCAST_VIEWER_TRANSPORT=hls`. Camera publishing still needs WebRTC reachability.
 Leave `BREADCAST_FOUNDATION_CONFIG` empty for this manual slice.
 
 ```sh

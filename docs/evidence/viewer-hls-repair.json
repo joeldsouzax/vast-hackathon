@@ -1,0 +1,67 @@
+{
+  "observed_utc": "2026-10-10T15:48:16.715Z",
+  "scope": "Public Viewer holding program in local Chrome through HTTPS tunnel",
+  "first": {
+    "time": 0.159967,
+    "width": 640,
+    "height": 360,
+    "ready": 1,
+    "paused": false,
+    "frames": 0,
+    "dropped": 0,
+    "error": ""
+  },
+  "second": {
+    "time": 3.037026,
+    "width": 640,
+    "height": 360,
+    "ready": 4,
+    "paused": false,
+    "frames": 48,
+    "dropped": 0,
+    "error": ""
+  },
+  "media_responses": {
+    "200 js": 1,
+    "200 m3u8": 9,
+    "200 mp4": 12
+  },
+  "failures": [],
+  "base_commit": "15ee915",
+  "incident": "Viewer POST /media/program/whep returned HTTP 500 after an uncaught ten-second gateway timeout",
+  "cause_observed": {
+    "turn_host": "staticauth.openrelay.metered.ca",
+    "tcp_ports_80_443": "timed out from host and container",
+    "webrtc_sessions": "created but no peer connection or bytes sent",
+    "program_source": "ready, H264 and Opus"
+  },
+  "resolution": {
+    "viewer_transport": "hls",
+    "relay_removed_from_runtime": true,
+    "media_timeouts": "HTTP 504",
+    "media_unavailable": "HTTP 503",
+    "image_config_sha256": "7ef0551f59ddb4e67b3c231aafe74e2471fba8a8fdb0d28b1c1eebb53b0815b2"
+  },
+  "route_observations": {
+    "program_playlist": 200,
+    "unknown_program_playlist": 404,
+    "camera_hls_route": 404
+  },
+  "checks": "Focused diagnosis of user-reported playback failure only; broad suites skipped",
+  "pending": [
+    "Viewer on a second network",
+    "audible source audio and Gemini speech",
+    "Gemini inference and vectors",
+    "private clip receipts",
+    "end-to-end latency",
+    "physical and five-camera validation"
+  ],
+  "source_sha256": {
+    "app/http_api.py": "765b707cc38db6d630c21e4a3fc617a59c2950a2dbea3f47b883821f84e3e955",
+    "app/studio.py": "2f62c5de3f619ec49e0fc519b04f490da750d5e0da5b39d5ebc78eb0e6a54238",
+    "app/web/common.js": "5217c98cc17365eb04b99da901d20bd71b36e1bfb656737703e629430f733dd6",
+    "app/web/broadcast.js": "220d71f2d70bb59449f10ce80cab063bf4799cee4cca35fa06568aafd3b5dc3d",
+    "app/web/operator.js": "d921ff2987a1ee865ff0da28f383f5eecdf81cdea696c356d32344cb196d9b3c",
+    "compose.yaml": "1973dbbc8b4a40f221b9dff4f151cec89d4903b0c5d1cd1477f5c625366f30d8"
+  }
+}

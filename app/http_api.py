@@ -292,6 +292,27 @@ def web_api(app, *, manage_lifecycle=True):
         return await run_in_threadpool(post,path,data,bearer(request),request.scope['operator_allowed'])
     for path in paths:api.add_api_route(path,post_endpoint,methods=['POST'])
 
+    @api.get('/media/program/hls/{asset}')
+    def program_hls(asset:str,request:Request):
+        # Never proxy camera paths, directories, arbitrary URLs or browser credentials.
+        if app.cfg.viewer_transport != 'hls' or not (
+                asset == 'hls.min.js' or re.fullmatch(r'[A-Za-z0-9_-]+\.(?:m3u8|mp4|mp|ts)',asset)):
+            return send(404,{'error':'Unknown program asset'})
+        upstream=f'http://127.0.0.1:{8888+app.cfg.offset}/program/{asset}'
+        req=urllib.request.Request(upstream,headers={'Authorization':f'Bearer {app.cfg.program_token}'})
+        try:
+            try:response=urllib.request.urlopen(req,timeout=10)
+            except urllib.error.HTTPError as error:response=error
+            with response:
+                # MediaMTX bounds segments to 8 MiB. Also bound the proxy response.
+                raw=response.read(9*1024*1024+1)
+                if len(raw)>9*1024*1024:return send(502,{'error':'Program asset exceeds the size limit'})
+                return send(response.status,raw,response.headers.get('Content-Type','application/octet-stream'))
+        except TimeoutError:
+            return send(504,{'error':'Program stream is not ready; retry shortly'})
+        except (urllib.error.URLError,OSError):
+            return send(503,{'error':'Media gateway is unavailable; retry shortly'})
+
     @api.api_route('/media/{media_path:path}',methods=['POST','PATCH','DELETE','OPTIONS','GET'])
     async def media(media_path:str,request:Request):
         match=MEDIA_ROUTE.fullmatch('/'+media_path)
@@ -306,13 +327,18 @@ def web_api(app, *, manage_lifecycle=True):
             upstream=f'http://127.0.0.1:{8889+app.cfg.offset}/{media_path}'
             headers={k:v for k,v in request.headers.items() if k.lower() in ('content-type','authorization','if-match')}
             req=urllib.request.Request(upstream,raw,headers,method=request.method)
-            try:response=urllib.request.urlopen(req,timeout=10)
-            except urllib.error.HTTPError as error:response=error
-            with response:
-                forwarded={k:v for k,v in response.headers.items() if k.lower() in ('location','etag','link','accept-patch','access-control-expose-headers')}
-                for key in list(forwarded):
-                    if key.lower()=='location':forwarded[key]=app.cfg.public_path('/media')+urllib.parse.urlsplit(urllib.parse.urljoin(upstream,forwarded[key])).path
-                return send(response.status,response.read(),response.headers.get('Content-Type','application/sdp'),forwarded)
+            try:
+                try:response=urllib.request.urlopen(req,timeout=10)
+                except urllib.error.HTTPError as error:response=error
+                with response:
+                    forwarded={k:v for k,v in response.headers.items() if k.lower() in ('location','etag','link','accept-patch','access-control-expose-headers')}
+                    for key in list(forwarded):
+                        if key.lower()=='location':forwarded[key]=app.cfg.public_path('/media')+urllib.parse.urlsplit(urllib.parse.urljoin(upstream,forwarded[key])).path
+                    return send(response.status,response.read(),response.headers.get('Content-Type','application/sdp'),forwarded)
+            except TimeoutError:
+                return send(504,{'error':'Media connection setup timed out; check the media relay'})
+            except (urllib.error.URLError,OSError):
+                return send(503,{'error':'Media gateway is unavailable; retry shortly'})
         return await run_in_threadpool(proxy)
 
     @api.get('/{path:path}')
@@ -331,6 +357,7 @@ def web_api(app, *, manage_lifecycle=True):
                     lambda m:m.group(1)+app.cfg.public_path('/'),text)
             if file.suffix=='.html':
                 meta=(f'<meta name="breadcast-prefix" content="{html.escape(app.cfg.public_path_prefix, quote=True)}">'
+                    f'<meta name="breadcast-viewer-transport" content="{app.cfg.viewer_transport}">'
                     f'<meta name="breadcast-operator-auth" content="{app.cfg.operator_auth}">')
                 text=text.replace('</head>',meta+'</head>',1)
             data=text.encode('utf-8')

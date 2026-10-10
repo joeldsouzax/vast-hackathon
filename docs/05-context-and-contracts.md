@@ -49,6 +49,14 @@ chunks, native clocks, reviewed snapshots and controller ownership.
 The media host is the only program controller. Supabase supplies the private
 backend and a streamed Gemini relay.
 
+`BREADCAST_VIEWER_TRANSPORT=hls` selects HTTP delivery for the existing program
+output in Studio and Viewer. This route exposes only program playlists, bounded
+segments and the player bundled with MediaMTX. Camera paths stay private. The
+proxy supplies its internal media credential only to the loopback HLS server;
+the credential never reaches the browser. HLS playback buffering does not change
+program decisions or source clocks. WebRTC camera admission and publishing keep
+their existing contracts. See [the laptop host record](29-laptop-media-host.md).
+
 ```mermaid
 flowchart LR
   Clips[Retained chunks] --> Gemini[Gemini]

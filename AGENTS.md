@@ -40,12 +40,16 @@ diagram when the explanation needs one.
   Supabase Edge Functions relay Gemini inference; the persistent media runtime
   runs on the user's laptop for public viewers. Use the isolated
   `breadcast-local` Colima profile and `colima-breadcast-local` Docker context.
-  A Cloudflare Quick Tunnel serves pages; Open Relay TURN is configured for
-  media. Preserve the separate `breadcast-experiment` profile. Host start and
+  A Cloudflare Quick Tunnel serves pages and HLS program video. Set
+  `BREADCAST_VIEWER_TRANSPORT=hls` on this laptop. The public Open Relay endpoint
+  timed out; it is removed from runtime settings. Camera publishing still needs
+  a verified WebRTC route. Preserve the separate `breadcast-experiment` profile. Host start and
   status steps are in `docs/29-laptop-media-host.md`. Supabase backend deployment
   and the authenticated Gemini metadata relay are confirmed in record 24.
   Laptop startup and public HTTP are recorded in `docs/evidence/laptop-media-host.json`.
-  Public playback, inference, latency and acceptance remain pending.
+  The public URL played holding frames in local Chrome, recorded in
+  `docs/evidence/viewer-hls-repair.json`. Playback on another network, inference,
+  latency and full acceptance remain pending.
   Existing media, controller, source identity and original-deadline contracts apply.
   Explicit workshop configuration remains available for historical deployments.
 

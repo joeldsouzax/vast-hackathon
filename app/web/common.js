@@ -117,7 +117,63 @@ function message(value = '') {
   if (element.textContent !== value) element.textContent = value;
   if (element.hidden !== !value) element.hidden = !value;
 }
+let hlsLibrary;
+function loadHlsLibrary() {
+  if (window.Hls) return Promise.resolve(window.Hls);
+  if (!hlsLibrary) hlsLibrary = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    // Use the hls.js version bundled in the pinned MediaMTX image.
+    script.src = publicPath('/media/program/hls/hls.min.js');
+    script.onload = () => resolve(window.Hls);
+    script.onerror = () => {script.remove(); hlsLibrary = null; reject(new Error('Cannot load the video player'));};
+    document.head.append(script);
+  });
+  return hlsLibrary;
+}
+function playHlsProgram(video, error) {
+  let closed = false, player, retryTimer, failed = false;
+  const revision = operatorSessionRevision;
+  const active = () => !closed && (!isOperatorPage || (operatorAuthorized && revision === operatorSessionRevision));
+  const url = publicPath('/media/program/hls/index.m3u8');
+  function recovered() {if (active() && failed) {failed = false; error('');}}
+  function retry() {
+    if (!active() || retryTimer) return;
+    failed = true; error('Stream unavailable. Retrying…');
+    player?.destroy(); player = undefined;
+    retryTimer = setTimeout(() => {retryTimer = undefined; start();}, 2000);
+  }
+  async function start() {
+    if (!active()) return;
+    try {
+      const Hls = await loadHlsLibrary();
+      if (!active()) return;
+      if (Hls?.isSupported()) {
+        player = new Hls({lowLatencyMode: false, maxLiveSyncPlaybackRate: 1.5});
+        player.on(Hls.Events.ERROR, (_, data) => {if (data.fatal) retry();});
+        player.on(Hls.Events.MEDIA_ATTACHED, () => player?.loadSource(url));
+        player.on(Hls.Events.MANIFEST_PARSED, () => {if (active()) video.play().catch(() => {});});
+        player.attachMedia(video);
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = url; video.play().catch(() => {});
+      } else {
+        error('This browser cannot play the stream. Use a current Chrome or Safari browser.');
+      }
+    } catch (_) {retry();}
+  }
+  video.addEventListener('playing', recovered);
+  video.addEventListener('error', retry);
+  const reader = {close() {
+    closed = true; clearTimeout(retryTimer); player?.destroy();
+    video.removeEventListener('playing', recovered); video.removeEventListener('error', retry);
+    video.removeAttribute('src'); video.load();
+  }};
+  window.addEventListener('pagehide', () => reader.close(), {once: true});
+  start(); return reader;
+}
 function playProgram(video, error) {
+  if (document.querySelector('meta[name="breadcast-viewer-transport"]')?.content === 'hls') {
+    return playHlsProgram(video, error);
+  }
   const revision = operatorSessionRevision;
   const reader = new MediaMTXWebRTCReader({
     url: `${location.origin}${publicPath('/media/program/whep')}`,

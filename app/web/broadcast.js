@@ -30,7 +30,7 @@ async function refresh() {
     document.querySelector('#broadcast').hidden = false;
     if (!reader) {
       loadPoster().catch(() => {});
-      reader = playProgram(document.querySelector('#program'), error => message(`Video connection: ${error}`));
+      reader = playProgram(document.querySelector('#program'), error => message(error ? `Video connection: ${error}` : ''));
     }
     updateJoinNavigation(state.join_url);
     const joinOrigin = new URL(state.join_url);
