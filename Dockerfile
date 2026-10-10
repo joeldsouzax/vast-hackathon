@@ -45,6 +45,12 @@ COPY config ./config
 COPY _sample-videos ./_sample-videos
 COPY docker/healthcheck.py ./container-healthcheck.py
 COPY --chmod=755 docker/entrypoint.sh /usr/local/bin/breadcast-studio
+# Persistent cloud media runtime. Root is used only to initialize the volume.
+FROM runtime AS cloud-runtime
+USER root
+COPY docker/cloud-entrypoint.py /opt/breadcast/cloud-entrypoint.py
+ENTRYPOINT ["/usr/bin/tini", "--", "python3", "/opt/breadcast/cloud-entrypoint.py"]
+CMD ["serve"]
 # Browser tools are confined to the isolated acceptance image.
 FROM dependencies AS browser-dependencies
 USER root

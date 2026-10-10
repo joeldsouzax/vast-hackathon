@@ -2,14 +2,10 @@
   "schema_version": 1,
   "videos": [
     {
-      "id": "nyc-bike-gopro-chunk-0018",
-      "name": "NYC bike GoPro",
-      "uri": "s3://team-36-vss-chunks/team-36/20261008_073129_GOPR0130_chunk_0018.mp4"
-    },
-    {
-      "id": "sf-streets-cam2-chunk-0019",
-      "name": "SF streets cam 2",
-      "uri": "s3://team-36-vss-chunks/team-36/20261001_095927_sf2_chunk_0019.mp4"
+      "id": "repo-video-1",
+      "name": "Video 1",
+      "uri": "file:../_sample-videos/15449351-hd_1920_1080_60fps.mp4",
+      "expected_sha256": "70ed2d738b2d72b4d3234075704c27155007acd153356e3d028ab885bfdbb55a"
     }
   ]
 }

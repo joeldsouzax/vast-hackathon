@@ -1,0 +1,7 @@
+project_id = "breadcast"
+
+[functions.gemini]
+# This server-only function validates BREADCAST_RUNTIME_KEY itself.
+# It does not accept anonymous browser callers or publishable keys.
+verify_jwt = false
+entrypoint = "./functions/gemini/index.ts"

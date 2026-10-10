@@ -1,5 +1,6 @@
 """Runtime workshop settings; secrets never enter event context or records."""
 import os
+import re
 from pathlib import Path
 
 from foundation_records import FoundationSettings, Limits, ProviderConfig
@@ -15,6 +16,10 @@ NAMES=('INGRESS_URL','USERNAME','PASSWORD','S3_CHUNKS_BUCKET','S3_SEGMENTS_BUCKE
     'BREADCAST_TTS_URL','BREADCAST_TTS_MODEL','BREADCAST_TTS_API_KEY','BREADCAST_TTS_VOICE',
     'BREADCAST_TTS_PROTOCOL','BREADCAST_TTS_LANGUAGE')
 NAMES+=('ELEVENLABS_API_KEY','ELEVENLABS_VOICE_ID','ELEVENLABS_MODEL_ID','BREADCAST_ELEVENLABS_BASE_URL')
+NAMES+=('GEMINI_API_KEY','AI_STUDIO_KEY','BREADCAST_GEMINI_BASE_URL','BREADCAST_GEMINI_MODEL',
+    'BREADCAST_GEMINI_EMBEDDING_MODEL','BREADCAST_GEMINI_SPEECH_MODEL','BREADCAST_GEMINI_DETECTION_MODEL','BREADCAST_GEMINI_VOICE',
+    'SUPABASE_PROJECT_ID','SUPABASE_URL','SUPABASE_SECRET_KEY','SUPABASE_SERVICE_ROLE_KEY','BREADCAST_SUPABASE_BUCKET',
+    'BREADCAST_RUNTIME_KEY','BREADCAST_PROVIDER_STACK')
 
 
 def values():
@@ -22,12 +27,37 @@ def values():
     except ProbeFailure:result={}
     for name in NAMES:
         if os.environ.get(name):result[name]=os.environ[name]
+    if not result.get('GEMINI_API_KEY') and result.get('AI_STUDIO_KEY'):
+        result['GEMINI_API_KEY']=result['AI_STUDIO_KEY']
+    if not result.get('SUPABASE_URL') and result.get('SUPABASE_PROJECT_ID'):
+        project=result['SUPABASE_PROJECT_ID']
+        if not re.fullmatch(r'[a-z]{20}',project):
+            raise ValueError('SUPABASE_PROJECT_ID must be the 20-letter project reference, or set SUPABASE_URL')
+        result['SUPABASE_URL']='https://'+project+'.supabase.co'
     return result
 
 
 def settings():
     config=values()
     enabled=os.environ.get('BREADCAST_STACK_ENABLED','auto')
+    if os.environ.get('BREADCAST_PROVIDER_STACK','gemini-supabase')=='gemini-supabase':
+        if enabled=='0':return FoundationSettings()
+        # Configure honest unavailable states even before cloud projects exist.
+        embedding=config.get('BREADCAST_GEMINI_EMBEDDING_MODEL','gemini-embedding-2')
+        providers={name:ProviderConfig(adapter='live',protocol='gemini-supabase-v1',version='unknown')
+            for name in ('storage','jobs','cosmos','search','llm','speech')}
+        providers['search']=providers['search'].model_copy(update={
+            'version':'breadcast-gemini-caption-768-v1','model_id':embedding})
+        providers['yolo']=ProviderConfig(adapter='live',protocol='gemini-supabase-v1',version='unknown')
+        return FoundationSettings(providers=providers,
+            event={'event_id':'manual-event','voice_id':config.get('BREADCAST_GEMINI_VOICE')},
+            limits=Limits(live_deadline_s=8.0,call_timeout_s=8.0,retries=0),
+            direction={'enabled':True,'role_timeout_s':8.0},
+            replay={'enabled':True,'candidate_s':30.0,'preparation_s':15.0,
+                'recall_s':45.0,'recall_expiry_s':60.0,'query_s':5.0,
+                'index_version':'breadcast-gemini-caption-768-v1','embedding_version':embedding})
+    if os.environ.get('BREADCAST_PROVIDER_STACK')!='workshop':
+        raise ValueError('BREADCAST_PROVIDER_STACK must be gemini-supabase or workshop')
     if enabled=='0' or enabled=='auto' and not any(config.get(k) for k in ('INGRESS_URL','COSMOS3_REASON_URL','YOLO_URL','WANDB_API_KEY','ELEVENLABS_API_KEY')):
         return FoundationSettings()
     providers={name:ProviderConfig(adapter='live',version='unknown',protocol='workshop-v1',

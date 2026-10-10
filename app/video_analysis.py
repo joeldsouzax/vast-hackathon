@@ -2,7 +2,10 @@
 from __future__ import annotations
 
 import copy
+import asyncio
+import hashlib
 import json
+import os
 import queue
 import threading
 import time
@@ -26,11 +29,19 @@ class VideoAnalysis:
         with self.lock:return copy.deepcopy(self.current)
 
     def submit(self, video):
-        try:values=configuration()
+        if os.environ.get('BREADCAST_PROVIDER_STACK','gemini-supabase')=='gemini-supabase' and not self.app.foundation.registry.gemini:
+            with self.lock:self.current.update(state='unavailable',reason='Gemini archive analysis is disabled')
+            return
+        try:
+            if self.app.foundation.registry.gemini:
+                values={'stack':'gemini-supabase'}
+                key=hashlib.sha256(('gemini:'+self.app.foundation.run_id+':'+video['sha256']).encode()).hexdigest()
+            else:
+                values=configuration()
+                key=binding_key(values,video)
         except VssFailure as error:
             with self.lock:self.current.update(state='unavailable',reason=str(error),failure=error.public())
             return
-        key=binding_key(values,video)
         with self.lock:
             if key in self.active:return
             self.active.add(key)
@@ -79,12 +90,39 @@ class VideoAnalysis:
             except queue.Empty:continue
             try:self._process(key,video,values)
             except VssFailure as error:self._state('failed',str(error),failure=error.public())
-            except Exception:self._state('failed','VAST processing failed; playback remains available')
+            except Exception as error:
+                from provider_errors import public_failure
+                failure=public_failure(error,'jobs')
+                self._state('failed','Video archive processing failed; playback remains available',failure=failure)
             finally:
                 with self.lock:self.active.discard(key)
                 self.jobs.task_done()
 
     def _process(self,key,video,values):
+        if values.get('stack')=='gemini-supabase':
+            self._state('uploading','Saving video to private Supabase storage',summary='',failure=None,provider='gemini-supabase')
+            async def process():
+                task=asyncio.create_task(self.app.foundation.registry.gemini.archive(video,time.time()+120))
+                try:
+                    while not task.done():
+                        if self.stop.is_set() or self.app.stop.is_set():
+                            task.cancel()
+                            try:await task
+                            except asyncio.CancelledError:pass
+                            return None
+                        await asyncio.wait({task},timeout=.2)
+                    return await task
+                finally:
+                    if not task.done():task.cancel()
+            result=asyncio.run(process())
+            if result is None:return
+            record={'video_id':video['id'],'sha256':video['sha256'],'state':'ready',
+                'source_kind':'server_video','fixture':False,'result':result}
+            self._save(key,record)
+            self._ready(record)
+            self._state('ready',provider='gemini-supabase',inspected_start_s=result['inspected_start_s'],
+                inspected_end_s=result['inspected_end_s'],model_version=result['model_version'],supabase_clip_id=result['clip']['id'])
+            return
         deadline=time.monotonic()+300
         def cancelled():return self.stop.is_set() or self.app.stop.is_set() or time.monotonic()>=deadline
         record=self._saved(key) or {'video_id':video['id'],'sha256':video['sha256'],

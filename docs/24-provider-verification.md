@@ -1,6 +1,20 @@
 # Breadcast provider verification record
 
-**Updated:** 2026-10-09
+**Updated:** 2026-10-10
+
+Current provider override: use Gemini and Supabase. The local `AI_STUDIO_KEY`
+authenticated `models.list` on 2026-10-10. The returned catalog contains the four
+selected models and their required methods. See the sanitized [access record](evidence/gemini-access.json)
+and [model-card choices](28-gemini-supabase-migration.md#model-selection).
+
+Catalog access is verified. Inference, measured latency, object geometry,
+tracking, speech, actual clip upload/search, container build, media deployment
+and media acceptance remain unverified. Supabase storage access, private bucket
+configuration, database migration and ACTIVE function deployment are confirmed.
+The function returned the selected model catalog through its authenticated
+relay. See [Supabase access](evidence/supabase-access.json). No production gate closes from model
+metadata. The workshop environment and gate register below retain their original
+scope. They do not describe current Gemini access.
 
 The registered-video archive adapter now performs tenant and source checks at
 runtime before upload/inspection. Its real VM run is pending. The user requested

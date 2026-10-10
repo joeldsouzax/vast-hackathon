@@ -108,7 +108,7 @@ class Direction:
         if isinstance(intent,Abstention):return intent,None
         refs=intent.evidence_ids
         allowed={o['evidence_id']:o for o in context['observations']}
-        if role=='commentator' and refs:
+        if role=='commentator' and refs and not self.foundation.registry.gemini:
             # Resolve truncated IDs by unique prefix, then drop invented IDs.
             # The line must still rest on at least one reviewed observation.
             resolved=[]
@@ -136,7 +136,7 @@ class Direction:
         dependencies={'snapshot':snapshot,'evidence_ids':refs,'deadline':deadline,'sources':{}}
         archive_session=role=='commentator' and context['target'].get('archive_session')
         if archive_session:dependencies['archive_session']=context['target']['archive_session']
-        elif role=='commentator':
+        elif role=='commentator' and not self.foundation.registry.gemini:
             reviewed=context['target']['source']
             dependencies['commentary_camera']={'source_path':reviewed['source_id'],'epoch':reviewed['epoch']}
         for source in (() if archive_session else snapshot.sources):
@@ -151,7 +151,7 @@ class Direction:
                     observation=self.foundation._observation(eid)
                     if observation.model_dump(mode='json')!=allowed[eid]:raise ValueError('Evidence changed after review')
                     job=self.foundation.db.execute('SELECT deadline,body FROM jobs WHERE key=?',(observation.job_key,)).fetchone()
-                    if role=='director':
+                    if role=='director' or self.foundation.registry.gemini and role=='commentator' and not archive_session:
                         if not job or json.loads(job['body']).get('deadline_basis')!='frame-receipt':
                             raise ValueError('Notification-only evidence has no live freshness')
                         dependencies['deadline']=min(dependencies['deadline'],job['deadline'])
@@ -421,12 +421,14 @@ class Direction:
                 with self.foundation.lock:
                     deadlines=[self.foundation.db.execute('SELECT deadline FROM jobs WHERE key=?',(o['job_key'],)).fetchone()[0] for o in context['observations']]
                 if not deadlines or max(deadlines)<=time.time()+minimum_budget:return
+                if self.foundation.registry.gemini:deadline=min(deadline,max(deadlines))
             elif self.app.program.actual=='LIVE':
                 with self.foundation.lock:
                     jobs=[self.foundation.db.execute('SELECT deadline,body FROM jobs WHERE key=?',(o['job_key'],)).fetchone() for o in context['observations']]
                 fresh=[job['deadline'] for job in jobs if job and json.loads(job['body']).get('deadline_basis')=='frame-receipt' and job['deadline']>time.time()+minimum_budget]
                 if not fresh:
                     self.traces.append({'role':role,'stage':'skip','utc':time.time(),'reason':'no fresh live evidence'});return
+                if self.foundation.registry.gemini:deadline=min(deadline,max(fresh))
             self.state[role]='Thinking'
             self.traces.append({'role':role,'stage':'model-start','utc':time.time(),'deadline_utc':deadline})
             async def call():
@@ -560,9 +562,10 @@ class Direction:
                         if record and record['state'] in ('Rejected','Canceled','Expired'):self.discard(cue.id,record['reason'])
                 if not self.settings.enabled or self.app.control.crew_paused or self.app.control.rehearsal['state']=='Running':continue
                 if not self.app.control.program_started:continue
-                try:self._policy_replay()
-                except Exception as error:self.traces.append({'role':'replay','stage':'error','utc':time.time(),'reason':type(error).__name__+': '+str(error)[:160]})
-                self._policy_rotate()
+                if not self.foundation.registry.gemini:
+                    try:self._policy_replay()
+                    except Exception as error:self.traces.append({'role':'replay','stage':'error','utc':time.time(),'reason':type(error).__name__+': '+str(error)[:160]})
+                    self._policy_rotate()
                 try:self._policy_graphics()
                 except Exception as error:self.traces.append({'role':'graphics','stage':'error','utc':time.time(),'reason':type(error).__name__+': '+str(error)[:160]})
                 live=self.app.program.actual!='HOLDING' and self.app.program.requested!='HOLDING'

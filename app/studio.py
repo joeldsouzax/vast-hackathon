@@ -372,7 +372,7 @@ class App:
                 "rtsp": True, "rtspAddress": f"127.0.0.1:{8554 + cfg.offset}", "rtspTransports": ["tcp"],
                 "rtmp": False, "srt": False, "moq": False, "hls": False,
                 "webrtc": True, "webrtcAddress": f"127.0.0.1:{8889 + cfg.offset}",
-                "webrtcLocalUDPAddress": f":{cfg.webrtc_port}",
+                "webrtcLocalUDPAddress": f"{os.environ.get('BREADCAST_WEBRTC_UDP_BIND','')}:{cfg.webrtc_port}",
                 "webrtcLocalTCPAddress": f":{cfg.webrtc_port}",
                 "webrtcAdditionalHosts": list(cfg.ice_hosts), "webrtcICEServers2": list(cfg.ice_servers),
                 "pathDefaults": {"overridePublisher": False, "record": True, "recordFormat": "fmp4",
@@ -733,6 +733,12 @@ class App:
                 self.jobs[replay_id]['stages']['render_end_utc']=time.time()
                 if canonical:self.replay_work.eligible(replay,files=True)
                 self.jobs[replay_id]['stages']['output_validated_utc']=time.time()
+                if self.foundation.registry.gemini:
+                    import asyncio
+                    receipt=asyncio.run(self.foundation.registry.gemini.upload_replay(replay,
+                        min(time.time()+45,resolved.plan.get('expires_at',time.time()+45))))
+                    self.jobs[replay_id]['supabase_clip']={'id':receipt['id'],'sha256':receipt['sha256'],
+                        'bucket':receipt['bucket'],'object_path':receipt['object_path']}
                 with self.replay_context.lock, self.render_lock:
                     if plan is not None:
                         self.replay_context.eligible(replay.report["plan"])

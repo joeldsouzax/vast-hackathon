@@ -8,6 +8,7 @@
 !docker/
 !docker/entrypoint.sh
 !docker/healthcheck.py
+!docker/cloud-entrypoint.py
 !tests/
 !tests/unit/
 !tests/unit/*.py

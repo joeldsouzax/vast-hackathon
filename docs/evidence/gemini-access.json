@@ -1,0 +1,59 @@
+{
+  "operation": "models.list",
+  "origin": "provider",
+  "observed_utc": "2026-10-10T15:03:39.968002+00:00",
+  "has_next_page": false,
+  "inference_verified": false,
+  "models": [
+    {
+      "name": "models/gemini-3.8-flash",
+      "version": "3.0",
+      "supportedGenerationMethods": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "name": "models/gemini-3.8-flash-lite-tts",
+      "version": "3.8-flash-lite-tts",
+      "supportedGenerationMethods": [
+        "generateContent",
+        "countTokens",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "name": "models/gemini-robotics-er-2-preview",
+      "version": "2-preview",
+      "supportedGenerationMethods": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "name": "models/gemini-embedding-2",
+      "version": "2",
+      "supportedGenerationMethods": [
+        "embedContent",
+        "countTextTokens",
+        "countTokens",
+        "asyncBatchEmbedContent"
+      ]
+    }
+  ],
+  "credential_source": "local .env: AI_STUDIO_KEY",
+  "status": "catalog_verified",
+  "implementation_checks": "skipped by user instruction",
+  "deployment": "Supabase backend deployed; media host pending",
+  "pending": [
+    "structured video inference and original deadlines",
+    "sampled-frame object geometry and output",
+    "audible TTS and measured response time",
+    "768-dimension embeddings and Supabase search",
+    "new media host and browser delivery"
+  ]
+}

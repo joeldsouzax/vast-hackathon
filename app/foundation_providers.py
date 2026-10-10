@@ -29,11 +29,27 @@ class Registry:
         self.roles=LiveRoles(self) if self.live else None
         from live_speech import LiveSpeech
         self.voice=LiveSpeech(self) if self.live else None
+        from gemini_stack import GeminiStack
+        self.gemini=GeminiStack(self) if any(p.protocol=='gemini-supabase-v1' for p in settings.providers.values()) else None
+        if self.gemini:self.live=self.gemini
         self.connections={}
 
     async def prepare(self):
         """Read provider metadata in an existing worker; no content or airtime."""
         if not self.live:return
+        if self.gemini:
+            async with httpx.AsyncClient(follow_redirects=False) as client:
+                for boundary in ('storage','cosmos','yolo','llm','search','speech'):
+                    if self.foundation.stop.is_set():return
+                    if not self.gemini.configured(boundary):
+                        self.connections[boundary]={'state':'not_configured'};continue
+                    self.connections[boundary]={'state':'connecting'}
+                    try:
+                        await self.gemini.prepare(client,boundary,time.time()+5)
+                        self.connections[boundary]={'state':'discovered'}
+                    except Exception as error:
+                        self.connections[boundary]={'state':'unavailable','failure':public_failure(error,boundary)}
+            return
         async with httpx.AsyncClient(follow_redirects=False) as client:
             for boundary in ('speech','llm','cosmos','search','yolo'):
                 if self.foundation.stop.is_set():return
@@ -64,6 +80,9 @@ class Registry:
         for boundary in BOUNDARIES:
             config = self.settings.providers.get(boundary)
             mode = config.adapter if config else 'disabled'
+            if self.gemini:
+                results[boundary]=self.gemini.capabilities(boundary)
+                continue
             if mode=='live' and config.protocol=='workshop-v1' and boundary=='speech':
                 ready=self.voice.configured()
                 results[boundary]={'adapter':'live','ready':ready,'live_verified':self.voice.verified,
@@ -116,6 +135,9 @@ class Registry:
 
     async def analyze(self, window, manifests, *, work_deadline=None):
         """Labels bind to declared sample intervals, never to arbitrary camera footage."""
+        if self.gemini:
+            self.require('cosmos');self.require('storage')
+            return await self.gemini.analyze(window,manifests,work_deadline=work_deadline)
         self.require('yolo'); self.require('cosmos')
         if self.live and self.settings.providers['cosmos'].protocol=='workshop-v1':
             return await self.live.analyze(window,manifests,work_deadline=work_deadline)
@@ -166,6 +188,9 @@ class Registry:
         if remaining <= 0: raise TimeoutError('LLM deadline expired')
         if context['snapshot'] != snapshot.model_dump(mode='json'):
             raise ValueError('Context does not match reviewed snapshot')
+        if self.gemini:
+            async with asyncio.timeout(remaining):
+                return await self.gemini.llm(role,context,snapshot,deadline_utc)
         if self.roles and self.settings.providers['llm'].protocol=='workshop-v1':
             async with asyncio.timeout(remaining):
                 return await self.roles.llm(role,context,snapshot,deadline_utc)
@@ -227,6 +252,7 @@ class Registry:
     async def query(self, query, entries, deadline_utc):
         """Verified transports plug in here. Fixture scores remain simulated."""
         config=self.require('search')
+        if self.gemini:return await self.gemini.query(query,entries,deadline_utc)
         if self.live and config.protocol=='workshop-v1':return await self.live.query(query,entries,deadline_utc)
         if config.adapter!='fixture':raise CapabilityError('Search transport requires tenant verification')
         if time.time()>=deadline_utc:raise TimeoutError('Search deadline expired')
@@ -242,6 +268,7 @@ class Registry:
         from foundation_records import EventContext
         event=EventContext.model_validate(event_context or self.settings.event)
         if event.event_id!=self.settings.event.event_id:raise ValueError('Speech preferences belong to another event')
+        if self.gemini:return await self.gemini.synthesize(text,storage,deadline_utc,event)
         if self.voice and self.settings.providers['speech'].protocol=='workshop-v1':
             return await self.voice.synthesize(text,storage,deadline_utc,event)
         # Fixtures return the declared phrase. Preferences do not verify a voice.

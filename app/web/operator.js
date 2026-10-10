@@ -252,20 +252,28 @@ async function refresh() {
     const p = state.program;
     const analysis=state.video_analysis || {state:'idle'};
     document.querySelector('#video-analysis').hidden=analysis.state==='idle';
+    const archiveName=analysis.provider==='gemini-supabase' ? 'Gemini / Supabase' : 'VAST';
     document.querySelector('#video-analysis-status').textContent=analysis.state==='ready' ?
-      `VAST archive ready · ${analysis.segment_count} segments${analysis.cached ? ' · Saved result' : ''}` :
-      `VAST · ${analysis.reason || analysis.state}`;
+      `${archiveName} archive ready${analysis.inspected_end_s ? ' · First '+analysis.inspected_end_s+' seconds inspected' : ' · '+analysis.segment_count+' segments'}${analysis.cached ? ' · Saved result' : ''}` :
+      `${archiveName} · ${analysis.reason || analysis.state}`;
     document.querySelector('#video-analysis-summary').textContent=analysis.state==='ready' ? analysis.summary : '';
     document.querySelector('#video-analysis-detections').textContent=analysis.state!=='ready' ? '' :
       analysis.yolo_sidecar_received ? `YOLO sidecars: ${analysis.detection_segments} segments. ` +
         (analysis.detection_counts || []).map(item=>`${item.label}: ${item.count}`).join(' · ') :
-      'No YOLO sidecar returned for this video.';
+      analysis.provider==='gemini-supabase' ? 'Clip saved privately. Object evidence appears in Crew status. Tracking needs verification.' : 'No YOLO sidecar returned for this video.';
     const crewHealth=document.querySelector('#crew-health');crewHealth.hidden=!state.direction.enabled;
     const speech=state.direction.provider_capabilities?.speech;
-    const voice=speech?.protocol==='elevenlabs' ? `ElevenLabs${speech.voice_name ? ' · '+speech.voice_name : ''}` :
+    const voice=speech?.protocol==='gemini' ? `Gemini speech${speech.voice_id ? ' · '+speech.voice_id : ''}` :
+      speech?.protocol==='elevenlabs' ? `ElevenLabs${speech.voice_name ? ' · '+speech.voice_name : ''}` :
       speech?.ready ? 'Configured speech' : 'Speech unavailable';
     const connecting=Object.entries(state.providers || {}).filter(([,provider])=>provider.connection?.state==='connecting').map(([name])=>name);
-    crewHealth.textContent=`${state.direction.fixture ? 'Local fixture crew' : 'Provider crew'}${connecting.length ? ' · Connecting: '+connecting.join(', ') : ''} · ${state.control.crew_paused ? 'Human control · Release control to run' : 'Automatic mode'} · Director: ${state.direction.roles.director} · Commentator: ${state.direction.roles.commentator} · ${voice} · Replays: ${state.replay_work.scheduling || state.replay_work.reason} · ${state.direction.reason}`;
+    const streaming=Object.entries(state.providers || {}).filter(([,provider])=>provider.stream?.state==='streaming').map(([name])=>({cosmos:'video analysis',llm:'crew',speech:'speech'}[name] || name));
+    crewHealth.textContent=`${state.direction.fixture ? 'Local fixture crew' : 'Provider crew'}${connecting.length ? ' · Connecting: '+connecting.join(', ') : ''}${streaming.length ? ' · Gemini streaming: '+streaming.join(', ') : ''} · ${state.control.crew_paused ? 'Human control · Release control to run' : 'Automatic mode'} · Director: ${state.direction.roles.director} · Commentator: ${state.direction.roles.commentator} · ${voice} · Replays: ${state.replay_work.scheduling || state.replay_work.reason} · ${state.direction.reason}`;
+    const objects=state.foundation?.perception;
+    if (objects?.provider==='gemini') {
+      const counts=Object.entries(objects.counts || {}).map(([label,count])=>`${label}: ${count}`).join(', ');
+      crewHealth.textContent+=` · Gemini objects · Camera ${objects.source.slot} · ${objects.frames_inspected} inspected frames · ${counts || 'No objects returned'} (frame occurrences)`;
+    }
     document.querySelector('#setup-status').textContent = state.direction.setup.ready ? `Graphics ready · Context ${state.direction.setup.context_revision}` : 'Event graphics need preparation for the current context.';
     document.querySelector('#framing-status').textContent = p.framing ? 'Static crop active · Use Full frame to reset.' : 'Full frame';
     if (!document.querySelector('#event-setup-form').dataset.loaded) {

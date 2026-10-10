@@ -243,6 +243,25 @@ class Detection(Record):
         return self
 
 
+class DetectedObject(Record):
+    label: str = Field(min_length=1, max_length=128)
+    box: list[Annotated[float, Field(ge=0, le=1)]] = Field(min_length=4, max_length=4)
+
+    @model_validator(mode='after')
+    def box_order(self):
+        if self.box[2] <= self.box[0] or self.box[3] <= self.box[1]:
+            raise ValueError('Object box is empty')
+        return self
+
+
+class ObjectFrame(Record):
+    image_sha256: str = Field(pattern=r'^[a-f0-9]{64}$')
+    image_width: Positive
+    image_height: Positive
+    coordinate_space: Literal['inspected_frame'] = 'inspected_frame'
+    objects: list[DetectedObject] = Field(max_length=24)
+
+
 class ViewAssessment(Record):
     native: Interval
     subject_visible: bool
@@ -266,6 +285,7 @@ class Observation(Record):
     uncertainty: Annotated[float, Field(ge=0, le=1)]
     association_key: ID | None = None
     detections: list[Detection] = Field(default_factory=list, max_length=256)
+    object_frame: ObjectFrame | None = Field(default=None, exclude_if=lambda value: value is None)
     produced_utc: float
     view: ViewAssessment | None = None
     replay_opportunity: Literal['quiet', 'stoppage', 'recap'] | None = None

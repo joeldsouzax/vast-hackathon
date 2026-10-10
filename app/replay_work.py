@@ -348,7 +348,7 @@ class ReplayWork:
             # success. Build a deterministic plan first; recall still uses the LLM.
             result=None
             scene_chunks=self.foundation.chunks(scene.source,scene.native)
-            if candidate.purpose=='automatic':
+            if candidate.purpose=='automatic' and not self.foundation.registry.gemini:
                 result=deterministic_segment(context,scene,snapshot,chunks=scene_chunks)
                 if result is not None:
                     job['stages']['deterministic_fallback_utc']=time.time()
@@ -371,6 +371,7 @@ class ReplayWork:
                     result=SegmentorResult.model_validate(asyncio.run(plan_call()))
                 except Exception as error:
                     failure=public_failure(error,'llm');job['provider_failure']=failure
+                    if self.foundation.registry.gemini:raise
                     result=deterministic_segment(context,scene,snapshot,chunks=scene_chunks)
                     if result is None:raise
                     job['stages']['deterministic_fallback_utc']=time.time()
@@ -424,7 +425,7 @@ class ReplayWork:
                 # still leaves enough time to render after finalization.
                 receipt_bound=max(m.last_receipt_utc-m.receipt_uncertainty_ms/1000 for m in verified)+self.settings.candidate_s
                 final_bound=final+self.settings.preparation_s
-                if min(receipt_bound,final_bound)>time.time()+5:
+                if self.foundation.registry.gemini or min(receipt_bound,final_bound)>time.time()+5:
                     deadline=min(deadline,receipt_bound,final_bound)
                 expiry=min(expiry,deadline)
                 plan=plan.model_copy(update={'expires_at':expiry})
@@ -666,7 +667,7 @@ class ReplayWork:
                 # Prefer the remaining candidate budget from admit time. Receipt age
                 # only shortens when the receipt window is still ahead of now.
                 receipt_deadline=max(m.last_receipt_utc-m.receipt_uncertainty_ms/1000 for m in chunks)+self.settings.candidate_s
-                if receipt_deadline>now:deadline=min(deadline,receipt_deadline)
+                if self.foundation.registry.gemini or receipt_deadline>now:deadline=min(deadline,receipt_deadline)
                 if deadline<=now:continue
                 self._admit(ReplayCandidate(candidate_id=key,scene_id=scene.scene_id,scene_revision=scene.revision,
                     source=scene.source,purpose='automatic',admitted_utc=now,deadline_utc=deadline,

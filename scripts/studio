@@ -26,7 +26,7 @@ elif sudo -n docker info >/dev/null 2>&1; then
   preserved_names=()
   while IFS= read -r env_name; do
     case "$env_name" in
-      BREADCAST_*|COSMOS*|YOLO_URL|GPU_BEARER_TOKEN|WANDB_*|ELEVENLABS_*|INGRESS_URL|USERNAME|PASSWORD|S3_*|ACCESS_KEY|SECRET_KEY|AWS_*)
+      BREADCAST_*|GEMINI_API_KEY|AI_STUDIO_KEY|SUPABASE_*|COSMOS*|YOLO_URL|GPU_BEARER_TOKEN|WANDB_*|ELEVENLABS_*|INGRESS_URL|USERNAME|PASSWORD|S3_*|ACCESS_KEY|SECRET_KEY|AWS_*)
         preserved_names+=("$env_name") ;;
     esac
   done < <(compgen -e)

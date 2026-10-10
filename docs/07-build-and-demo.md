@@ -2,6 +2,11 @@
 
 **Updated:** 2026-10-09
 
+Current user override: keep the build stages and acceptance scenarios, but use
+Gemini for AI and Supabase for private clips and pgvector. Use the bundled video
+first. Physical camera validation remains deferred. Follow [migration 28](28-gemini-supabase-migration.md)
+for the new deployment. Skipped checks remain unverified.
+
 Current work is specified by [PRD 22](22-live-stack-integration-prd.md) and
 [parallel plan 23](23-parallel-implementation-plan.md). They replace the older
 work assignment and custom-pipeline deployment choices below. Keep the inherited

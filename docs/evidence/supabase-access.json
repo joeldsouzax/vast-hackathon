@@ -1,0 +1,54 @@
+{
+  "observed_utc": "2026-10-10T15:14:37.712503+00:00",
+  "credential_source": "local .env: SUPABASE_SECRET_KEY",
+  "requests": [
+    {
+      "operation": "storage_access",
+      "http_status": 200,
+      "clip_bucket_exists": false,
+      "private_clip_bucket": false
+    },
+    {
+      "operation": "clip_table",
+      "http_status": 404
+    }
+  ],
+  "migration_applied": true,
+  "deployment": "backend_deployed_media_pending",
+  "bucket_creation": {
+    "http_status": 200,
+    "configuration": {
+      "public": false,
+      "file_size_limit": 52428800,
+      "allowed_mime_types": [
+        "video/mp4"
+      ]
+    },
+    "private_bucket_configured": true
+  },
+  "updated_utc": "2026-10-10T15:20:47.098180+00:00",
+  "migration": {
+    "http_status": 200,
+    "sha256": "5907c1367a9cfd1588c9f56f0fd76317dc6431ffd9063beb1607597951e010d9",
+    "version": "20261010151851",
+    "path": "supabase/migrations/20261010151851_breadcast_clips_and_vectors.sql"
+  },
+  "function_secrets_saved": true,
+  "gemini_function": {
+    "http_status": 201,
+    "status": "ACTIVE",
+    "version": 2,
+    "verify_jwt": false,
+    "source_sha256": "4476f8375db9b27dc5a88bf9af17cadb554f0c2e5697ca0935d50e4e80a93df8"
+  },
+  "gemini_relay_metadata": {
+    "http_status": 200,
+    "catalog_returned": true,
+    "selected_models_found": [
+      "gemini-3.8-flash",
+      "gemini-3.8-flash-lite-tts",
+      "gemini-embedding-2",
+      "gemini-robotics-er-2-preview"
+    ]
+  }
+}

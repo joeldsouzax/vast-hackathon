@@ -208,7 +208,7 @@ class ControlContracts(unittest.TestCase):
         self.assertEqual(self.c.policy['minimum_shot_s'],2)
         self.assertEqual(self.c.policy['rotate_s'],6)
         self.assertEqual(self.c.policy['replay_max_s'],12)
-        self.assertEqual(self.c.policy['replay_cooldown_s'],30)
+        self.assertEqual(self.c.policy['replay_cooldown_s'],20)
         self.human('resume')
         self.c.last_shot = time.monotonic()
         proposal = self.c.propose(self.proposal(slot=1))

@@ -1,10 +1,11 @@
 # Breadcast
 
-**Updated:** 2026-10-09
+**Updated:** 2026-10-10
 
-Breadcast turns video inputs into one program. The current priority is the
-teammate's uploaded video, followed by the VAST, Cosmos, YOLO, search, and W&B
-integration. Phone-camera validation is deferred on this VM.
+Breadcast turns video inputs into one program. Gemini supplies video reasoning,
+object detection, crew decisions, embeddings and speech. Supabase stores private
+clips and the vector database. The current input is the bundled video. Physical
+camera checks remain deferred. The Supabase backend is deployed. Media hosting and inference checks are pending.
 
 ## Play the uploaded video
 
@@ -39,204 +40,77 @@ The app validates media, preserves immutable bytes and SHA-256, and records
 `server_video` provenance. It does not call this a physical camera or fixture
 analysis. Provider work remains independent from program playback.
 
-## Process this video with VAST
+## Use Gemini and Supabase
 
-Put the assigned VM values for `INGRESS_URL`, `USERNAME`, `PASSWORD`,
-`S3_CHUNKS_BUCKET`, `S3_ENDPOINT`, `ACCESS_KEY`, and `SECRET_KEY` in the ignored
-`.env`. Use the team's actual values. Compose forwards them to the app. For a
-container launch, Compose mounts the VM config folder read-only at
-`/run/breadcast/team-config`. `BREADCAST_TEAM_CONFIG_SOURCE` selects the host
-folder and defaults to `/config`. The app reads its single `*.config` file
-without executing it. Nonempty environment values override that file. A
-non-container launch reads `/config` by default; `BREADCAST_TEAM_CONFIG_DIR`
-changes that folder. On hosts without an assigned file, select an empty host
-folder and supply values through `.env`.
+The default is `BREADCAST_PROVIDER_STACK=gemini-supabase`. Your local
+`AI_STUDIO_KEY` is accepted as a Gemini API key. Hosted mode keeps this key in
+Supabase function secrets. The media host uses a private function credential and
+a Supabase server key. Keep all keys out of Git and the browser.
 
-Start the video with the same red button. Once playback starts, background work
-checks the VAST tenant, uploads the clip privately with the API's default analysis
-prompt, and verifies the stored original against its local SHA-256. The supplied
-DataEngine pipeline runs segmentation, YOLO, Cosmos reasoning, and embedding.
-Studio shows processing state, then the archive summary and available YOLO counts.
-Stop video stops playback; archive processing can finish afterward.
+These model-card choices are available in the authenticated account catalog:
 
-Each input hash and tenant have one saved submission. Starting again uses that
-receipt. Completed results are reused after the tenant configuration and original
-bytes are checked. An upload with an unknown outcome is not sent again automatically.
-It needs reconciliation with the team's archive. Indexing gets five minutes; a
-later Start resumes inspection of the existing submission.
+| Task | Default model | Selection |
+|---|---|---|
+| Video and crew | `gemini-3.8-flash` | Multimodal input and structured decisions; low thinking for current video and medium for replay editing |
+| Object boxes | `gemini-robotics-er-2-preview` | Spatial reasoning on sampled frames |
+| Spoken commentary | `gemini-3.8-flash-lite-tts` | Short, single-speaker speech with low latency as the design goal |
+| Search embeddings | `gemini-embedding-2` | 768-dimension caption vectors in Supabase pgvector |
 
-The archive summary has no authority to change the program. Its clocks and tracker
-state do not yet provide live direction or synchronized commentary. Missing YOLO
-sidecars are shown explicitly. Provider access, model identities, and output
-quality still need the real VM run. No local fixture is reported as provider output.
+Model IDs remain configurable. Runtime checks them against the returned catalog.
+Catalog access does not prove inference, quotas or measured latency. See the
+[model choices and source cards](docs/28-gemini-supabase-migration.md#model-selection).
 
-Set the assigned `COSMOS3_REASON_URL`, `YOLO_URL`, `COSMOS_EMBED1_URL`, and any
-required `GPU_BEARER_TOKEN` in `.env` for current-window perception. Model IDs can
-be left empty when the endpoint serves one model; multiple models require an
-explicit returned ID. The app discovers the model and uses actual recorded
-windows for Cosmos and YOLO. Results enter the existing evidence ledger as
-provider observations. Recording-to-decoder matching supplies live timing when
-it can be measured. Unknown timing retains archive behavior. Detector box clocks
-and tracking are still unverified, so no detector crop is authorized yet.
+Playback remains independent of model calls. Recorded chunks are saved privately.
+Gemini responses use SSE, a streamed HTTP response for the existing clip flow.
+Only complete, validated responses enter the evidence ledger. The object adapter
+binds boxes to exact inspected images and source timestamps. It does not supply
+calibrated confidence, cross-frame tracks or synchronized program crop overlays.
 
-`BREADCAST_STACK_ENABLED=auto` enables these connections when workshop GPU or
-LLM configuration is present. `0` disables them. An explicit foundation JSON
-still takes precedence. Model versions that are not returned remain `unknown`;
-that label is not a version-verification pass.
+Supabase pgvector searches current, retained scenes within this event and run.
+Choose **Prepare replay** on a result. Gemini sees timestamped frames and proposes
+an edit. FFmpeg renders the validated plan on the media host. Its private Supabase
+clip receipt is required before the replay becomes ready. Preview and Play keep
+the existing program controller contract.
 
-```mermaid
-flowchart LR
-  Video[Registered video] --> Playback[Program playback]
-  Video --> Upload[Private VAST upload]
-  Upload --> Pipeline[YOLO Cosmos embeddings]
-  Pipeline --> Studio[Archive summary in Studio]
-```
+Prepare event graphics, then use **Start video**. It releases the crew in
+Automatic mode. **Take control** pauses the crew. Gemini director proposals use
+current evidence for camera changes and automatic replay playback. A ready asset
+alone cannot start playback. **Return live** interrupts a replay. Missing access
+shows a provider failure while manual video playback remains available.
 
-## Search and model-edited replay
+With `BREADCAST_SPEECH=on`, Gemini turns grounded commentary into speech. The
+runtime converts it to 48 kHz mono WAV and mixes it with source audio. Partial
+speech does not go on air. Caption-only output is not a speech pass.
 
-After the clip has produced retained scene evidence and VSS has indexed its
-private upload, open Replays and search for a visible action. VSS semantic search
-finds registered parent videos. Embed1 ranks the retained scene captions from
-those videos. Results use locally recorded source intervals; an upload timestamp
-is never used as replay time. Only this event/run's bound footage is returned.
-
-Submit the same words again after processing finishes to search the latest
-archive. Each submission is new; reloading the page restores the last result.
-Previously computed caption vectors are reused within this app process. VSS
-retrieval still runs for every new search. The existing five-second query budget
-also applies to async provider calls.
-
-Set `WANDB_API_KEY`. Empty role model settings now select supported IDs from
-the actual returned account catalog. Director and commentator prefer Granite
-4.2 8B, then Llama 3.1 8B, GPT OSS 20B, and Llama 3.3 70B. Segmentor prefers
-Gemma 4 26B A4B, then Qwen3.6 35B A3B, Qwen3.8 27B, and Gemma 4 31B.
-These vision models can receive its inspected frames. No default is used unless
-the catalog returns that exact ID. Actual image/tool behavior still needs VM
-proof. Set `BREADCAST_SEGMENTOR_MODEL`, `BREADCAST_DIRECTOR_MODEL`, and
-`BREADCAST_COMMENTATOR_MODEL` to override selection with returned IDs. `WANDB_TEAM` and `WANDB_PROJECT` supply
-optional usage attribution. The configurable base defaults to the documented
-`https://api.inference.wandb.ai/v1` service on CoreWeave. Do not use a text-only
-model for visual replay planning.
-
-Choose **Prepare replay** on a search result. The W&B segmentor sees the retained
-evidence and actual timestamped frames. It proposes a typed edit plan. The existing
-worker renders that plan, then Studio offers Preview and Play. Play still requires
-the program controller. Late window analysis runs as archive work with its original
-live deadline unchanged. This makes retained evidence available for later search;
-it cannot authorize a late camera cut.
-
-The director and commentator use the same W&B role transport and existing crew
-controls. Each needs eligible current evidence. A successful archive summary alone
-does not enable live crew decisions. These connections have not been run against
-the team's models.
-
-## Let the crew direct and speak
-
-Prepare the event graphics in Event details. Set the supplied event facts and
-leave unknown names and scores blank. **Start video** enables automatic mode by
-default. No separate Release control step is required. This allows fresh W&B
-director and commentator proposals.
-**Take control** pauses them. **Release control** allows fresh proposals again.
-Set `BREADCAST_CREW_MODE=human` only when a run must start with the crew paused.
-The director uses current mapped evidence and the
-existing typed controller actions. A single input can produce commentary and
-replays; it cannot demonstrate switching between two distinct views.
-
-Speech now uses **ElevenLabs** when `ELEVENLABS_API_KEY` is present. Keep the key
-in the VM environment or ignored `.env`; Compose passes it to the server.
-`BREADCAST_TTS_PROTOCOL=auto` selects ElevenLabs from that key. If the existing
-`.env` explicitly selects `nvidia-nim`, change it to `auto` or `elevenlabs`, then
-recreate the container. No ElevenLabs URL or key goes to the browser.
-
-`ELEVENLABS_MODEL_ID` and `ELEVENLABS_VOICE_ID` are optional. Runtime model listing
-selects Flash v2.5 when available, then Multilingual v2, then another returned TTS
-model. Runtime voice listing selects an available voice, preferring a premade
-voice. Set an explicit voice ID or select it in Event details to override this.
-Diagnostics show the actual selected model and voice. An empty event voice
-delegates selection to the configured speech adapter.
-
-The adapter uses the [ElevenLabs speech API](https://elevenlabs.io/docs/api-reference/text-to-speech/convert).
-It requests standard MP3 and converts it to 48 kHz mono WAV locally. This avoids
-requiring access to a paid WAV output format. The existing cue path then mixes
-speech into the program. No audio request was run from this development session.
-
-The NVIDIA route remains configurable. Set `BREADCAST_TTS_URL` to its base before
-`/v1`, select `BREADCAST_TTS_PROTOCOL=nvidia-nim`, and set
-`BREADCAST_TTS_API_KEY` if it needs authentication. The app reads readiness,
-model metadata, and `/v1/audio/list_voices`, then sends a multipart request to
-`/v1/audio/synthesize`. Select a returned voice in `BREADCAST_TTS_VOICE` or Event
-details. `BREADCAST_TTS_LANGUAGE` can select a returned locale explicitly; a short
-event language such as `en` is resolved only when the returned locale is unique.
-The app requests 48 kHz WAV audio. A single returned model needs no model setting.
-
-The [NVIDIA speech API](https://docs.nvidia.com/nim/speech/26.07.0/reference/api-references/tts/http-tts.html)
-supports this connection. The supplied VM configuration does not establish a
-running Magpie service. No shared GPU service is deployed or changed by Breadcast.
-The app does not assume that Canary speech-to-text can synthesize.
-
-For an existing OpenAI-compatible speech service, select
-`BREADCAST_TTS_PROTOCOL=openai` instead. That route uses `/v1/models` and
-`POST /v1/audio/speech` with `model`, `input`, `voice`, and `response_format=wav`.
-Only configure a service that implements the chosen API.
-
-The W&B commentator supplies grounded text. The speech adapter produces WAV,
-decodes it, and sends it through the existing prepared-cue path. The program mixer
-combines it with the selected source audio. Generated speech must fit eight seconds
-and its current evidence interval. The Viewer receives the mixed program audio.
-Missing speech service leaves eligible captions or silence. It does not count as
-working spoken commentary. Endpoint access, language, pronunciation and audible
-content still require the VM run.
-
-## Run the connected stack through automatic replay
-
-After deployment, keep the VM's existing `.env`, operator token and TLS files.
-Supply the workshop variables and `ELEVENLABS_API_KEY`, then recreate the service:
-
-```sh
-docker compose up -d --build --force-recreate studio
-```
-
-1. Open Studio, prepare event graphics, and start the repository video.
-2. Confirm **Automatic mode** in Crew status. Start video releases the crew by
-   default. The status shows director, commentator, selected speech service, and
-   automatic replay state. Take control still pauses crew actions.
-3. Current Cosmos observations can nominate replay candidates. The W&B segmentor
-   plans the edit. The existing worker renders and publishes a ready replay.
-4. The W&B director sees ready assets and current opportunity evidence. It can
-   propose replay playback through the program controller. Ready assets never
-   start playback on their own. The program returns to eligible live output after
-   replay, or holding when the video has ended. Return live interrupts a replay.
-5. After the clip ends, its VAST upload and archive analysis can still finish.
-   Search those retained moments and prepare a manual replay. Start the clip again
-   for another current-input session. Stop cancels the video source.
-
-The clip is about 20 seconds. Slow model calls can miss that live session and
-produce only archive evidence. A model can also abstain when no useful action is
-supported. The second video and detector tracking remain unverified. None of
-these conditions is a passed autonomous demo. The user requested skipped checks;
-the VM must establish actual playback, provider access, speech and replay behavior.
-
-At startup, a shared analysis worker reads configured provider metadata. It
-discovers W&B models, ElevenLabs models and voices, Cosmos readiness, Embed1
-models, and YOLO readiness before the short clip needs them. Each connection
-gets five seconds. Metadata discovery does not start playback, synthesize speech,
-or prove successful inference. Advanced diagnostics show each connection state.
-
-Studio reports provider failures by connection: Cosmos, YOLO, search, W&B roles,
-speech, or VAST jobs/storage. Authentication, access, rate limit, deadline and
-unsupported output have separate reason codes. Advanced diagnostics include
-HTTP status and a returned request ID when available. Provider error bodies,
-keys and tokens are excluded. If a W&B role needs model selection, its available
-returned IDs appear under `providers.llm.available_model_ids`. Speech shown as
-**Caption only** has not supplied program speech audio.
+Supabase hosts the backend function, private storage and vector database. A
+separate persistent media host runs FFmpeg, MediaMTX, Studio and Viewer. The new
+host configuration targets one Fly Machine with a persistent volume. Supabase
+Edge Functions cannot run this persistent media runtime.
 
 ```mermaid
 flowchart LR
-  File[Configured video] --> Start[Red Start button]
-  Start --> Controller[Program controller]
-  Controller --> View[Program video and audio]
-  Stop[Red Stop button] --> Hold[Holding]
+  Video[Bundled video] --> Host[Media host]
+  Host --> Viewer[Viewer]
+  Host --> Clips[Supabase clips]
+  Host --> Edge[Supabase function]
+  Edge --> Gemini[Gemini streams]
+  Gemini --> Evidence[Validated evidence]
+  Evidence --> Search[Supabase pgvector]
+  Evidence --> Crew[Gemini crew]
+  Crew --> Controller[Program controller]
+  Controller --> Host
 ```
+
+Follow the [deployment steps and manual production checks](docs/28-gemini-supabase-migration.md).
+The model catalog request succeeded through the deployed Supabase function.
+Private storage and the database migration are deployed. Inference, container
+build, media-host deployment and media acceptance remain pending. Checks
+were skipped under the user's standing instruction.
+
+The old workshop transports remain available only with the explicit
+`BREADCAST_PROVIDER_STACK=workshop`. They are not a fallback after Gemini failure.
+`BREADCAST_STACK_ENABLED=0` disables AI. An explicit foundation JSON can still
+select local fixtures; fixture output never counts as provider output.
 
 ## Build and start the studio
 
@@ -339,12 +213,10 @@ must show a clear failure without changing the current program.
 Small checks cover configuration, file/S3 staging, access, and cancellation. No
 full test suite or physical-camera rehearsal blocks this input slice.
 
-For VAST, supply the workshop variables and recreate the container. Start video.
-Confirm Studio reaches **VAST archive ready** and compare its summary with the
-clip. Available YOLO sidecars appear below it. Repeat Start and confirm it uses
-the saved result. Missing credentials must show unavailable analysis while video
-playback still works. Automated checks for this archive slice were skipped at
-the user's request; its full flow will be tested on the VM.
+For Gemini and Supabase, follow the current migration's production checks.
+Confirm advancing playback, actual model output, private clip receipts, vector
+search, audible speech and controller-owned replay playback. Record failures and
+measured response times. Do not count skipped checks as passed.
 
 ## Open the app
 
@@ -440,7 +312,7 @@ viewer mute, or the full 15-minute production session. These remain manual check
 
 `./scripts/studio restart` rebuilds and recreates Studio after code, `.env`, or
 Compose changes. It retains the runtime volume. The helper supports the VM
-Docker permission setup and preserves exported workshop variable names when
+Docker permission setup and preserves exported provider variable names when
 using password-free sudo. `.env` remains the location for values absent from
 the assigned file. See the [VM problems record](docs/27-vm-integration-problems.md)
 for the reported cause chain and current fixes.
@@ -470,7 +342,7 @@ git fetch origin main --tags
 
 The [seven-sprint plan](docs/26-sprint-delivery-plan.md) defines the release order
 and user checks. The [live stack PRD](docs/22-live-stack-integration-prd.md) defines
-the required VAST, NVIDIA Cosmos, YOLO, semantic search, and W&B/CoreWeave work.
+the current Gemini and Supabase work. Earlier workshop records retain their historical scope.
 The [contracts](docs/05-context-and-contracts.md) define IDs, clocks, evidence,
 and state ownership. Provider access and performance remain unverified until
 the [verification record](docs/24-provider-verification.md) contains real proof.

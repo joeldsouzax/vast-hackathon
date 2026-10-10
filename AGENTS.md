@@ -34,6 +34,17 @@ diagram when the explanation needs one.
 
 ## Project rules
 
+- Current user override: use Gemini APIs instead of VAST, Cosmos, YOLO, W&B,
+  and ElevenLabs for AI work. Use streamed responses for the existing clip flow.
+  Supabase owns private clip storage, clip records, and the pgvector database.
+  Supabase Edge Functions relay Gemini inference; the persistent media runtime
+  needs a separate new host. Fly.io deployment files are prepared; the user asked
+  why Supabase cannot run this runtime. Supabase backend deployment and the
+  authenticated Gemini metadata relay are confirmed in record 24. Media-host
+  selection/access, inference, latency and acceptance remain pending.
+  Existing media, controller, source identity and original-deadline contracts apply.
+  Explicit workshop configuration remains available for historical deployments.
+
 - Rebuild and restart the local studio with `./scripts/studio restart`. That
   command rebuilds the image, recreates the Compose `studio` container detached,
   and prints `docker compose ps`. Use it after code, Compose, `.env`, or
@@ -64,7 +75,7 @@ diagram when the explanation needs one.
 
 This is a hackathon project for an autonomous live broadcasting studio. Read [README.md](README.md) and the relevant design document before implementing. Live camera input, event QR joining, and a server-enforced maximum of five cameras are required. Prove one camera first, then complete five-camera admission and playback validation.
 
-- Preserve the supplied stack: VAST ingestion/data orchestration, NVIDIA Cosmos video reasoning, YOLO detection/tracking, semantic search, and W&B-hosted application LLMs on the provided CoreWeave infrastructure. Cursor is the development environment, not a runtime dependency.
+- Use the Gemini/Supabase user override above. Historical workshop records do not establish access to the new providers. Cursor is the development environment, not a runtime dependency.
 - Keep continuous media playback independent of model calls. Only the program controller changes on-air state; agents propose typed actions.
 - Treat [context and contracts](docs/05-context-and-contracts.md) as the authority for IDs, clocks, evidence, versions, and state ownership. Update it when a proven implementation constraint changes a contract.
 - Build graphics at event setup. Bind current facts into existing templates at runtime. Never bake a guessed score or identity into an asset.

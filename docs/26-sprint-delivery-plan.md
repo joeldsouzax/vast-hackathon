@@ -2,6 +2,11 @@
 
 **Updated:** 2026-10-09
 
+Current provider override: S03–S07 now use Gemini video/object reasoning,
+Gemini crew and speech, Supabase clips and pgvector. [Migration 28](28-gemini-supabase-migration.md)
+records the model cards, new host and production steps. Retain the sprint
+acceptance goals below. Their workshop service names are historical.
+
 Deliver seven cumulative sprints. Each sprint ends with a complete user flow,
 a checked commit pushed to GitHub, and exact instructions for the user to test it
 in production. Write only the tests required for that change.

@@ -9,6 +9,57 @@ they do not close the live gates in [PRD 22](22-live-stack-integration-prd.md).
 
 Use this document as the authority for IDs, clocks, evidence, versions, and state ownership. The JSON files in [examples](examples/) are fictional test fixtures. They illustrate the contracts. They do not define a complete schema or deployed API. Implement runtime schemas and validation in the coordinator.
 
+## Gemini and Supabase contract addendum
+
+The current user override replaces workshop providers with Gemini and Supabase.
+[Migration 28](28-gemini-supabase-migration.md) defines deployment and model
+selection. These provider changes preserve source IDs, source epochs, immutable
+chunks, native clocks, reviewed snapshots and controller ownership.
+
+- `cosmos` remains the internal video-reasoning boundary; it now uses Gemini.
+  `yolo` remains the object boundary; it now uses Gemini Robotics ER 2.
+  Their provider model IDs and versions must match the discovered configuration.
+- `Observation.object_frame` is optional and omitted when absent. Existing
+  records keep their serialized form. An object frame contains the exact input
+  JPEG SHA-256, image width/height, `inspected_frame` coordinate space and at most
+  24 labeled boxes. Boxes use `[x_min,y_min,x_max,y_max]` normalized to 0..1.
+  They describe that rotated, resized image only. The adapter converts Gemini's
+  0..1000 `[y_min,x_min,y_max,x_max]` format and rejects empty or invalid boxes.
+- The adapter copies native frame intervals from retained decoder output.
+  Gemini copies issued frame IDs; it cannot choose source identity or clocks.
+  Each object observation retains the full issued window's chunk references and
+  snapshot. Its interval must lie inside that window. Uncertainty remains a
+  model report. No calibrated confidence or cross-frame track is invented.
+  Existing `detections` remain empty for this adapter. Automatic crops still
+  need the separate detector timing, geometry and tracking proof.
+- Partial SSE JSON has no decision authority. A response must finish with STOP
+  and pass its strict schema, source bounds, model identity and snapshot checks.
+  Live work keeps its original deadline. Late archive work cannot refresh it.
+- Supabase holds private original/chunk/replay bytes and immutable clip records.
+  A clip receipt requires a stored-byte SHA-256 match. A rendered replay needs
+  this receipt before Ready. Supabase does not own program state.
+- pgvector search is scoped to event, run, index, embedding model/version and
+  retained local scene IDs. A hit must equal the current local scene body before
+  reuse. Embeddings are 768-dimensional finite normalized vectors. A model or
+  dimension change needs a new index contract; do not mix vector spaces.
+- TTS input is the approved commentary text. Delivery directions use speech
+  metadata. Completed PCM becomes the existing decoded 48 kHz mono WAV cue.
+  The existing cue deadline, controller and mixer remain authoritative.
+
+The media host is the only program controller. Supabase supplies the private
+backend and a streamed Gemini relay.
+
+```mermaid
+flowchart LR
+  Clips[Retained chunks] --> Gemini[Gemini]
+  Gemini --> Validate[Validate evidence]
+  Validate --> Ledger[Local ledger]
+  Ledger --> Vectors[Supabase vectors]
+  Ledger --> Crew[Gemini proposals]
+  Crew --> Controller[Program controller]
+  Controller --> Output[Program output]
+```
+
 ## Four kinds of context
 
 Each record has one owner and an update rule. The evidence ledger stores source records and their history. The program controller owns the record of what aired.

@@ -2,6 +2,11 @@
 
 **Updated:** 2026-10-09
 
+Current user override: Gemini and Supabase replace the workshop stack below.
+Use [migration 28](28-gemini-supabase-migration.md) for current provider choices,
+streamed clip responses, private storage, pgvector and media hosting. The older
+VAST design remains historical. Its timing and ownership rules still apply.
+
 Current workshop work uses [PRD 22](22-live-stack-integration-prd.md). Its existing
 VSS pipeline replaces the custom-trigger/function deployment proposal below.
 Keep the evidence, timing, and ownership safeguards. Verify external access in

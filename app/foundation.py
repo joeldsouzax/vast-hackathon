@@ -492,7 +492,7 @@ class Foundation:
             expected_model='labeled-cosmos-fixture'
             expected_version=self.registry.labels['version']
         else:
-            provider=self.registry.require('cosmos')
+            provider=self.registry.require('yolo' if observation.object_frame is not None else 'cosmos')
             expected_model,expected_version=provider.model_id,provider.version
         if observation.model_id!=expected_model or observation.model_version!=expected_version:
             raise ValueError('Provider model or version differs from issued configuration')
@@ -809,7 +809,7 @@ class Foundation:
 
     def submit_role(self, role, work):
         """One newest pending trigger per role; workers share the analysis budget."""
-        if role not in ('director','commentator','speech','segmentor','search','connect'):raise ValueError('Unknown role work')
+        if role not in ('director','commentator','speech','segmentor','search','index','connect'):raise ValueError('Unknown role work')
         with self.lock:
             if role=='search' and role in self.role_pending:
                 raise ValueError('capacity_reached: search queue')
@@ -826,12 +826,12 @@ class Foundation:
                 if prefer_role or not self.db.execute("SELECT 1 FROM jobs WHERE state='queued' AND run=?",(self.run_id,)).fetchone():
                     # Archive work never consumes both shared slots. Fresh live work
                     # precedes new archive work; alternating analysis retains progress.
-                    archive_busy=bool({'segmentor','search','connect'} & self.role_active)
+                    archive_busy=bool({'segmentor','search','index','connect'} & self.role_active)
                     # Prepare/search ahead of live LLM roles so automatic replay
                     # is not starved by long director/commentator calls.
-                    role=next((key for key in ('speech','segmentor','search','connect','commentator','director')
+                    role=next((key for key in ('speech','segmentor','search','connect','commentator','director','index')
                         if key in self.role_pending and key not in self.role_active and
-                        (key not in ('segmentor','search','connect') or not archive_busy)),None)
+                        (key not in ('segmentor','search','index','connect') or not archive_busy)),None)
                     if role:
                         work=self.role_pending.pop(role);self.role_active.add(role)
             if work:
@@ -862,6 +862,10 @@ class Foundation:
                 self.stage_times.append({'trace_id':window.trace_id,'stage':'inference','seconds':time.time()-began})
                 origin='fixture' if self.registry.require('cosmos').adapter=='fixture' else 'provider'
                 self.ingest(window,results,trusted_origin=origin)
+                if self.registry.gemini:
+                    # One coalesced index job scans all unindexed current scenes.
+                    # Network indexing does not delay the next live analysis window.
+                    self.submit_role('index',lambda:asyncio.run(self.registry.gemini.publish()))
                 self.stage_times.append({'trace_id':window.trace_id,'stage':'context-available','seconds':time.time()-began})
             except Exception as error:
                 failure=public_failure(error,'jobs')
