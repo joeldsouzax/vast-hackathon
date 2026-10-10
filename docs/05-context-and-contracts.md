@@ -121,6 +121,8 @@ chunks, native clocks, reviewed snapshots and controller ownership.
   One Gemini commentator role chooses the lead or configured co-commentator.
   Speaker identity is immutable through preparation and delivery history.
   Two completed lead turns are required before another co-commentator turn;
+  after three, the next decision reserves the co-commentator or abstains.
+  A lead cue already in progress can finish before the reserved turn.
   captions and pending lines do not count. Both voices use the same queue.
   Decorative graphics do not invalidate queued speech with a valid pinned
   camera/microphone or replay session. See [commentary pair](35-commentary-pair.md).

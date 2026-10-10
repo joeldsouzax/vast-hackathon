@@ -43,8 +43,10 @@ flowchart LR
 Each intent carries `speaker=lead` or `speaker=co_commentator`. The response
 schema restricts the currently allowed speakers. At least two completed lead
 lines must precede a co-commentator turn. Pending co-commentary prevents another
-co-commentator proposal. Gemini still chooses whether the second voice adds
-value; the program does not alternate on a timer.
+co-commentator proposal. After three completed lead lines, the next decision
+reserves the co-commentator voice. Gemini must supply a useful grounded line or
+abstain; it cannot keep selecting the lead indefinitely. A lead line already in
+progress can finish first. The program does not alternate on a timer.
 
 Speaker identity remains attached to the intent, prepared audio, captions and
 delivery history. It cannot change during delivery. Older records default to
@@ -70,3 +72,13 @@ phone sharing. Listen for several cabbie calls followed by a useful calmer
 response. Confirm that the voices never overlap and that graphics still appear.
 Check that a reply refers to words actually delivered. Physical-phone and public
 viewer acceptance remain manual.
+
+## Follow-up: second voice was too rare
+
+The first live run recorded a complete 6.12-second co-commentator line after four
+completed lead lines. This proved delivery, but optional speaker choice allowed
+the lead to dominate. Release `breadcast-forever22-r09` reserves the analyst turn
+after three completed lead lines and requires an explicit speaker in Gemini's
+response. It also limits cabbie style instructions to the lead.
+See [follow-up evidence](evidence/commentary-turns.json). Voice contrast still
+needs human listening; a completed audio receipt does not prove perception.

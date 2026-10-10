@@ -263,6 +263,10 @@ class DirectionContracts(unittest.TestCase):
         lead={'channel':'speech','state':'completed','speaker':'lead'}
         context['aired']=[lead,lead]
         self.assertEqual(self.d._speaker_options(context),['lead','co_commentator'])
+        context['aired']=[lead]*3
+        self.assertEqual(self.d._speaker_options(context),['co_commentator'])
+        context['aired']=[lead]*12
+        self.assertEqual(self.d._speaker_options(context),['co_commentator'])
         context['pending']=[{'channel':'intent','speaker':'co_commentator'}]
         self.assertEqual(self.d._speaker_options(context),['lead'])
         context['pending']=[]

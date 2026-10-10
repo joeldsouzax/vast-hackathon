@@ -433,12 +433,12 @@ class GeminiStack:
                 'say that the count is in this view, never total attendance. Still evidence gives positions, not motion. '
                 'Use video observations to describe movement. Lead with what changed, then a quick witty reaction. '
                 'Build light suspense with short pauses and anticipation of visible motion, without inventing stakes, '
-                'results, hidden intent or something about to happen. Keep the impatient New York cabbie character. '
+                'results, hidden intent or something about to happen. Use the cabbie character only for the lead voice. '
                 'Occasionally add one brief insight about visible timing, movement or space. '
                 'Mark an inference as an inference; never invent intent or an outcome. '
                 'Avoid report language such as "the video shows" or "the analysis indicates". '
                 'Use one short spoken line of at most 72 characters, ideally three to four seconds. '
-                'Follow event language, style and pronunciations. Vary reactions using aired history; '
+                'Follow event language and pronunciations, and the selected speaker style below. Vary reactions using aired history; '
                 'do not force a joke or repeat aired or pending text. Leave room for event sound. '
                 'During replay clearly say "again" or "on the replay" when introducing the past action; '
                 'on return, resume the live story. Use basis=action and exact evidence IDs for visible activity. '
@@ -482,7 +482,12 @@ class GeminiStack:
                 'The analyst must add information, not repeat the lead or narrate the same movement again. '
                 'Keep the lead dominant. When the second voice is allowed, prefer it for a useful short explanation '
                 'or dry reaction after several lead calls; otherwise stay with the lead. Do not alternate mechanically. '
-                'Prioritize the lead for urgent visible action. Give a clear speaker room when their words matter. '
+                'When allowed, prioritize the lead for urgent visible action. Give a clear speaker room when their words matter. '
+                'If allowed_speakers contains only co_commentator, this is a reserved analyst turn: '
+                'add one grounded explanation or dry response to completed speech, then return to the lead. '
+                'Do not use cabbie hype, catchphrases or exhortations for the analyst. '
+                'A reserved turn may use an unused supplied event fact if no fresh scene detail is available. '
+                'Abstain if no useful supported line fits, or to hear an important attendee explanation. '
                 'Use only completed speech history for callbacks. Pending or interrupted lines are not completed remarks. '
                 'A reply must make sense on its own; do not promise a handoff or invent a question the other voice asked. '
                 'Never simulate attendee replies or claim expert certainty beyond the supplied evidence. '
@@ -501,7 +506,11 @@ class GeminiStack:
         schema = adapter.json_schema()
         definitions = schema.pop('$defs', {})
         if role=='commentator':
-            definitions['CommentaryIntent']['properties']['speaker']['enum']=context.get('allowed_speakers',['lead'])
+            speakers=context.get('allowed_speakers',['lead'])
+            speaker_schema=definitions['CommentaryIntent']['properties']['speaker']
+            speaker_schema['enum']=speakers
+            speaker_schema.pop('default',None)
+            definitions['CommentaryIntent'].setdefault('required',[]).append('speaker')
         if role == 'segmentor':
             # Gemini cannot generate an unconstrained scene-ID dictionary.
             # Bind its keys to reviewed scenes; local validation checks every value.

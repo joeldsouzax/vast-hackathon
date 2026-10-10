@@ -1,0 +1,38 @@
+{
+  "release": "breadcast-forever22-r09",
+  "observed_before_fix": {
+    "scope": "actual program speech receipt",
+    "cue_id": "4b59e1fd610e46b39f0758f741a93b2d-speech",
+    "speaker": "co_commentator",
+    "state": "completed",
+    "first_sample": 4944000,
+    "last_sample": 5237760,
+    "duration_s": 6.12,
+    "prior_completed_lead_lines": 4
+  },
+  "change": "Reserve co-commentator after three completed lead lines; require explicit speaker in model schema; keep cabbie style lead-only. An already active lead line may finish first.",
+  "focused_checks": {
+    "direction": 39,
+    "status": "passed"
+  },
+  "provider_check": {
+    "scope": "real Gemini structured decision on a private scripted conversation; not on air",
+    "speaker": "co_commentator",
+    "basis": "event_context",
+    "text": "DeepMind's backing this run at Betaworks. Let's see what ships.",
+    "model": "gemini-3.8-flash",
+    "seconds": 2.146
+  },
+  "pending": [
+    "Human listening review after release",
+    "Live phone delivery after restart"
+  ],
+  "deployment": {
+    "checked_at": "2026-10-10T17:49:42.172443+00:00",
+    "healthcheck": "passed",
+    "context_revision": 9,
+    "co_voice": "Charon",
+    "camera_count": 0,
+    "auto_start_armed": true
+  }
+}

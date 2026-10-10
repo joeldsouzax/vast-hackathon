@@ -130,7 +130,7 @@ class Direction:
             raise ValueError('Intent references evidence outside reviewed context: '+','.join(e[:16] for e in refs if e not in allowed)[:120])
         if role=='commentator':
             if intent.speaker not in self._speaker_options(context):
-                raise ValueError('The lead commentator must carry the next turn')
+                raise ValueError('Speaker is not eligible for the next commentary turn')
             if intent.delivery=='source_caption' and intent.speaker!='lead':
                 raise ValueError('An attendee quote is not a co-commentator turn')
             # Empty references permit only the exact fixture disclosure. Live claims need evidence.
@@ -515,6 +515,7 @@ class Direction:
             if row.get('channel')!='speech':continue
             if row.get('speaker','lead')=='co_commentator':break
             if row['state']=='completed':leads+=1
+        if leads>=3:return ['co_commentator']
         return ['lead','co_commentator'] if leads>=2 else ['lead']
 
     def _transition_unavailable(self):
