@@ -12,8 +12,9 @@ reusable brief. The active laptop context is revision 6. Its custom voice ID is
 stored in the local environment and persisted context. The template leaves that
 account-specific voice unset. Importing it requires the current revision plus one.
 
-The voice is an original fictional New York cabbie: gravelly, sarcastic and
-comically angry, with short jokes and brief analysis. Gemini Voice Design created
+The current lead uses a professional wrestling broadcast style: excited calls,
+rising suspense and varied intensity. The co-commentator adds dry wit and brief
+analysis. The original custom voice was designed as a New York cabbie. Gemini Voice Design created
 it through the authenticated account. Gemini Flash Lite TTS then produced an
 actual 5.04-second preview in 1.48 seconds through the Supabase function. These
 are request measurements, not an end-to-end latency guarantee. The API required

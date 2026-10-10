@@ -1,13 +1,14 @@
 # Two commentators, one commentary flow
 
-The cabbie remains the lead voice. A calm co-commentator adds a short explanation
-or dry reaction when useful. Both use one Gemini role, one reviewed context and
+The lead now uses an original professional wrestling broadcast style: big
+reactions, rising suspense and short energetic calls. The co-commentator adds
+sharp analysis, dry wit and playful disagreement with completed lead remarks. Both use one Gemini role, one reviewed context and
 one speech queue. No extra model worker or concurrent voice is introduced.
 
 | Voice | Job | Style |
 | --- | --- | --- |
-| Lead | Call visible changes, locate people and objects, read clear text, react to action | Impatient New York cabbie; short calls and suspenseful pauses |
-| Co-commentator | Explain a demonstrated feature, respond to understood speech, add context or challenge a completed lead remark | Calm, clear, dry wit; no repeated play-by-play |
+| Lead | Call visible changes, locate people and objects, read clear text, react to action | Excited wrestling play-by-play; dynamic intensity and suspenseful pauses |
+| Co-commentator | Explain a demonstrated feature, respond to understood speech, add context or challenge a completed lead remark | Witty, skeptical color commentary; measured delivery with brief excited reactions |
 
 ## What informed the roles
 
@@ -25,8 +26,8 @@ view. They must not invent attendee responses, identities or outcomes.
 ## Voice and turn contracts
 
 `EventContext.co_commentator` supplies a configurable voice ID and style.
-The demo uses Gemini's `Charon` voice. The existing custom cabbie voice stays
-the lead. Charon is listed in Google's [voice options](https://ai.google.dev/gemini-api/docs/speech-generation#voice-options).
+The demo uses Gemini's `Charon` voice. The existing custom lead voice remains selected; the event supplies its new
+speaking style. Charon is listed in Google's [voice options](https://ai.google.dev/gemini-api/docs/speech-generation#voice-options).
 Actual access was checked through the deployed Supabase relay.
 
 ```mermaid
@@ -68,7 +69,7 @@ used a private scripted conversation, not a live scene. Both speech files decode
 to nonzero PCM. Human assessment of voice contrast and delivery remains pending.
 
 Open the public `/join` page, allow camera and microphone access, and keep the
-phone sharing. Listen for several cabbie calls followed by a useful calmer
+phone sharing. Listen for excited lead calls followed by a useful, witty
 response. Confirm that the voices never overlap and that graphics still appear.
 Check that a reply refers to words actually delivered. Physical-phone and public
 viewer acceptance remain manual.
@@ -82,3 +83,17 @@ after three completed lead lines and requires an explicit speaker in Gemini's
 response. It also limits cabbie style instructions to the lead.
 See [follow-up evidence](evidence/commentary-turns.json). Voice contrast still
 needs human listening; a completed audio receipt does not prove perception.
+
+## Wrestling style update
+
+Release `breadcast-forever22-r13` changes both event voice styles and removes
+fixed cabbie instructions from the model prompt. The lead caption now says
+`Lead:`. The existing voice IDs, shared queue, listening policy, camera choices
+and replay settings remain in place. No named announcer is imitated. Energy
+comes from visible details; the voices cannot invent fights, rivalries, outcomes
+or crowd reactions. Big reactions should vary with the actual scene.
+
+The running event is updated through a validated context revision and graphics
+preload. See [the deployment record](evidence/wrestling-commentary.json). Listen
+for dynamic emphasis and a distinct co-commentator after rejoining the phones.
+Voice quality and the public viewer sound check remain manual.

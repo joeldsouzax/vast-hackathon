@@ -368,7 +368,7 @@ class Direction:
             display_text=('Heard: '+intent.text) if source_caption else intent.text
             caption_text=display_text
             if not source_caption and event.co_commentator:
-                caption_text=('Co-commentator: ' if intent.speaker=='co_commentator' else 'Cabbie: ')+display_text
+                caption_text=('Co-commentator: ' if intent.speaker=='co_commentator' else 'Lead: ')+display_text
             self.check(dependencies)
             layer=None
             try:layer=caption_layer(self.app.program.graphics,caption_text)

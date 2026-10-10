@@ -101,19 +101,19 @@ runtime converts it to 48 kHz mono WAV and mixes it with source audio. Partial
 speech does not go on air. Caption-only output is not a speech pass.
 
 The laptop is configured for the [Forever 22 demo](docs/30-forever22-demo.md),
-with a custom New York cabbie voice and event talk between camera updates.
+with a wrestling-broadcast commentary style and event talk between camera updates.
 Gemini also hears the selected microphone through recorded clips. It can leave
 a speaker audible, show a short **Heard:** quote, or comment over background
 chatter. Clear understood foreground speech gets a listening turn first.
 Event-only commentary is limited to once every 25 seconds. Without fresh visuals,
-the voices can ask the camera operator to show a demo or another view. The voice uses
-impatient, mock-angry delivery. See the
+the voices can ask the camera operator to show a demo or another view. The lead uses big reactions and rising suspense. The second voice adds dry
+analysis and playful disagreement. See the
 [audio behavior and limits](docs/31-source-audio.md).
 Scene commentary now prioritizes visible people, movement, readable text and
 understood speech. Meaning summaries can appear in labeled graphics. Short scene
 transitions preserve commentary. See [scene commentary and release checks](docs/33-scene-commentary.md).
-The cabbie leads the [two-voice commentary](docs/35-commentary-pair.md). A calm,
-dry co-commentator adds useful context. Both share one speech queue. The event's
+The lead anchors the [two-voice commentary](docs/35-commentary-pair.md). A witty
+co-commentator adds useful context. Both share one speech queue. The event's
 [showcase sequence](docs/34-demo-showcase.md) keeps suitable graphics moving
 while they speak.
 The server permits at most five camera slots. Actual phone playback still needs

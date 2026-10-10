@@ -1,0 +1,19 @@
+{
+  "release": "breadcast-forever22-r13",
+  "checked_at": "2026-10-10T18:19:43.642190+00:00",
+  "context_revision": 12,
+  "checks": {
+    "python_syntax": "passed",
+    "runtime_context_matches_saved_styles": "passed",
+    "context_validation_and_graphics_preload": "passed",
+    "standard_rebuild_restart": "passed",
+    "container_healthcheck": "passed"
+  },
+  "scope": "Event styles for both voices, generic role prompt, Lead caption label",
+  "voice_selection": "Existing custom lead and Charon retained; delivery styles changed",
+  "pending": [
+    "Human listening check of wrestling delivery and voice contrast",
+    "Public viewer sound after phone rejoin"
+  ],
+  "broad_checks": "skipped per existing user override"
+}
