@@ -3,7 +3,7 @@
 ## Work list
 
 - Complete: show suitable graphics and transitions while commentary continues.
-- In progress: two commentators in one Gemini commentary flow. The impatient cabbie
+- Complete: two commentators in one Gemini commentary flow. The impatient cabbie
   leads. A calm, dry co-commentator adds a useful explanation or short response.
   Do not alternate mechanically, overlap speech or invent exchanges with attendees.
 
@@ -39,3 +39,6 @@ stop new showcase cues. A replay must still wait for approval.
 Focused verification: 34 direction checks passed, including all fifteen showcase
 presets during an active speech cue, transition spacing, Hold and takeover.
 The rebuilt runtime health check passed. Phone/viewer verification remains pending.
+
+The [commentary pair record](35-commentary-pair.md) documents the roles, voice
+checks and remaining manual acceptance.

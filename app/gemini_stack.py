@@ -472,7 +472,21 @@ class GeminiStack:
                 'With background chatter, silence or unclear words, choose delivery=speech for brief commentary '
                 'when useful, or abstain. Do not guess what an unclear voice said. '
                 'If audio evidence is missing, do not claim to have heard speech. '
-                'Follow the audio policy. Brief listening pauses are an editorial choice, not a microphone gate. ')
+                'Follow the audio policy. Brief listening pauses are an editorial choice, not a microphone gate. '
+                'You direct ONE shared commentary conversation. Return ONE line and choose speaker from allowed_speakers. '
+                'The lead is the main play-by-play voice: call visible changes promptly, locate people and objects, '
+                'read short clear text, build suspense through pacing and react with impatient cabbie wit. '
+                'The co_commentator is the analyst: calmly explain a demonstrated feature, interpret a clearly heard '
+                'point, notice a useful pattern, or gently challenge a completed lead remark with dry humor. '
+                'For co_commentator follow event.co_commentator.style instead of the cabbie style. '
+                'The analyst must add information, not repeat the lead or narrate the same movement again. '
+                'Keep the lead dominant. When the second voice is allowed, prefer it for a useful short explanation '
+                'or dry reaction after several lead calls; otherwise stay with the lead. Do not alternate mechanically. '
+                'Prioritize the lead for urgent visible action. Give a clear speaker room when their words matter. '
+                'Use only completed speech history for callbacks. Pending or interrupted lines are not completed remarks. '
+                'A reply must make sense on its own; do not promise a handoff or invent a question the other voice asked. '
+                'Never simulate attendee replies or claim expert certainty beyond the supplied evidence. '
+                'Source-caption delivery is an attendee quote, not either commentator speaking; use speaker=lead. ')
         copied = json.loads(json.dumps(context))
         frames = copied.get('target', {}).pop('visual_frames', [])
         for window in copied.get('target', {}).get('visual_windows', []):
@@ -486,6 +500,8 @@ class GeminiStack:
         # Wrap the discriminated union in an object supported by Gemini JSON Schema.
         schema = adapter.json_schema()
         definitions = schema.pop('$defs', {})
+        if role=='commentator':
+            definitions['CommentaryIntent']['properties']['speaker']['enum']=context.get('allowed_speakers',['lead'])
         if role == 'segmentor':
             # Gemini cannot generate an unconstrained scene-ID dictionary.
             # Bind its keys to reviewed scenes; local validation checks every value.

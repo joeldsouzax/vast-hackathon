@@ -257,6 +257,65 @@ class DirectionContracts(unittest.TestCase):
             with patch.object(self.f,'event_context',return_value=event.model_copy(update={'revision':99})):
                 self.d._showcase_graphics();graphic.assert_not_called()
 
+    def test_two_voices_use_delivered_speech_not_captions_or_pending_lines(self):
+        context=self.context('commentator')
+        context['event']['co_commentator']={'voice_id':'Charon','style':'Calm dry wit'}
+        lead={'channel':'speech','state':'completed','speaker':'lead'}
+        context['aired']=[lead,lead]
+        self.assertEqual(self.d._speaker_options(context),['lead','co_commentator'])
+        context['pending']=[{'channel':'intent','speaker':'co_commentator'}]
+        self.assertEqual(self.d._speaker_options(context),['lead'])
+        context['pending']=[]
+        for rows in ([lead], [{'channel':'caption','state':'completed'}]*3,
+                [lead,{'channel':'speech','state':'interrupted','speaker':'lead'}],
+                [lead,lead,{'channel':'speech','state':'completed','speaker':'co_commentator'}]):
+            context['aired']=rows
+            self.assertEqual(self.d._speaker_options(context),['lead'])
+
+    def test_co_commentator_voice_and_style_are_selected_before_tts(self):
+        from foundation_records import CommentaryIntent, CommentaryVoice
+        event=self.f.event_context().model_copy(update={'voice_id':'lead-voice',
+            'co_commentator':CommentaryVoice(voice_id='Charon',style='Calm dry wit')})
+        intent=CommentaryIntent(op='commentary',speaker='co_commentator',text='One useful point.',reason='Explain')
+        seen=[]
+        async def speech(text,storage,deadline,*,event_context):
+            seen.append(event_context);return SimpleNamespace(media=None)
+        with patch.object(self.f.registry,'speech',side_effect=speech),patch('direction.decode_speech',return_value=b'pcm'):
+            pcm,_,failure=self.d._speech(intent,{'deadline':time.time()+5},event)
+        self.assertEqual(pcm,b'pcm');self.assertIsNone(failure)
+        self.assertEqual(seen[0].voice_id,'Charon');self.assertEqual(seen[0].commentary_style,'Calm dry wit')
+        self.assertEqual(event.voice_id,'lead-voice')
+
+    def test_speaker_identity_is_immutable_in_delivery_history(self):
+        cue=self.cue(b'pcm');cue.speaker='co_commentator'
+        self.d._history(cue,'prepared');self.d._history(cue,'pending')
+        rows=[ProgramText.model_validate_json(r['body']) for r in self.f._records('program_text')]
+        row=next(r for r in rows if r.channel=='speech')
+        self.assertEqual(row.speaker,'co_commentator')
+        with self.assertRaisesRegex(ValueError,'identity'):
+            self.f.program_text(row.model_copy(update={'state':'started','speaker':'lead'}),owner='controller')
+
+    def test_queued_voice_survives_graphics_but_not_source_or_microphone_changes(self):
+        context=self.audio_context()
+        _,deps=self.d.validate(self.result({'op':'commentary','text':self.phrase,'reason':'Speech queue'},context),
+            'commentator',context,time.time()+6)
+        self.d.dependencies['queued']=deps
+        record={'id':'queued','op':'commentary','args':{'cue_id':'queued'},'expected':self.c.expected({}),
+            'expires_at':time.time()+6}
+        self.app.program.command('graphics',self.app.program.revision,graphics={'op':'cue','preset':'headline','title':'Known event','duration_s':1})
+        self.c._fresh(record)
+        self.app.program.audio_muted=True
+        with self.assertRaisesRegex(ValueError,'microphone changed'):self.c._fresh(record)
+        self.app.program.audio_muted=False;self.app.program.actual_target={'kind':'holding'}
+        with self.assertRaisesRegex(ValueError,'camera changed'):self.c._fresh(record)
+
+    def test_second_voice_cannot_overlap_active_voice(self):
+        first=self.cue(array('h',[500]*3200).tobytes())
+        second=self.cue(array('h',[600]*3200).tobytes());second.speaker='co_commentator'
+        self.app.program.schedule_commentary(first)
+        with self.assertRaisesRegex(ValueError,'already active'):self.app.program.schedule_commentary(second)
+        self.assertIs(self.app.program.cue,first)
+
     def test_source_quote_requires_exact_words_and_selected_microphone(self):
         context=self.audio_context()
         line={'op':'commentary','delivery':'source_caption','text':'We built a voice demo.',

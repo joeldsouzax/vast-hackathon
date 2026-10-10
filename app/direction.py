@@ -129,6 +129,10 @@ class Direction:
         if any(eid not in allowed for eid in refs):
             raise ValueError('Intent references evidence outside reviewed context: '+','.join(e[:16] for e in refs if e not in allowed)[:120])
         if role=='commentator':
+            if intent.speaker not in self._speaker_options(context):
+                raise ValueError('The lead commentator must carry the next turn')
+            if intent.delivery=='source_caption' and intent.speaker!='lead':
+                raise ValueError('An attendee quote is not a co-commentator turn')
             # Empty references permit only the exact fixture disclosure. Live claims need evidence.
             speech=self.foundation.registry.labels.get('speech',{})
             disclosures=[speech.get('text')]+[v['text'] for v in speech.get('variants',[])]
@@ -264,7 +268,7 @@ class Direction:
             reservation=ProgramText(cue_id=(action_id or uuid.uuid4().hex)+'-intent',event_id=snapshot.event_id,
                 run_id=snapshot.run_id,text=intent.text,state='pending',event_ms=context['target'].get('event_ms'),
                 program_revision=snapshot.program_revision,evidence_ids=intent.evidence_ids,origin='controller',
-                basis=intent.basis,context_revision=snapshot.context_revision,
+                basis=intent.basis,speaker=intent.speaker,context_revision=snapshot.context_revision,
                 channel='intent',session_id=f'{snapshot.run_id}:{snapshot.program_revision}')
             self.foundation.program_text(reservation,owner='controller',reserve=True)
             self.state[role]='Ready'
@@ -315,6 +319,10 @@ class Direction:
         if os.environ.get('BREADCAST_SPEECH','on')=='off':return b'',None,'Speech disabled; caption only'
         asset=None
         try:
+            if intent.speaker=='co_commentator':
+                if not event.co_commentator:raise ValueError('Co-commentator voice is not configured')
+                event=event.model_copy(update={'voice_id':event.co_commentator.voice_id,
+                    'commentary_style':event.co_commentator.style})
             async def prepare():
                 async with asyncio.timeout(min(self.settings.role_timeout_s,dependencies['deadline']-time.time())):
                     return await self.foundation.registry.speech(intent.text,self.foundation.storage,dependencies['deadline'],event_context=event)
@@ -340,9 +348,12 @@ class Direction:
             source_caption=intent.delivery=='source_caption'
             pcm,asset,fallback=(b'',None,None) if source_caption else self._speech(intent,dependencies,event)
             display_text=('Heard: '+intent.text) if source_caption else intent.text
+            caption_text=display_text
+            if not source_caption and event.co_commentator:
+                caption_text=('Co-commentator: ' if intent.speaker=='co_commentator' else 'Cabbie: ')+display_text
             self.check(dependencies)
             layer=None
-            try:layer=caption_layer(self.app.program.graphics,display_text)
+            try:layer=caption_layer(self.app.program.graphics,caption_text)
             except ValueError:
                 if not pcm:raise
             with self.lock:
@@ -370,7 +381,7 @@ class Direction:
                 cue=PreparedCue(aid,f'{snapshot.run_id}:{session_revision}',display_text,pcm,layer,start,start+frames,
                     dependencies['deadline'],snapshot.program_revision,target,
                     lambda:self._guard(dependencies),intent.evidence_ids,context['target'].get('event_ms'),asset,
-                    basis=intent.basis,context_revision=snapshot.context_revision)
+                    basis=intent.basis,speaker=intent.speaker,context_revision=snapshot.context_revision)
             with self.lock:self.prepared[cue.id]=cue
             self._history(cue,'prepared')
             self._history(cue,'pending')
@@ -384,7 +395,7 @@ class Direction:
             self.state['speech']='Listening' if source_caption else 'Prepared' if pcm else 'Caption only'
             self.reason='Showing heard words; source audio stays clear' if source_caption else fallback or 'Prepared speech and captions'
             if pcm:self.provider_failures.pop('speech',None)
-            self.traces.append({'cue_id':cue.id,'stage':'speech-ready','utc':time.time(),'samples':len(pcm)//2,'fallback':fallback})
+            self.traces.append({'cue_id':cue.id,'stage':'speech-ready','speaker':intent.speaker,'utc':time.time(),'samples':len(pcm)//2,'fallback':fallback})
         except Exception as error:
             self.state['speech']='Unavailable';self.reason=str(error) if isinstance(error,ValueError) else type(error).__name__
             self.traces.append({'role':'speech','stage':'error','utc':time.time(),'reason':type(error).__name__+': '+str(error)[:200]})
@@ -408,7 +419,7 @@ class Direction:
             self.foundation.program_text(ProgramText(cue_id=cue.id+'-'+kind,event_id=self.foundation.settings.event.event_id,
                 run_id=self.app.control.run_id,text=cue.text,state=state,event_ms=cue.event_ms,
                 program_revision=cue.program_revision,evidence_ids=cue.evidence_ids,origin='controller',channel=kind,
-                basis=cue.basis,context_revision=cue.context_revision,
+                basis=cue.basis,speaker=cue.speaker,context_revision=cue.context_revision,
                 session_id=cue.session_id,first_program_ms=round(first/(48 if kind=='speech' else self.app.cfg.fps/1000)) if first is not None else None,
                 last_program_ms=round(last/(48 if kind=='speech' else self.app.cfg.fps/1000)) if last is not None else None,
                 first_sample=first if kind=='speech' else None,last_sample=last if kind=='speech' else None,reason=reason),owner='controller')
@@ -420,7 +431,7 @@ class Direction:
             cue=receipt['cue']
             try:self._history(cue,receipt['state'],receipt['channel'],receipt,receipt['reason'])
             except ValueError as error:self.reason='Cue history failure: '+str(error)
-            self.app.log('commentary_delivery',cue_id=cue.id,session_id=cue.session_id,channel=receipt['channel'],
+            self.app.log('commentary_delivery',cue_id=cue.id,session_id=cue.session_id,speaker=cue.speaker,channel=receipt['channel'],
                 state=receipt['state'],first=receipt.get('first'),last=receipt.get('last'),reason=receipt['reason'])
         with self.lock:
             for cue in tuple(self.prepared.values()):
@@ -490,7 +501,21 @@ class Direction:
                     'title':r['args']['graphics'].get('title'),'state':r['state']}
                     for r in tuple(self.app.control.actions.values()) if r['op']=='graphics' and
                     r.get('cue_ids') and r['state'] in ('On air','Finished')][-20:]
+        if role=='commentator':context['allowed_speakers']=self._speaker_options(context)
         return context
+
+    @staticmethod
+    def _speaker_options(context):
+        if not context['event'].get('co_commentator'):return ['lead']
+        if any(r.get('speaker')=='co_commentator' for r in context['pending']):return ['lead']
+        leads=0
+        # Only delivered speech establishes a conversation. A caption, pending
+        # line or failed preparation must never become a fictional reply target.
+        for row in reversed(context['aired']):
+            if row.get('channel')!='speech':continue
+            if row.get('speaker','lead')=='co_commentator':break
+            if row['state']=='completed':leads+=1
+        return ['lead','co_commentator'] if leads>=2 else ['lead']
 
     def _transition_unavailable(self):
         if self.app.program.actual!='LIVE' or self.app.program.requested!='LIVE':

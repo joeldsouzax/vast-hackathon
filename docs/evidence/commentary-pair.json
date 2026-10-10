@@ -1,0 +1,61 @@
+{
+  "speech": {
+    "scope": "real Gemini TTS through Supabase; private diagnostic, not on air",
+    "voices": [
+      {
+        "speaker": "lead",
+        "voice_id": "voice_p8nktl0ah1er",
+        "model": "gemini-3.8-flash-lite-tts",
+        "duration_s": 2.32,
+        "decoded_samples": 111360,
+        "seconds": 1.475,
+        "nonzero_pcm": true
+      },
+      {
+        "speaker": "co_commentator",
+        "voice_id": "Charon",
+        "model": "gemini-3.8-flash-lite-tts",
+        "duration_s": 3.68,
+        "decoded_samples": 176640,
+        "seconds": 1.372,
+        "nonzero_pcm": true
+      }
+    ],
+    "human_voice_review": "pending"
+  },
+  "decision": {
+    "scope": "real Gemini structured decision on a private scripted conversation; not on air",
+    "speaker": "co_commentator",
+    "basis": "event_context",
+    "text": "DeepMind's backing the floor today at Betaworks.",
+    "model": "gemini-3.8-flash",
+    "seconds": 4.14
+  },
+  "focused_checks": {
+    "direction": 39,
+    "controller": 35,
+    "status": "passed"
+  },
+  "pending": [
+    "Human review of voice contrast and witty delivery",
+    "Physical-phone and public-viewer check of both voices with showcase graphics"
+  ],
+  "deployment": {
+    "checked_at": "2026-10-10T17:46:28.499115+00:00",
+    "target": "local laptop media host",
+    "release": "breadcast-forever22-r08",
+    "context_revision": 9,
+    "lead_voice_preserved": true,
+    "co_voice": "Charon",
+    "graphics_mode": "showcase",
+    "container_healthcheck": "passed",
+    "public_pages": {
+      "/join": 200,
+      "/watch": 200
+    },
+    "program_state": "HOLDING",
+    "connected_cameras": 0,
+    "auto_start_armed": true,
+    "crew_paused": false
+  }
+}

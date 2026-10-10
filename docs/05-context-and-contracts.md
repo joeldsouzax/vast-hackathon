@@ -118,6 +118,12 @@ chunks, native clocks, reviewed snapshots and controller ownership.
   start in its final four seconds. The controller still checks source, context,
   deadline and complete audio fit before playout. Audio completion ends captions
   without waiting for the whole original expiry window. Expiry is never extended.
+  One Gemini commentator role chooses the lead or configured co-commentator.
+  Speaker identity is immutable through preparation and delivery history.
+  Two completed lead turns are required before another co-commentator turn;
+  captions and pending lines do not count. Both voices use the same queue.
+  Decorative graphics do not invalidate queued speech with a valid pinned
+  camera/microphone or replay session. See [commentary pair](35-commentary-pair.md).
 - Gemini replay candidates prefer recent scenes. Preparation has at most 45
   seconds from required-media finalization, within the original 60-second
   candidate budget. Archive readiness does not authorize airtime. If the selected

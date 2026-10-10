@@ -26,6 +26,11 @@ class Interval(Record):
         return self
 
 
+class CommentaryVoice(Record):
+    voice_id: str = Field(min_length=1, max_length=192)
+    style: str = Field(min_length=1, max_length=2048)
+
+
 class EventContext(Record):
     schema_version: Literal['1.0'] = '1.0'
     event_id: ID
@@ -40,6 +45,7 @@ class EventContext(Record):
     language: str = Field(default='en',min_length=1,max_length=32)
     pronunciations: dict[str, str] = Field(default_factory=dict)
     voice_id: str | None = Field(default=None,max_length=192)
+    co_commentator: CommentaryVoice | None = Field(default=None, exclude_if=lambda value: value is None)
     broadcast_delay_s: Annotated[float, Field(ge=0, le=10)] | None = None
 
 
@@ -339,6 +345,7 @@ class ProgramText(Record):
     program_revision: Nonnegative
     evidence_ids: list[ID] = Field(default_factory=list)
     basis: Literal['action', 'event_context'] = 'action'
+    speaker: Literal['lead', 'co_commentator'] = Field(default='lead', exclude_if=lambda value: value=='lead')
     context_revision: Positive | None = None
     origin: Literal['fixture', 'controller']
     channel: Literal['speech', 'caption', 'intent', 'legacy'] = 'legacy'
@@ -529,6 +536,7 @@ class CommentaryIntent(Record):
     text: str = Field(min_length=1, max_length=240)
     basis: Literal['action', 'event_context'] = 'action'
     delivery: Literal['speech', 'source_caption'] = 'speech'
+    speaker: Literal['lead', 'co_commentator'] = 'lead'
     evidence_ids: list[ID] = Field(default_factory=list, max_length=32)
     reason: str = Field(min_length=1, max_length=256)
 

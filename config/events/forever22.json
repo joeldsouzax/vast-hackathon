@@ -33,5 +33,9 @@
     "Forever 22": "Forever twenty-two"
   },
   "voice_id": null,
-  "broadcast_delay_s": 3.0
+  "broadcast_delay_s": 3.0,
+  "co_commentator": {
+    "voice_id": "Charon",
+    "style": "Calm, clear co-commentator with dry New York wit. Measured conversational pace, precise diction, relaxed lower energy than the cabbie. Explain one useful point briefly. Underplay the punchline. Occasionally challenge the lead gently. No cabbie accent, mock anger, shouting, lectures or invented certainty."
+  }
 }

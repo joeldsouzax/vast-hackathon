@@ -132,9 +132,15 @@ class Coordinator:
             raise ValueError('Proposal expired')
         expected = record['expected']
         self._check_expected(expected)
-        if expected != self.expected(record['args']):
-            raise ValueError('Proposal run, control, program, or source revision changed')
         direction=getattr(self.app,'direction',None)
+        dependencies=direction.dependencies.get(record['id'],{}) if direction else {}
+        current=self.expected(record['args'])
+        if record['op']=='commentary' and (dependencies.get('commentary_camera') or dependencies.get('archive_session')):
+            # The trusted speech guard pins camera/microphone or replay session.
+            # A decorative graphic revision must not discard the waiting voice.
+            current['program_revision']=expected['program_revision']
+        if expected != current:
+            raise ValueError('Proposal run, control, program, or source revision changed')
         if direction and record['id'] in direction.dependencies:
             direction.check(direction.dependencies[record['id']])
 

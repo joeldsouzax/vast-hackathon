@@ -107,6 +107,10 @@ chatter. The voice uses impatient, mock-angry delivery. See the
 Scene commentary now prioritizes visible people, movement, readable text and
 understood speech. Meaning summaries can appear in labeled graphics. Short scene
 transitions preserve commentary. See [scene commentary and release checks](docs/33-scene-commentary.md).
+The cabbie leads the [two-voice commentary](docs/35-commentary-pair.md). A calm,
+dry co-commentator adds useful context. Both share one speech queue. The event's
+[showcase sequence](docs/34-demo-showcase.md) keeps suitable graphics moving
+while they speak.
 The server permits at most five camera slots. Actual phone playback still needs
 the venue check in that guide.
 

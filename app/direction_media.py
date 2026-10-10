@@ -136,6 +136,7 @@ class PreparedCue:
     caption_inflight: bool=False
     cancel_reason: str | None=None
     basis: str='action'
+    speaker: str='lead'
     context_revision: int | None=None
 
     def valid(self):

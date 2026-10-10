@@ -646,7 +646,7 @@ class Foundation:
                     'started': {'completed','interrupted'}}
                 if text.state not in transitions.get(previous.state,set()):
                     raise ValueError('Aired/canceled history is immutable')
-                stable=('cue_id','event_id','run_id','text','event_ms','program_revision','evidence_ids','basis','context_revision','origin','channel','session_id')
+                stable=('cue_id','event_id','run_id','text','event_ms','program_revision','evidence_ids','basis','speaker','context_revision','origin','channel','session_id')
                 if any(getattr(previous,key)!=getattr(text,key) for key in stable):
                     raise ValueError('Cue identity and text cannot change during delivery')
             self.db.execute("UPDATE records SET active=0 WHERE kind='program_text' AND id=?",(text.cue_id,))
