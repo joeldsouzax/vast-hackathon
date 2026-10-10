@@ -117,10 +117,13 @@ function message(value = '') {
   if (element.textContent !== value) element.textContent = value;
   if (element.hidden !== !value) element.hidden = !value;
 }
+const programPlaybackAttempts = new WeakMap();
 async function startProgramPlayback(video) {
+  const attempt = (programPlaybackAttempts.get(video) || 0) + 1;
+  programPlaybackAttempts.set(video, attempt);
   try { await video.play(); }
   catch (error) {
-    if (error.name !== 'NotAllowedError' || video.muted) return;
+    if (programPlaybackAttempts.get(video) !== attempt || error.name !== 'NotAllowedError' || video.muted) return;
     // Keep the picture moving when the browser requires a gesture for sound.
     video.dataset.soundBlocked = 'true';
     video.muted = true;
@@ -129,6 +132,9 @@ async function startProgramPlayback(video) {
   }
 }
 function setupProgramAudio(video, button) {
+  video.defaultMuted = false;
+  video.muted = false;
+  video.volume = 1;
   function update() {
     const blocked = video.muted && video.dataset.soundBlocked === 'true';
     button.replaceChildren(studioIcon(video.muted ? 'volume-x' : 'volume-2'));
@@ -136,7 +142,7 @@ function setupProgramAudio(video, button) {
     button.classList.toggle('sound-blocked', blocked);
     button.setAttribute('aria-pressed', String(!video.muted));
     button.setAttribute('aria-label', video.muted ? 'Listen to program audio' : 'Mute local playback');
-    button.title = button.dataset.tooltip = blocked ? 'Your browser needs a tap to play sound.' :
+    button.title = button.dataset.tooltip = blocked ? 'Tap anywhere on this page to enable sound.' :
       video.muted ? 'Listen in this browser only.' : 'Mute playback in this browser only.';
   }
   video.addEventListener('volumechange', update);
@@ -146,6 +152,17 @@ function setupProgramAudio(video, button) {
     update();
     startProgramPlayback(video);
   };
+  function unlockSound(event) {
+    if (!event.isTrusted || button.contains(event.target) || video.dataset.soundBlocked !== 'true') return;
+    if (event.type === 'keydown' && !['Enter', ' '].includes(event.key)) return;
+    delete video.dataset.soundBlocked;
+    video.muted = false;
+    update();
+    // Call play within the gesture, before a button handler can await a request.
+    startProgramPlayback(video);
+  }
+  document.addEventListener('click', unlockSound, true);
+  document.addEventListener('keydown', unlockSound, true);
   update();
 }
 let hlsLibrary;

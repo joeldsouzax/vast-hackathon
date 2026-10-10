@@ -374,7 +374,7 @@ async function refresh() {
       const list = document.createElement('ol');
       list.replaceChildren(...plan.shots.map(shotDescription));
       const reason = document.createElement('p'); reason.className = 'eligibility'; reason.textContent = replay.eligible ? 'Ready · Available' : replay.reason;
-      const preview = document.createElement('video'); preview.controls = true; preview.muted = true;
+      const preview = document.createElement('video'); preview.controls = true;
       preview.preload = 'metadata'; preview.className = 'preview';
       loadProtectedAsset(preview, replay.preview_url).catch(error => {reason.textContent = error.message;});
       preview.setAttribute('aria-label', 'Rendered replay preview');
@@ -639,7 +639,7 @@ function crewState(control) {
         const summary = document.createElement('summary');
         summary.append(studioIcon('play'), document.createTextNode(`Replay · ${ready.duration_s.toFixed(1)}s`), studioIcon('chevron-down'));
         summary.setAttribute('aria-label', 'Preview replay');
-        const preview = document.createElement('video'); preview.controls = true; preview.muted = true;
+        const preview = document.createElement('video'); preview.controls = true;
         preview.preload = 'metadata'; preview.setAttribute('aria-label','Crew replay preview');
         attachment.ontoggle = () => {if (attachment.open && !preview.getAttribute('src')) loadProtectedAsset(preview, ready.preview_url).catch(error => message(error.message)); if (!attachment.open) preview.pause();};
         attachment.append(summary, preview); body.append(attachment);

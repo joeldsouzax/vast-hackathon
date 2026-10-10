@@ -75,3 +75,25 @@ Gemini requests on private scripted contexts selected a silent source quote for
 clear foreground words and abstained when no evidence was available during the
 event-talk cooldown. These are model checks, not live microphone acceptance.
 See [listening-priority evidence](evidence/listening-priority.json).
+
+## Default playback sound
+
+Release `breadcast-forever22-r14` explicitly starts the Viewer and Studio players
+unmuted at full player volume. The broadcast microphone already defaults to
+unmuted, and joining already enables microphone sharing. The program still
+selects one microphone independently from the camera view. The phone self-preview
+stays silent to prevent feedback. Replay preview players no longer start muted;
+the existing replay asset audio policy is unchanged.
+
+When audible autoplay is blocked, video can continue muted. A trusted page click
+or Enter/Space key retries sound within that interaction. The sound button still
+works. Explicitly muting playback prevents later page interactions from turning
+it back on. A newer play request supersedes an older rejected request, so a late
+error cannot mute a newly unlocked player. Reloading starts with sound enabled
+again. Device volume and browser permissions remain outside application control.
+
+Browser limits are documented by [Chrome](https://developer.chrome.com/blog/autoplay/)
+and [MDN](https://developer.mozilla.org/en-US/docs/Web/Media/Guides/Autoplay).
+See [the focused check](evidence/default-sound.json). For the manual check, refresh
+Viewer, tap the page if sound is blocked, then mute it and use another control.
+The second action must not undo an explicit mute.

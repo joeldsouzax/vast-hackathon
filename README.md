@@ -20,8 +20,12 @@ Gemini compares fresh observations from ready cameras and proposes useful cuts.
 Use the camera tiles to change views manually. **Hold broadcast** returns to holding
 and stays there until you select **Go live**. See the
 [Forever 22 setup and demo steps](docs/30-forever22-demo.md).
-Viewer and Studio playback try sound by default. If the browser blocks automatic
-sound, select **Tap for sound**. A later mute remains local to that browser.
+Viewer and Studio playback start with sound enabled at full player volume. If
+the browser blocks sound, a normal page click, tap, Enter or Space retries it.
+The sound button remains available. A later explicit mute stays muted until
+you change it or reload the page. Camera microphone sharing defaults to on;
+the phone self-preview stays silent to prevent feedback. Replay preview players
+also default to unmuted; silent replay assets still have no original audio.
 
 ## Reference video (disabled)
 

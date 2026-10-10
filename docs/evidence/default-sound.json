@@ -1,0 +1,74 @@
+{
+  "release": "breadcast-forever22-r14",
+  "checked_at": "2026-10-10T18:25:44.789404+00:00",
+  "browser_checks": {
+    "scope": "browser UI with mocked media playback; no public program changes",
+    "results": [
+      {
+        "gesture": "none",
+        "browser_blocks_sound": false,
+        "tries_sound_first": true,
+        "user_can_unmute": true,
+        "explicit_mute_survives_retry": true,
+        "errors": []
+      },
+      {
+        "gesture": "click",
+        "browser_blocks_sound": true,
+        "tries_sound_first": true,
+        "user_can_unmute": true,
+        "explicit_mute_survives_retry": true,
+        "errors": []
+      },
+      {
+        "gesture": "keyboard",
+        "browser_blocks_sound": true,
+        "tries_sound_first": true,
+        "user_can_unmute": true,
+        "explicit_mute_survives_retry": true,
+        "errors": []
+      }
+    ]
+  },
+  "deployment": {
+    "method": "Rebuilt runtime image and replaced served static files; no container restart",
+    "assets": [
+      {
+        "origin": "local",
+        "asset": "common.js",
+        "sha256": "d014ff01c2029b195dbb65986cf915ee3d1c00eb10f32f093d1f044895fe49b3",
+        "status": "matches repository"
+      },
+      {
+        "origin": "local",
+        "asset": "operator.js",
+        "sha256": "95287c004c19ef05433df9830b1f52df5b3c59bb98d762d7dd625c9857b5d190",
+        "status": "matches repository"
+      },
+      {
+        "origin": "public",
+        "asset": "common.js",
+        "sha256": "d014ff01c2029b195dbb65986cf915ee3d1c00eb10f32f093d1f044895fe49b3",
+        "status": "matches repository"
+      },
+      {
+        "origin": "public",
+        "asset": "operator.js",
+        "sha256": "95287c004c19ef05433df9830b1f52df5b3c59bb98d762d7dd625c9857b5d190",
+        "status": "matches repository"
+      }
+    ],
+    "healthcheck": "passed"
+  },
+  "audio_defaults": {
+    "program_muted": false,
+    "camera_microphone_enabled": true,
+    "program_microphones": "one selected microphone",
+    "phone_self_preview": "silent to prevent feedback",
+    "replay_previews": "unmuted player; asset policy unchanged"
+  },
+  "pending": [
+    "Actual audible playback on venue phones and public viewers"
+  ],
+  "broad_checks": "skipped per existing user override"
+}
