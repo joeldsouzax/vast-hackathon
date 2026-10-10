@@ -205,13 +205,14 @@ class ControlContracts(unittest.TestCase):
         self.assertEqual(self.app.program.revision,0)
 
     def test_policy_defaults_preparation_and_restart(self):
-        self.assertEqual(self.c.policy['minimum_shot_s'],5)
+        self.assertEqual(self.c.policy['minimum_shot_s'],2)
+        self.assertEqual(self.c.policy['rotate_s'],6)
         self.assertEqual(self.c.policy['replay_max_s'],12)
         self.assertEqual(self.c.policy['replay_cooldown_s'],30)
         self.human('resume')
         self.c.last_shot = time.monotonic()
         proposal = self.c.propose(self.proposal(slot=1))
-        self.assertGreater(proposal['not_before'],time.monotonic()+4)
+        self.assertGreater(proposal['not_before'],time.monotonic()+1)
         old_run = self.c.run_id
         from control import Coordinator
         fresh = Coordinator(self.app)

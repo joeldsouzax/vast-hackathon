@@ -2,6 +2,8 @@ name: breadcast
 services:
   studio:
     image: breadcast-studio:latest
+    # Keep VM desktop headroom; raise on a dedicated host.
+    cpus: ${BREADCAST_CPUS:-2}
     build:
       context: .
       args:
@@ -65,6 +67,9 @@ services:
       BREADCAST_PORT: ${BREADCAST_PORT:-8080}
       BREADCAST_WEBRTC_PORT: ${BREADCAST_WEBRTC_PORT:-8189}
       BREADCAST_DELAY: ${BREADCAST_DELAY:-3}
+      BREADCAST_SPEECH: ${BREADCAST_SPEECH:-off}
+      BREADCAST_TRANSITION: ${BREADCAST_TRANSITION:-dissolve}
+      BREADCAST_TRANSITION_MS: ${BREADCAST_TRANSITION_MS:-600}
       BREADCAST_RESERVATION_SECONDS: ${BREADCAST_RESERVATION_SECONDS:-60}
       BREADCAST_RECONNECT_SECONDS: ${BREADCAST_RECONNECT_SECONDS:-20}
       BREADCAST_FOUNDATION_CONFIG: ${BREADCAST_FOUNDATION_CONFIG:-}

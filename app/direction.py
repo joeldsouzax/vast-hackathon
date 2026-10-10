@@ -6,6 +6,7 @@ from dataclasses import replace
 from fractions import Fraction
 import json
 import math
+import os
 import threading
 import time
 import uuid
@@ -31,7 +32,7 @@ class Direction:
         self.state={'director':'Inactive','commentator':'Inactive','speech':'Inactive'}
         self.reason='Awaiting fresh mapped evidence' if self.settings.enabled else 'Direction is disabled in server configuration'
         self.provider_failures={}
-        self.cursor=0;self.last_trigger=None;self.traces=deque(maxlen=256)
+        self.cursor=0;self.last_trigger=None;self.last_commentary=None;self.traces=deque(maxlen=256)
         self.thread=threading.Thread(target=self._run,name='crew-coordinator',daemon=True)
 
     def start(self):
@@ -65,7 +66,15 @@ class Direction:
             snapshot.control_revision!=app.control.revision or app.control.crew_paused or
             app.control.rehearsal['state']=='Running' or app.stop.is_set()):
             raise ValueError('Reviewed context or control changed')
-        if program and snapshot.program_revision!=app.program.revision:raise ValueError('Reviewed program cue changed')
+        camera=dependencies.get('commentary_camera')
+        if camera:
+            # Captions stay valid across graphics or other program changes while
+            # the same camera feed remains on air.
+            target=app.program.actual_target
+            if (app.program.requested!='LIVE' or target.get('kind')!='camera' or
+                    target.get('source_path')!=camera['source_path'] or target.get('epoch')!=camera['epoch']):
+                raise ValueError('Commentary camera changed')
+        elif program and snapshot.program_revision!=app.program.revision:raise ValueError('Reviewed program cue changed')
         if time.time()>=dependencies['deadline']:raise ValueError('Original decision deadline expired')
         if self.foundation.invalidated_evidence.intersection(dependencies['evidence_ids']):raise ValueError('Reviewed evidence was corrected')
         if dependencies.get('archive_session'):
@@ -77,7 +86,7 @@ class Direction:
             native=target.get('native') or {}
             if target.get('archive_source')!=session['source'] or target.get('source_path')!=session['source']['source_id'] or native.get('native_pts',-1)<session['reviewed_pts']:
                 raise ValueError('Archive source interval moved backward or changed')
-        for source_id,(slot,epoch,revision) in dependencies['sources'].items():
+        for source_id,(slot,epoch,revision) in ({} if camera else dependencies['sources']).items():
             current=app.get_source(slot)
             if not current or current.path!=source_id or current.epoch!=epoch or getattr(current,'timeline_revision',1)!=revision:
                 raise ValueError('Reviewed source lease, epoch, or mapping changed')
@@ -99,7 +108,20 @@ class Direction:
         if isinstance(intent,Abstention):return intent,None
         refs=intent.evidence_ids
         allowed={o['evidence_id']:o for o in context['observations']}
-        if any(eid not in allowed for eid in refs):raise ValueError('Intent references evidence outside reviewed context')
+        if role=='commentator' and refs:
+            # Resolve truncated IDs by unique prefix, then drop invented IDs.
+            # The line must still rest on at least one reviewed observation.
+            resolved=[]
+            for eid in refs:
+                matches=[a for a in allowed if a==eid] or ([a for a in allowed if a.startswith(eid[:12])] if len(eid)>=12 else [])
+                if len(matches)==1 and matches[0] not in resolved:resolved.append(matches[0])
+            if not resolved and context['observations']:
+                # Small models often echo the schema placeholder; cite the newest reviewed observation.
+                resolved=[context['observations'][0]['evidence_id']]
+            intent=intent.model_copy(update={'evidence_ids':resolved})
+            refs=intent.evidence_ids
+        if any(eid not in allowed for eid in refs):
+            raise ValueError('Intent references evidence outside reviewed context: '+','.join(e[:16] for e in refs if e not in allowed)[:120])
         if role=='commentator':
             # Empty references permit only the exact fixture disclosure. Live claims need evidence.
             speech=self.foundation.registry.labels.get('speech',{})
@@ -114,6 +136,9 @@ class Direction:
         dependencies={'snapshot':snapshot,'evidence_ids':refs,'deadline':deadline,'sources':{}}
         archive_session=role=='commentator' and context['target'].get('archive_session')
         if archive_session:dependencies['archive_session']=context['target']['archive_session']
+        elif role=='commentator':
+            reviewed=context['target']['source']
+            dependencies['commentary_camera']={'source_path':reviewed['source_id'],'epoch':reviewed['epoch']}
         for source in (() if archive_session else snapshot.sources):
             current=self.app.get_source(source.slot)
             if current and current.path==source.source_id:
@@ -186,6 +211,7 @@ class Direction:
                 program_revision=snapshot.program_revision,evidence_ids=intent.evidence_ids,origin='controller',
                 channel='intent',session_id=f'{snapshot.run_id}:{snapshot.program_revision}')
             self.foundation.program_text(reservation,owner='controller',reserve=True)
+            self.state[role]='Ready'
             def prepare():self._prepare_speech(intent,dependencies,context,reservation)
             prepare.cancel=lambda reason:self._end_reservation(reservation,reason)
             try:self.foundation.submit_role('speech',prepare)
@@ -226,6 +252,21 @@ class Direction:
     def _end_reservation(self, reservation, reason):
         self.foundation.program_text(reservation.model_copy(update={'state':'canceled','reason':reason}),owner='controller')
 
+    def _speech(self, intent, dependencies, event):
+        """Return (pcm, asset, fallback). BREADCAST_SPEECH=off keeps commentary caption only."""
+        if os.environ.get('BREADCAST_SPEECH','on')=='off':return b'',None,'Speech disabled; caption only'
+        asset=None
+        try:
+            async def prepare():
+                async with asyncio.timeout(min(self.settings.role_timeout_s,dependencies['deadline']-time.time())):
+                    return await self.foundation.registry.speech(intent.text,self.foundation.storage,dependencies['deadline'],event_context=event)
+            speech=asyncio.run(prepare())
+            asset=speech.media
+            return decode_speech(speech,self.foundation.storage,intent.text,event,self.foundation.settings),asset,None
+        except Exception as error:
+            failure=public_failure(error,'speech');self.provider_failures['speech']=failure
+            return b'',asset,'Speech unavailable: '+failure['reason']
+
     def _prepare_speech(self, intent, dependencies, context, reservation):
         cue=None;asset=None
         try:
@@ -238,17 +279,7 @@ class Direction:
                 if len(self.prepared)>=2 or sum(c.memory_bytes for c in self.prepared.values())+self.settings.speech_asset_bytes>self.settings.speech_total_bytes:
                     raise ValueError('Speech preparation cannot reserve its bounded buffer')
             event=EventContext.model_validate(context['event'])
-            pcm=b'';asset=None;fallback=None
-            try:
-                async def prepare():
-                    async with asyncio.timeout(min(self.settings.role_timeout_s,dependencies['deadline']-time.time())):
-                        return await self.foundation.registry.speech(intent.text,self.foundation.storage,dependencies['deadline'],event_context=event)
-                speech=asyncio.run(prepare())
-                asset=speech.media
-                pcm=decode_speech(speech,self.foundation.storage,intent.text,event,self.foundation.settings)
-            except Exception as error:
-                failure=public_failure(error,'speech');self.provider_failures['speech']=failure
-                fallback='Speech unavailable: '+failure['reason']
+            pcm,asset,fallback=self._speech(intent,dependencies,event)
             self.check(dependencies)
             layer=None
             try:layer=caption_layer(self.app.program.graphics,intent.text)
@@ -280,8 +311,9 @@ class Direction:
             with self.lock:self.prepared[cue.id]=cue
             self._history(cue,'prepared')
             self._history(cue,'pending')
+            expected=self.app.control.expected({}) if dependencies.get('commentary_camera') else self.expected(snapshot,{})
             record=self.app.control.propose({'id':cue.id,'op':'commentary','args':{'cue_id':cue.id},
-                'expected':self.expected(snapshot,{}),'expires_at':dependencies['deadline']},
+                'expected':expected,'expires_at':dependencies['deadline']},
                 actor='Provider crew',dependencies=dependencies)
             if record['state'] not in ('Scheduled','Applying'):
                 self.discard(cue.id,record['reason']);self.drain_receipts()
@@ -291,6 +323,7 @@ class Direction:
             self.traces.append({'cue_id':cue.id,'stage':'speech-ready','utc':time.time(),'samples':len(pcm)//2,'fallback':fallback})
         except Exception as error:
             self.state['speech']='Unavailable';self.reason=str(error) if isinstance(error,ValueError) else type(error).__name__
+            self.traces.append({'role':'speech','stage':'error','utc':time.time(),'reason':type(error).__name__+': '+str(error)[:200]})
             if cue:self.discard(cue.id,'Preparation failed')
             elif asset:
                 with self.lock:
@@ -377,18 +410,23 @@ class Direction:
                 source=SourceEpoch.model_validate(target['archive_source'])
             if not source:raise ValueError('Reviewed source is unavailable')
             context=self._context(role,source,snapshot)
-            if context['status']=='unavailable' or not context['observations']:return
+            if context['status']=='unavailable' or not context['observations']:
+                self.traces.append({'role':role,'stage':'skip','utc':time.time(),'reason':'no eligible observations'});return
+            # Give the role the full role_timeout for the model call. Evidence
+            # job deadlines only gate eligibility; shrinking the HTTP budget to
+            # a near-expiry job caused constant deadline_missed on W&B.
+            minimum_budget=min(5.0,self.settings.role_timeout_s/2)
             deadline=time.time()+self.settings.role_timeout_s
             if role=='director':
                 with self.foundation.lock:
                     deadlines=[self.foundation.db.execute('SELECT deadline FROM jobs WHERE key=?',(o['job_key'],)).fetchone()[0] for o in context['observations']]
-                deadline=min(deadline,max(deadlines))
+                if not deadlines or max(deadlines)<=time.time()+minimum_budget:return
             elif self.app.program.actual=='LIVE':
                 with self.foundation.lock:
                     jobs=[self.foundation.db.execute('SELECT deadline,body FROM jobs WHERE key=?',(o['job_key'],)).fetchone() for o in context['observations']]
-                fresh=[job['deadline'] for job in jobs if job and json.loads(job['body']).get('deadline_basis')=='frame-receipt' and job['deadline']>time.time()]
-                if not fresh:return
-                deadline=min(deadline,max(fresh))
+                fresh=[job['deadline'] for job in jobs if job and json.loads(job['body']).get('deadline_basis')=='frame-receipt' and job['deadline']>time.time()+minimum_budget]
+                if not fresh:
+                    self.traces.append({'role':role,'stage':'skip','utc':time.time(),'reason':'no fresh live evidence'});return
             self.state[role]='Thinking'
             self.traces.append({'role':role,'stage':'model-start','utc':time.time(),'deadline_utc':deadline})
             async def call():
@@ -403,6 +441,112 @@ class Direction:
         except Exception as error:
             failure=public_failure(error,'llm');self.provider_failures[role]=failure
             self.state[role]='Unavailable';self.reason=failure['reason']
+            self.traces.append({'role':role,'stage':'error','utc':time.time(),'reason':type(error).__name__+': '+str(error)[:200]})
+
+    GRAPHICS_S=14.0
+    BANNERS=(('headline','A fresh take.','You’re watching Breadcast.'),
+             ('toast-note','A little something fresh.','Stay for the good stuff.'),
+             ('wide-banner','Made to be shared.','Good views bring people together.'))
+    STINGERS=('toast-wipe','ribbon-sweep','iris-reveal','crumb-burst')
+    LOWERS=('lower-classic','lower-pill','lower-split','lower-portrait')
+
+    def _graphic(self, preset, title, subtitle, duration_s):
+        args={'graphics':{'op':'cue','preset':preset,'title':title,'subtitle':subtitle,'duration_s':duration_s}}
+        record=self.app.control.propose({'id':uuid.uuid4().hex,'op':'graphics','args':args,
+            'expected':self.app.control.expected({}),'expires_at':time.time()+5},actor='Provider crew')
+        self.traces.append({'role':'graphics','stage':'propose','utc':time.time(),'preset':preset,'state':record.get('state'),'reason':record.get('reason')})
+        return record
+
+    def _policy_graphics(self):
+        """Deterministic on-air dressing from prepared presets. Text is preset copy or the camera number only."""
+        program=self.app.program
+        if self.app.control.crew_paused or not self.app.control.program_started or program.actual!='LIVE':return
+        if any(r['state'] in ('Scheduled','Applying') for r in self.app.control.actions.values()):return
+        active=program.graphics.active
+        now=time.monotonic();state=self.__dict__.setdefault('_gfx',{'slot':None,'cuts':0,'banner':0,'next':0.0,'tried':0.0})
+        if now<state['tried']+1:return
+        state['tried']=now
+        if 'bug' not in active:
+            self._graphic('brand-bug','breadcast.','',600);return
+        if program.cue is not None or 'screen' in active or 'stinger' in active:return
+        slot=program.slot
+        if slot!=state['slot']:
+            state['slot']=slot;state['cuts']+=1
+            if state['cuts']%3==0:self._graphic(self.STINGERS[state['cuts']//3%len(self.STINGERS)],'breadcast.','',2)
+            else:self._graphic(self.LOWERS[state['cuts']%len(self.LOWERS)],f'Camera {slot}','Live on Breadcast',3)
+            state['next']=now+self.GRAPHICS_S;return
+        if now>=state['next'] and not any(s in active for s in ('lower','banner','ticker')) and not self._commentary_busy():
+            preset,title,subtitle=self.BANNERS[state['banner']%len(self.BANNERS)];state['banner']+=1
+            self._graphic(preset,title,subtitle,4);state['next']=now+self.GRAPHICS_S
+
+    def _policy_replay(self):
+        """Air any ready automatic replay after the controller cooldown; no opportunity evidence required."""
+        control=self.app.control;program=self.app.program;policy=control.policy
+        if control.crew_paused or not control.program_started or not policy.get('replays_enabled'):return
+        if program.actual!='LIVE' or program.requested!='LIVE' or program.cue is not None:return
+        now=time.monotonic()
+        if now<control.last_replay+policy.get('replay_cooldown_s',30):return
+        if now<control.last_shot+policy.get('minimum_shot_s',2):return
+        if now<getattr(self,'_replay_tried',0)+3:return
+        if any(r['state'] in ('Scheduled','Applying') or (r['op']=='replay' and r['state']=='On air') for r in control.actions.values()):return
+        ready=sorted(self.app.replay_work.ready(),key=lambda r:r['expires_at'])
+        if not ready:return
+        self._replay_tried=now
+        asset=ready[0];args={'replay_id':asset['id']}
+        record=control.propose({'id':uuid.uuid4().hex,'op':'replay','args':args,'expected':control.expected(args),
+            'expires_at':min(asset['expires_at'],time.time()+10)},actor='Provider crew')
+        self.traces.append({'role':'replay','stage':'propose','utc':time.time(),'state':record.get('state'),'reason':record.get('reason')})
+        if record.get('state') in ('Scheduled','Applying','On air'):self.reason='Policy replay '+asset['id'][:8]
+
+    COMMENTARY_S=4.0
+    COMMENTARY_HOLD=3
+
+    def _commentary_busy(self):
+        pending=self.foundation.role_pending;active=self.foundation.role_active
+        with self.lock:prepared=bool(self.prepared)
+        return prepared or 'commentator' in active or 'speech' in active or 'speech' in pending
+
+    def _policy_rotate(self):
+        """Cut to the next healthy live slot on policy.rotate_s for unrelated feeds."""
+        policy=self.app.control.policy
+        interval=policy.get('rotate_s')
+        if not interval or interval<=0:return
+        if self.app.control.crew_paused or not self.app.control.program_started:return
+        if self.app.program.actual not in ('LIVE','HOLDING'):return
+        # Wait until an on-air live shot exists, then rotate on the policy cadence.
+        if self.app.control.last_shot<=0:return
+        gate=max(policy.get('minimum_shot_s',0),interval)
+        now_mono=time.monotonic()
+        if now_mono<self.app.control.last_shot+gate:return
+        # A cut invalidates commentary for the outgoing camera. Hold the shot while a
+        # line is being written or on air, but never longer than the hold cap.
+        held=now_mono-self.app.control.last_shot
+        if self.app.program.cue is not None and held<gate+self.settings.speech_max_s+1:return
+        if held<gate*self.COMMENTARY_HOLD and self._commentary_busy():return
+        if now_mono<getattr(self,'_last_rotate_mono',0)+gate:return
+        snapshot=self.foundation.reviewed_snapshot()
+        if not snapshot.runtime:return
+        healthy=[h for h in snapshot.runtime.source_health
+            if h.buffer_ready and h.last_frame_age_s is not None and h.last_frame_age_s<=.75]
+        slots=sorted({h.slot for h in healthy})
+        if len(slots)<2:return
+        current=snapshot.runtime.program.primary_slot
+        nxt=slots[(slots.index(current)+1)%len(slots)] if current in slots else slots[0]
+        if nxt==current:return
+        args={'slot':nxt,'independent':True}
+        try:
+            record=self.app.control.propose({
+                'id':uuid.uuid4().hex,'op':'live','args':args,
+                'expected':self.app.control.expected(args),
+                'expires_at':time.time()+self.settings.role_timeout_s,
+            },actor='Provider crew')
+            self._last_rotate_mono=now_mono
+            if record.get('state') in ('Scheduled','Applying','On air','Finished'):
+                self.reason='Rotated to camera '+str(nxt)
+            else:
+                self.reason='Policy rotate: '+(record.get('reason') or record.get('state') or 'rejected')
+        except Exception as error:
+            self.reason='Policy rotate: '+type(error).__name__+': '+str(error)[:120]
 
     def _run(self):
         while not self.app.stop.wait(.05):
@@ -416,16 +560,31 @@ class Direction:
                         if record and record['state'] in ('Rejected','Canceled','Expired'):self.discard(cue.id,record['reason'])
                 if not self.settings.enabled or self.app.control.crew_paused or self.app.control.rehearsal['state']=='Running':continue
                 if not self.app.control.program_started:continue
+                try:self._policy_replay()
+                except Exception as error:self.traces.append({'role':'replay','stage':'error','utc':time.time(),'reason':type(error).__name__+': '+str(error)[:160]})
+                self._policy_rotate()
+                try:self._policy_graphics()
+                except Exception as error:self.traces.append({'role':'graphics','stage':'error','utc':time.time(),'reason':type(error).__name__+': '+str(error)[:160]})
+                live=self.app.program.actual!='HOLDING' and self.app.program.requested!='HOLDING'
+                commentary_tick=(int(time.monotonic()/self.COMMENTARY_S),self.app.program.revision)
+                if live and commentary_tick!=self.last_commentary and self.app.program.cue is None and \
+                        'commentator' not in self.foundation.role_active:
+                    self.last_commentary=commentary_tick
+                    self.foundation.submit_role('commentator',lambda:self._decide('commentator'))
+                # While replay prepare owns a worker, skip director calls so the
+                # segmentor is not stuck behind 60s director timeouts.
+                if self.app.replay_work.planning or 'segmentor' in self.foundation.role_pending:
+                    continue
                 snapshot=self.foundation.reviewed_snapshot()
                 trigger=(snapshot.evidence_revision,snapshot.program_revision,snapshot.control_revision,
                          tuple((h.source_id,h.epoch,h.buffer_ready) for h in snapshot.runtime.source_health) if snapshot.runtime else ())
-                cadence=int(time.monotonic()) if self.app.program.actual=='REPLAY' else None
+                # Include wall cadence so rotate and director keep waking while LIVE.
+                cadence=int(time.monotonic()/(self.app.control.policy.get('rotate_s') or 6))
+                if self.app.program.actual=='REPLAY':cadence=int(time.monotonic())
                 trigger=(*trigger,cadence,tuple(r['id'] for r in self.app.replay_work.ready()))
                 if trigger==self.last_trigger:continue
                 self.last_trigger=trigger
-                roles=('director',) if self.app.program.actual=='HOLDING' or self.app.program.requested=='HOLDING' else ('director','commentator')
-                for role in roles:
-                    self.foundation.submit_role(role,lambda role=role:self._decide(role))
+                self.foundation.submit_role('director',lambda:self._decide('director'))
             except Exception as error:self.reason='Crew coordinator: '+type(error).__name__
         self.app.program.cancel_commentary('Studio stopped')
         for cue in tuple(self.prepared.values()):self.discard(cue.id,'Studio stopped')

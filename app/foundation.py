@@ -827,7 +827,9 @@ class Foundation:
                     # Archive work never consumes both shared slots. Fresh live work
                     # precedes new archive work; alternating analysis retains progress.
                     archive_busy=bool({'segmentor','search','connect'} & self.role_active)
-                    role=next((key for key in ('director','commentator','speech','segmentor','search','connect')
+                    # Prepare/search ahead of live LLM roles so automatic replay
+                    # is not starved by long director/commentator calls.
+                    role=next((key for key in ('speech','segmentor','search','connect','commentator','director')
                         if key in self.role_pending and key not in self.role_active and
                         (key not in ('segmentor','search','connect') or not archive_busy)),None)
                     if role:

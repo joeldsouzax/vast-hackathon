@@ -7,6 +7,17 @@ if [[ $# -gt 0 ]]; then shift; fi
 
 # Prefer Compose v2 plugin; fall back to docker-compose v1. Use sudo when the
 # current user cannot talk to the Docker daemon (common on this workshop VM).
+# A non-empty value in .env overrides the same exported VM variable. Compose
+# otherwise prefers the shell value. Names only; values stay in the file.
+# sudo reloads /etc/environment, so the names are also removed inside sudo.
+env_overrides=()
+if [[ -f "$repo_dir/.env" ]]; then
+  while IFS= read -r env_name; do
+    unset "$env_name"
+    env_overrides+=(-u "$env_name")
+  done < <(sed -nE 's/^([A-Za-z_][A-Za-z0-9_]*)=.+$/\1/p' "$repo_dir/.env")
+fi
+
 if docker info >/dev/null 2>&1; then
   docker_bin=(docker)
 elif sudo -n docker info >/dev/null 2>&1; then
@@ -21,9 +32,9 @@ elif sudo -n docker info >/dev/null 2>&1; then
   done < <(compgen -e)
   if [[ ${#preserved_names[@]} -gt 0 ]]; then
     preserve_list="$(IFS=,; echo "${preserved_names[*]}")"
-    docker_bin=(sudo -n "--preserve-env=$preserve_list" docker)
+    docker_bin=(sudo -n "--preserve-env=$preserve_list" env "${env_overrides[@]}" docker)
   else
-    docker_bin=(sudo -n docker)
+    docker_bin=(sudo -n env "${env_overrides[@]}" docker)
   fi
 else
   echo 'Docker is not reachable. Use a Docker-enabled account or sudo ./scripts/studio.' >&2

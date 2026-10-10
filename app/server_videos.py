@@ -125,8 +125,9 @@ def s3_client(values=None):
         credentials={}
         if setting('ACCESS_KEY') and setting('SECRET_KEY'):
             credentials={'aws_access_key_id':setting('ACCESS_KEY'),'aws_secret_access_key':setting('SECRET_KEY')}
-        return boto3.client('s3',endpoint_url=endpoint,verify=s3_verify(values),config=Config(connect_timeout=5,read_timeout=60,
-            retries={'total_max_attempts':1}),**credentials)
+        # Workshop VAST VIPs often need BREADCAST_S3_VERIFY=false. Keep TLS on by default.
+        return boto3.client('s3',endpoint_url=endpoint,verify=s3_verify(values),
+            config=Config(connect_timeout=5,read_timeout=60,retries={'total_max_attempts':1}),**credentials)
     except StageError:raise
     except Exception:raise StageError('S3 client could not start; check the VM credential chain and endpoint configuration') from None
 

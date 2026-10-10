@@ -445,13 +445,14 @@ using password-free sudo. `.env` remains the location for values absent from
 the assigned file. See the [VM problems record](docs/27-vm-integration-problems.md)
 for the reported cause chain and current fixes.
 
+Equivalent Compose steps and day-to-day logs/stop:
+
 ```sh
 docker compose logs -f --tail=100 studio
 docker compose stop studio
-docker compose up -d studio
+docker compose up -d --build --force-recreate studio
 ```
 
-After a configuration change, use `docker compose up -d --force-recreate studio`.
 After stopping, `docker compose down` removes the container and network while
 keeping the named runtime volume. Do not add `--volumes` when retaining evidence.
 Each restart begins a new run in holding and requires a human Start.

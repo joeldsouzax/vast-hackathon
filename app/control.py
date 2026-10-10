@@ -23,7 +23,10 @@ class Coordinator:
         self.crew_paused = getattr(app.cfg, 'crew_mode', 'automatic') == 'human'
         self.program_started = False
         self.revision = 0
-        self.policy = {'minimum_shot_s': 5, 'replay_max_s': 12, 'replay_cooldown_s': 30, 'replays_enabled': True}
+        # rotate_s: when several unrelated live sources are healthy, cut to the
+        # next slot on this cadence. minimum_shot_s still gates every live cut.
+        self.policy = {'minimum_shot_s': 2, 'rotate_s': 6, 'replay_max_s': 12,
+                       'replay_cooldown_s': 20, 'replays_enabled': True}
         self.actions = {}
         self.last_shot = 0
         self.last_replay = 0

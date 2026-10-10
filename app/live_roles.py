@@ -98,11 +98,24 @@ class LiveRoles:
                     'Keep the chosen microphone independent of camera cuts. Never invent a ready replay ID.')
             else:
                 instructions+=('Describe only eligible action already on screen. Follow event language, style and pronunciations. '
-                    'Use a short sentence that fits eight seconds. Use reviewed aired history for callbacks. '
-                    'Avoid repeating pending or recent sentences. Silence is valid when evidence is weak.')
+                    'Use one short sentence of at most 80 characters. Use reviewed aired history for callbacks. '
+                    'Avoid repeating pending or recent sentences; vary wording and angle. '
+                    'When any eligible observation exists, prefer one lively evidence-backed line over silence. '
+                    'Cite only evidence_id values listed in observations. Abstain only when no observation supports a line.')
             output={'director':DirectorIntent,'commentator':CommentatorIntent,'segmentor':SegmentorIntent}[role]
-            agent=Agent(model,output_type=output,retries=0,instructions=instructions)
+            # Segmentor and commentator structured output fails often on the first call; allow repair retries.
+            agent=Agent(model,output_type=output,retries=(2 if role in ('segmentor','commentator') else 0),instructions=instructions)
             prompt_context=json.loads(json.dumps(context))
+            labels={}
+            if role=='commentator':
+                # Small models copy short labels reliably; 64-character hashes they do not.
+                for index,observation in enumerate(prompt_context.get('observations',[]),1):
+                    labels[f'E{index}']=observation['evidence_id'];observation['evidence_id']=f'E{index}'
+                real={v:k for k,v in labels.items()}
+                for row in prompt_context.get('aired',[])+prompt_context.get('pending',[]):
+                    if isinstance(row.get('evidence_ids'),list):row['evidence_ids']=[real.get(e,e) for e in row['evidence_ids']]
+                instructions+=' Cite evidence by its label, for example ["E1"].'
+                agent=Agent(model,output_type=output,retries=2,instructions=instructions)
             frames=prompt_context.get('target',{}).pop('visual_frames',[])
             for window in prompt_context.get('target',{}).get('visual_windows',[]):
                 frames.extend(window.pop('frames',[]))
@@ -110,9 +123,12 @@ class LiveRoles:
             for frame in frames:
                 prompt.append(f"Inspected frame: native_pts={frame['pts']}, time_base={frame['time_base']}, chunk_id={frame['chunk_id']}")
                 prompt.append(BinaryContent(data=base64.b64decode(frame['image_base64']),media_type='image/jpeg'))
-            result=await agent.run(prompt,model_settings={'max_tokens':2048,'temperature':0})
+            result=await agent.run(prompt,model_settings={'max_tokens':2048,'temperature':0.8 if role=='commentator' else 0})
             self.verified.add(role)
+            output_value=result.output
+            if labels and getattr(output_value,'evidence_ids',None):
+                output_value=output_value.model_copy(update={'evidence_ids':[labels.get(e.strip().upper(),e) for e in output_value.evidence_ids]})
             if role=='segmentor':return SegmentorResult(payload=result.output,snapshot=snapshot,
                 origin='provider',model_id=self.models[role],model_version='unknown')
-            return LLMResult(text=result.output.model_dump_json(),snapshot=snapshot,
+            return LLMResult(text=output_value.model_dump_json(),snapshot=snapshot,
                 origin='provider',model_id=self.models[role],model_version='unknown')
