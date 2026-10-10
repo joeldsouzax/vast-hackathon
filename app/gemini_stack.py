@@ -387,15 +387,19 @@ class GeminiStack:
                 'A pending or currently playing line means you are preparing the next line; do not abstain '
                 'only because speech is active. The controller queues your line without overlapping voices. '
                 'Read target.microphone and the observations.audio evidence before choosing to speak. '
-                'Foreground speech takes priority: use abstain to listen, or delivery=source_caption to show a useful '
-                'short exact excerpt from ONE cited transcript while the original speaker stays audible. '
+                'The microphone being active or speech being classified foreground does not require silence. '
+                'Keep short lively commentary flowing over ordinary room conversation, even if a nearby voice is loud. '
+                'Choose abstain briefly only when the heard words contain a useful demo explanation, interview answer, '
+                'announcement or presentation worth hearing. Do not keep yielding to incidental or repeated chatter. '
+                'Alternatively choose delivery=source_caption to show a useful short exact excerpt from ONE cited '
+                'transcript while the original speaker stays audible. '
                 'For source_caption use basis=action, exact transcript words without added labels or quotes, '
                 'and evidence from the selected unmuted microphone only. The controller adds a Heard label; '
                 'these are recent quotes, not synchronized subtitles. Never read that quote aloud. '
                 'With background chatter, silence or unclear words, choose delivery=speech for brief commentary '
                 'when useful, or abstain. Do not guess what an unclear voice said. '
                 'If audio evidence is missing, do not claim to have heard speech. '
-                'Follow the audio policy and let a speaker finish. Silence is valid when needed. ')
+                'Follow the audio policy. Brief listening pauses are an editorial choice, not a microphone gate. ')
         copied = json.loads(json.dumps(context))
         frames = copied.get('target', {}).pop('visual_frames', [])
         for window in copied.get('target', {}).get('visual_windows', []):

@@ -29,8 +29,9 @@ chunks, native clocks, reviewed snapshots and controller ownership.
   microphone transcript. The controller labels it `Heard:` and displays it for
   at most four seconds, without TTS or source-audio ducking. It is a recent quote,
   not a synchronized subtitle. Changing or muting the microphone invalidates
-  that cue. Foreground speech blocks new narration based on that review;
-  background chatter permits the existing narration mix. Clip processing delay
+  that cue. Speech classification does not veto narration. Gemini can speak over
+  room conversation or briefly yield to a useful explanation or announcement.
+  Spoken commentary keeps the existing narration mix. Clip processing delay
   means this is not instant speaker interruption detection.
 
 - `cosmos` remains the internal video-reasoning boundary; it now uses Gemini.

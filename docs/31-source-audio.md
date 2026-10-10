@@ -26,14 +26,17 @@ flowchart LR
   Talk --> Controller
 ```
 
-The active event context is revision 5. The custom cabbie voice remains selected.
+The active event context is revision 6. The custom cabbie voice remains selected.
 Its delivery is now more impatient: clipped phrases, exasperated pauses, dry
 sarcasm and mock anger at delays. It avoids constant shouting and attendee insults.
 The reusable [event template](../config/events/forever22.json) has the same style.
 
 The controller checks exact quote text, microphone identity, epoch, mute state,
 evidence availability and the original deadline. A quote lasts at most four
-seconds. Foreground speech prevents a newly reviewed spoken cue. This uses
+seconds. Microphone activity and foreground speech do not block narration.
+Gemini keeps talking over ordinary room conversation. It can briefly yield when
+the heard words contain a useful demo explanation, interview answer, announcement
+or presentation. This uses
 short recorded clips; it cannot stop an already playing line the instant a
 person begins speaking. Quotes are recent excerpts, not word-aligned subtitles.
 
@@ -49,6 +52,6 @@ the program and does not prove transcription accuracy or viewer latency. See
 
 After the runtime restart, reconnect a phone with the current QR and select
 **Go live**. Select its microphone. Speak a clear short sentence, then pause.
-Confirm that heard quotes match the words, the speaker stays audible, and cabbie
-commentary resumes in gaps. Change or mute the selected microphone and check
+Confirm that heard quotes match the words and cabbie commentary continues over
+ordinary conversation, with brief pauses for useful speaker content. Change or mute the selected microphone and check
 that an old quote cannot continue. These venue checks remain manual.

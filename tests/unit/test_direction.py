@@ -201,14 +201,11 @@ class DirectionContracts(unittest.TestCase):
             with self.subTest(change=change),self.assertRaisesRegex(ValueError,'selected microphone'):
                 self.d.validate(self.result(line,changed),'commentator',changed,time.time()+6)
 
-    def test_foreground_speech_blocks_narration_but_background_allows_it(self):
+    def test_microphone_speech_does_not_veto_narration(self):
         for speech in ('foreground','background'):
             context=self.audio_context(speech)
             line={'op':'commentary','text':self.phrase,'reason':'Fixture commentary'}
-            if speech=='foreground':
-                with self.assertRaisesRegex(ValueError,'foreground speaker'):
-                    self.d.validate(self.result(line,context),'commentator',context,time.time()+6)
-            else:self.d.validate(self.result(line,context),'commentator',context,time.time()+6)
+            self.d.validate(self.result(line,context),'commentator',context,time.time()+6)
 
     def test_source_quote_has_no_tts_and_mic_changes_cancel_it(self):
         context=self.audio_context()

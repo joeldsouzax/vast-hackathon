@@ -44,5 +44,13 @@
     "event_revision": 5,
     "program_state_after_restart": "HOLDING",
     "graphics_ready": true
+  },
+  "microphone_gate_repair": {
+    "event_revision": 6,
+    "release": "breadcast-forever22-r03",
+    "change": "Remove blanket foreground-speech narration veto; Gemini chooses brief listening pauses for useful speaker content.",
+    "direction_checks_passed": 30,
+    "program_after_restart": "HOLDING",
+    "phone_check": "pending reconnect and Go live"
   }
 }

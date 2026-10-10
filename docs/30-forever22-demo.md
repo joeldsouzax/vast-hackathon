@@ -8,7 +8,7 @@ translation, multimodal interaction and agentic workflows. It does not name
 unverified attendees or claim an event phase, result or connected camera count.
 
 [config/events/forever22.json](../config/events/forever22.json) preserves the
-reusable brief. The active laptop context is revision 5. Its custom voice ID is
+reusable brief. The active laptop context is revision 6. Its custom voice ID is
 stored in the local environment and persisted context. The template leaves that
 account-specific voice unset. Importing it requires the current revision plus one.
 

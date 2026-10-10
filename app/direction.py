@@ -146,14 +146,11 @@ class Direction:
             heard=[o for o in context['observations'] if o.get('audio') and
                 o['source']['source_id']==microphone.get('source_path') and
                 o['source']['epoch']==microphone.get('epoch') and not microphone.get('muted',True)]
-            latest=max(heard,key=lambda o:o['native']['end'],default=None)
             if intent.delivery=='source_caption':
                 quotes=[allowed[eid] for eid in refs if eid in {o['evidence_id'] for o in heard}]
                 if (intent.basis!='action' or len(refs)!=1 or len(quotes)!=1 or not intent.text.strip() or len(intent.text)>96 or
                         intent.text not in quotes[0]['audio']['transcript']):
                     raise ValueError('Source captions require an exact excerpt from the selected microphone')
-            elif latest and latest['audio']['speech']=='foreground':
-                raise ValueError('Let the foreground speaker finish; listen or show a source caption')
         if intent.op=='graphics' and self.foundation.registry.gemini:
             if intent.preset not in {g['id'] for g in context.get('prepared_graphics',[])}:
                 raise ValueError('Automatic overlay requires reviewed evidence and an eligible prepared purpose')
