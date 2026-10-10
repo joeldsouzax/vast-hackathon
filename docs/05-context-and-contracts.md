@@ -104,17 +104,28 @@ chunks, native clocks, reviewed snapshots and controller ownership.
   replay command owns its short entry and return transitions. Entry holds the
   first source frame until the transition ends. The replay progress bar uses
   actual output-frame position. Current score graphics stay hidden in replay.
-- Gemini cannot propose replay playback, camera cuts, holding or framing changes.
-  Only an operator action starts replay. Commentary, graphics and replay
-  preparation remain automatic. Prepared branding needs no action citation.
+- Event policy explicitly enables automatic camera cuts (`camera_switching=automatic`)
+  and replay playback (`replay_mode=automatic`). Without these settings, the operator
+  owns those changes. Holding and framing remain operator-owned. Director cuts
+  require fresh visual evidence from the exact target source and epoch, healthy
+  media and `independent=true`. The director reviews each camera on its own clock.
+  Off-air visuals cannot label the on-air picture. Camera cuts keep the selected
+  microphone. The controller waits for active speech and enforces at least eight
+  seconds per shot. A 25-second rotation fallback provides variety without an
+  activity claim. A ready automatic replay airs once, with at least 60 seconds
+  between replay starts. Existing candidate identity prevents repeats. Hold and
+  takeover block automatic view changes. See [automatic direction](37-automatic-direction.md).
+  Prepared branding needs no action citation.
 - Gemini commentary distinguishes `basis=action` from `basis=event_context`.
   Action lines require exact reviewed evidence IDs and keep the original evidence
   deadline. Event talk requires a named current event brief, empty action evidence
   and the same live source. It may state stable supplied event facts, not current
-  activity. The cue and delivery history retain basis and context revision.
+  activity. Generic camera invitations can use event context when fresh visuals
+  are missing; they must not assert unseen defects or activity. The cue and
+  delivery history retain basis and context revision.
   Context changes cancel both types. A new event line has a 12-second work budget.
   The model must not use event talk to make unsupported activity claims.
-  The demo's `event_talk_interval_s=120` policy limits event-only talk using
+  The demo's `event_talk_interval_s=25` policy limits event-only talk using
   actual delivery times in the full program-text ledger. Pending event lines
   block another event line; canceled unheard lines do not consume the interval.
   With `foreground_priority=listen-first`, understood foreground words from the

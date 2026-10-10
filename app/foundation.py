@@ -684,7 +684,7 @@ class Foundation:
                 job=self.db.execute('SELECT deadline,body,state FROM jobs WHERE key=?',(obs.job_key,)).fetchone()
                 if role=='commentator' and not archive and job and job['state']=='archive_completed':continue
                 live_role=role=='director' or role=='commentator' and self.registry.gemini and not archive
-                reserve=min(10.0,self.settings.direction.role_timeout_s) if role=='commentator' and self.registry.gemini and not archive else 0
+                reserve=min(7.0,self.settings.direction.role_timeout_s) if role=='commentator' and self.registry.gemini and not archive else 0
                 if live_role and (not job or job['state']=='archive_completed' or job['deadline']<=time.time()+reserve or json.loads(job['body']).get('deadline_basis')!='frame-receipt'):continue
                 ordinal=self.db.execute("SELECT ordinal FROM evidence_versions WHERE id=?",(obs.evidence_id,)).fetchone()[0]
                 if ordinal>snapshot.evidence_revision:continue

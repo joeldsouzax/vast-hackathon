@@ -45,8 +45,8 @@ This uses
 short recorded clips; it cannot stop an already playing line the instant a
 person begins speaking. Quotes are recent excerpts, not word-aligned subtitles.
 
-`editorial_policy.event_talk_interval_s=120` limits event-only commentary to one
-line per two minutes of program time. The controller checks the full delivery
+`editorial_policy.event_talk_interval_s=25` limits event-only commentary to one
+line per 25 seconds of program time. The controller checks the full delivery
 ledger, including interrupted lines that viewers heard, rather than only the
 short model history. Canceled, unheard text does not consume the interval.
 Prepared event lines prevent duplicate preparation. Scene commentary must not

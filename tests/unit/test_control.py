@@ -52,6 +52,34 @@ class ControlContracts(unittest.TestCase):
         self.assertEqual(errors,[None,'disk I/O error',None])
         start.assert_called_once()
 
+    def test_automatic_camera_cut_waits_for_speech_at_commit(self):
+        self.human('live',slot=1)
+        self.c.crew_paused=False
+        event=self.app.foundation.event_context().model_copy(update={'editorial_policy':{'camera_switching':'automatic'}})
+        with patch.object(self.app.foundation.registry,'gemini',object()), \
+                patch.object(self.app.foundation,'event_context',return_value=event):
+            self.app.program.cue=SimpleNamespace(id="speaking",session_id="test",expires_at=time.time()+10)
+            result=self.c.propose(self.proposal(slot=1,independent=True),actor='Provider crew')
+            self.assertEqual(result['state'],'Scheduled',result.get('reason'))
+            with self.assertRaisesRegex(ValueError,'wait for commentary'):
+                self.c._commit_media(self.c.actions[result['id']])
+            self.app.program.cue=None
+            self.c._commit_media(self.c.actions[result['id']])
+            self.assertEqual(self.c.actions[result['id']]['state'],'Applying')
+
+    def test_automatic_camera_policy_preserves_hold_and_takeover(self):
+        event=self.app.foundation.event_context().model_copy(update={'editorial_policy':{'camera_switching':'automatic'}})
+        with patch.object(self.app.foundation.registry,'gemini',object()), \
+                patch.object(self.app.foundation,'event_context',return_value=event):
+            held=self.c.propose(self.proposal(slot=1,independent=True),actor='Provider crew')
+            self.assertEqual(held['state'],'Rejected')
+            self.assertIn('live broadcast',held['reason'])
+            self.human('live',slot=1)
+            self.c.crew_paused=True
+            paused=self.c.propose(self.proposal(slot=1,independent=True),actor='Provider crew')
+            self.assertEqual(paused['state'],'Rejected')
+            self.assertIn('paused',paused['reason'])
+
     def test_retry_and_changed_id_contents(self):
         request = {'id': 'once', 'op': 'live', 'args': {'slot': 1}}
         first = self.c.submit(request)

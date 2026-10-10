@@ -21,8 +21,8 @@ omitting the model from voice creation; Flash Lite TTS can synthesize the result
 See Google's [voice design](https://ai.google.dev/gemini-api/docs/voice-design)
 and [speech generation](https://ai.google.dev/gemini-api/docs/speech-generation).
 
-Commentary and graphics run independently. Only replay playback needs operator
-approval. Event talk fills gaps between fresh camera observations. It must not
+Commentary and graphics run independently. The event now enables automatic
+camera cuts and ready replay playback. See [automatic direction](37-automatic-direction.md). Event talk fills gaps between fresh camera observations. It must not
 pretend that sample football footage is the venue or invent activity.
 The [source-audio update](31-source-audio.md) adds listening, heard quotes and
 a more impatient cabbie delivery.

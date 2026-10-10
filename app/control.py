@@ -225,6 +225,9 @@ class Coordinator:
             if any(expected[k] != current[k] for k in ('run_id', 'context_revision', 'program_revision', 'sources')):
                 raise ValueError('Action run, program, or source revision changed')
         op, args = record['op'], record['args']
+        if record['actor']=='Provider crew' and self.app.foundation.registry.gemini and op in ('live','replay'):
+            if self.app.program.requested!='LIVE':raise ValueError('Automatic view changes require a live broadcast')
+            if self.app.program.cue is not None:raise ValueError('Automatic view changes wait for commentary to finish')
         if record['actor']=='Provider crew' and op in ('live','replay') and not self.program_started:
             raise ValueError('An operator must start the program before crew recovery')
         slot = args.get('slot', self.app.program.slot)
@@ -428,12 +431,14 @@ class Coordinator:
             self.replay_reason(replay)
             if replay.duration > self.policy['replay_max_s']:
                 raise ValueError('Replay exceeds the editorial maximum')
-            now = max(now, self.last_replay + self.policy['replay_cooldown_s'])
+            cooldown=max(self.policy['replay_cooldown_s'],60 if self.app.foundation.registry.gemini else 0)
+            now = max(now, self.last_replay + cooldown)
         program = self.app.program.status()
         source = self.app.get_source(program['primary_slot'])
         source_failed = program['requested'] == 'LIVE' and program['actual'] == 'HOLDING' and (not source or source.path != program['primary_source_path'] or source.at(time.monotonic() - self.app.cfg.delay) is None)
         if op in ('live', 'replay', 'holding') and not (source_failed and op in ('live', 'holding')):
             now = max(now, self.last_shot + self.policy['minimum_shot_s'])
+            if op=='live' and self.app.foundation.registry.gemini:now=max(now,self.last_shot+8)
         return now
 
     def propose(self, request, *, actor='Local rehearsal', dependencies=None):
@@ -455,10 +460,14 @@ class Coordinator:
                 self._fresh(record)
                 if record['op'] not in AIR | {'prepare', 'cancel'}:
                     raise ValueError('Crew cannot change human authority or official facts')
-                if record['op']=='replay' and self.app.foundation.registry.gemini:
+                if (record['op']=='replay' and self.app.foundation.registry.gemini and
+                        self.app.foundation.event_context().editorial_policy.get('replay_mode')!='automatic'):
                     raise ValueError('Replay is ready for operator approval; select Play replay')
                 if record['op'] in ('live','holding','crop','reset_crop') and self.app.foundation.registry.gemini:
-                    raise ValueError('The operator owns live view changes')
+                    automatic=(record['op']=='live' and
+                        self.app.foundation.event_context().editorial_policy.get('camera_switching')=='automatic')
+                    if not automatic:raise ValueError('The operator owns live view changes')
+                    if self.app.program.requested!='LIVE':raise ValueError('Automatic camera changes require a live broadcast')
                 if record['op'] == 'graphics' and record['args'].get('graphics', {}).get('op') == 'score':
                     raise ValueError('Official facts require the human confirmation form')
                 if record['op'] == 'cancel':
@@ -563,6 +572,8 @@ class Coordinator:
                         if any(r['state'] == 'Applying' for r in self.actions.values()):
                             continue
                         if record['op']=='commentary' and self.app.program.cue is not None:continue
+                        if (record['op'] in ('live','replay') and self.app.foundation.registry.gemini and
+                                self.app.program.cue is not None):continue
                         self._media(record, prepared)
                 except (ValueError, TypeError, KeyError) as error:
                     with self.lock:

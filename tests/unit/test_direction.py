@@ -172,6 +172,76 @@ class DirectionContracts(unittest.TestCase):
         self.assertEqual(result['state'],'Rejected')
         self.assertIn('operator approval',result['reason'])
 
+    def test_automatic_replay_uses_ready_assets_and_waits_for_voice(self):
+        event=self.f.event_context().model_copy(update={'editorial_policy':{'replay_mode':'automatic'}})
+        self.c.last_shot=time.monotonic()-30
+        ready=[{'id':'fresh-replay','expires_at':time.time()+20}]
+        with patch.object(self.f.registry,'gemini',object()), \
+                patch.object(self.f,'event_context',return_value=event), \
+                patch.object(self.app.replay_work,'ready',return_value=ready), \
+                patch.object(self.c,'propose',return_value={'state':'Scheduled'}) as propose:
+            self.app.program.cue=object()
+            self.d._policy_replay();propose.assert_not_called()
+            self.app.program.cue=None
+            self.c.last_replay=time.monotonic()-45
+            self.d._policy_replay();propose.assert_not_called()
+            self.c.last_replay=time.monotonic()-65
+            self.assertTrue(self.d._policy_replay())
+            self.assertEqual(propose.call_args.args[0]['args'],{'replay_id':'fresh-replay'})
+
+    def test_camera_context_uses_each_clock_and_excludes_other_microphones(self):
+        source2=self.s.model_copy(update={'slot':2,'source_id':'camera/two','epoch':4})
+        native2={**self.native,'native_pts':900}
+        self.app.sources[2]=SimpleNamespace(slot=2,path=source2.source_id,epoch=4,
+            frames=deque([SimpleNamespace(native_provenance=native2)]),lock=threading.RLock(),close=lambda:None)
+        snapshot=self.f.reviewed_snapshot()
+        snapshot=snapshot.model_copy(update={'sources':[self.s,source2],
+            'runtime':snapshot.runtime.model_copy(update={'source_health':snapshot.runtime.source_health+[
+                snapshot.runtime.source_health[0].model_copy(update={'slot':2,'source_id':source2.source_id,'epoch':4})]})})
+        context={'observations':[]}
+        def observed(role,source,interval,reviewed):
+            self.assertIs(reviewed,snapshot)
+            self.assertEqual(interval.end,151 if source.slot==1 else 901)
+            return {'observations':[{'evidence_id':'visual-'+str(source.slot),'source':source.model_dump()},
+                {'evidence_id':'audio-'+str(source.slot),'audio':{'transcript':'off air'}}]}
+        with patch.object(self.f,'context',side_effect=observed):self.d._camera_context(context,snapshot)
+        self.assertEqual([v['source']['slot'] for v in context['camera_views']],[1,2])
+        self.assertEqual([o['evidence_id'] for o in context['observations']],['visual-1','visual-2'])
+        self.assertTrue(context['camera_views'][0]['on_air'])
+        self.assertFalse(context['camera_views'][1]['on_air'])
+        event=self.f.event_context().model_copy(update={'editorial_policy':{'camera_switching':'automatic'}})
+        self.c.last_shot=time.monotonic()-30
+        microphone=self.app.program.audio_source_path
+        with patch.object(self.f.registry,'gemini',object()),patch.object(self.f,'event_context',return_value=event), \
+                patch.object(self.f,'reviewed_snapshot',return_value=snapshot), \
+                patch.object(self.c,'propose',return_value={'state':'Scheduled'}) as propose:
+            self.app.program.cue=object()
+            self.d._policy_rotate();propose.assert_not_called()
+            self.app.program.cue=None
+            self.assertTrue(self.d._policy_rotate())
+            self.assertEqual(propose.call_args.args[0]['args'],{'slot':2,'independent':True})
+            self.assertEqual(self.app.program.audio_source_path,microphone)
+
+    def test_camera_choice_requires_target_visual_evidence(self):
+        context=self.context()
+        context['event']['editorial_policy']['camera_switching']='automatic'
+        context['observations']=[{'evidence_id':'wrong-camera','source':{**self.s.model_dump(),'slot':2,'source_id':'camera/two'}}]
+        line={'op':'live','slot':1,'independent':True,'evidence_ids':['wrong-camera'],'reason':'A clearer demo'}
+        caps=self.f.registry.capabilities()
+        with patch.object(self.f.registry,'gemini',object()),patch.object(self.f.registry,'capabilities',return_value=caps):
+            with self.assertRaisesRegex(ValueError,'target camera'):
+                self.d.validate(self.result(line,context),'director',context,time.time()+6)
+            context['observations'][0]['source']=self.s.model_dump()
+            line['independent']=False
+            with self.assertRaisesRegex(ValueError,'independent=true'):
+                self.d.validate(self.result(line,context),'director',context,time.time()+6)
+            line['independent']=True
+            with patch.object(self.f,'_observation',return_value=SimpleNamespace(model_dump=lambda **kw:context['observations'][0],job_key='fresh')), \
+                    patch.object(self.f,'db',SimpleNamespace(execute=lambda *args:SimpleNamespace(fetchone=lambda:{'deadline':time.time()+5,'body':'{"deadline_basis":"frame-receipt"}'}))):
+                intent,deps=self.d.validate(self.result(line,context),'director',context,time.time()+6)
+            self.assertEqual(intent.slot,1)
+            self.assertLessEqual(deps['deadline'],time.time()+5)
+
     def audio_context(self, speech='foreground', meaning=''):
         from foundation_records import Observation, AudioEvidence
         self.app.program.audio_source_path=self.s.source_id

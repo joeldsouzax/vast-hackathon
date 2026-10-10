@@ -16,8 +16,9 @@ Open `/join` directly on the public broadcast address, or use the event QR.
 Studio does not need to be open. Tap **Join camera** and allow camera and
 microphone access. The microphone is selected by default. Sharing and recording start automatically. The preview fills the phone
 screen. In automatic mode, the first ready camera goes live without another tap.
-Use the camera tiles to change views. **Hold broadcast** returns to holding and
-stays there until you select **Go live**. Later joins do not change the view. See the
+Gemini compares fresh observations from ready cameras and proposes useful cuts.
+Use the camera tiles to change views manually. **Hold broadcast** returns to holding
+and stays there until you select **Go live**. See the
 [Forever 22 setup and demo steps](docs/30-forever22-demo.md).
 Viewer and Studio playback try sound by default. If the browser blocks automatic
 sound, select **Tap for sound**. A later mute remains local to that browser.
@@ -90,8 +91,9 @@ the existing program controller contract.
 
 Prepare event graphics, then use **Start video**. It releases the crew in
 Automatic mode. **Take control** pauses the crew. Gemini commentary and graphics
-run automatically. Gemini prepares replays, but **Play replay** requires the
-operator. Automatic camera cuts are disabled. **Return live** interrupts a replay. Missing access
+run automatically. The Forever 22 event enables automatic camera cuts and ready
+replay playback. Cuts wait for a spoken line to finish. **Return live** interrupts a replay.
+See [automatic direction](docs/37-automatic-direction.md) for timing and manual checks. Missing access
 shows a provider failure while manual video playback remains available.
 
 With `BREADCAST_SPEECH=on`, Gemini turns grounded commentary into speech. The
@@ -103,7 +105,8 @@ with a custom New York cabbie voice and event talk between camera updates.
 Gemini also hears the selected microphone through recorded clips. It can leave
 a speaker audible, show a short **Heard:** quote, or comment over background
 chatter. Clear understood foreground speech gets a listening turn first.
-Event-only commentary is limited to once every two minutes. The voice uses
+Event-only commentary is limited to once every 25 seconds. Without fresh visuals,
+the voices can ask the camera operator to show a demo or another view. The voice uses
 impatient, mock-angry delivery. See the
 [audio behavior and limits](docs/31-source-audio.md).
 Scene commentary now prioritizes visible people, movement, readable text and

@@ -1,0 +1,41 @@
+{
+  "release": "breadcast-forever22-r12",
+  "checked_at": "2026-10-10T18:13:29.810953+00:00",
+  "focused_checks": {
+    "controller": 38,
+    "direction": 45,
+    "status": "passed",
+    "environment": "isolated temporary source copy inside the laptop container; controller suite with BREADCAST_STACK_ENABLED=0"
+  },
+  "changes": {
+    "camera_switching": "Fresh target-camera evidence, independent clocks, unchanged microphone; 25-second variety fallback",
+    "replay": "Automatic ready candidates once each, minimum 60 seconds between starts",
+    "event_talk_interval_s": 25,
+    "commentary_evidence_reserve_s": 7,
+    "camera_invitations": "Enabled when fresh visuals are missing"
+  },
+  "deployment": {
+    "standard_rebuild_restart": "passed",
+    "healthcheck": "passed",
+    "context_revision": 11,
+    "event_policy": {
+      "camera_switching": "automatic",
+      "replay_mode": "automatic",
+      "event_talk_interval_s": "25"
+    },
+    "program": {
+      "actual": "HOLDING",
+      "requested": "HOLDING",
+      "primary_slot": 1
+    },
+    "cameras_connected": 0
+  },
+  "pending": [
+    "Content-based cut between two rejoined physical cameras",
+    "Automatic replay entry, progress and live return on a new ready candidate",
+    "Audible camera invitations in both voices",
+    "Five-camera admission and playback",
+    "TURN account credentials for cameras on other networks"
+  ],
+  "broad_stack_checks": "skipped per existing user override"
+}

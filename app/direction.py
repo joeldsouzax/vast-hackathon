@@ -128,6 +128,13 @@ class Direction:
             refs=intent.evidence_ids
         if any(eid not in allowed for eid in refs):
             raise ValueError('Intent references evidence outside reviewed context: '+','.join(e[:16] for e in refs if e not in allowed)[:120])
+        if role=='director' and intent.op=='live' and self.foundation.registry.gemini:
+            target=next((s for s in snapshot.sources if s.slot==intent.slot),None)
+            if context['event'].get('editorial_policy',{}).get('camera_switching')!='automatic':
+                raise ValueError('Automatic camera switching is disabled')
+            if not intent.independent or not target or not any(
+                    allowed[eid]['source']==target.model_dump(mode='json') and not allowed[eid].get('audio') for eid in refs):
+                raise ValueError('Camera choice needs fresh visual evidence from the target camera and independent=true')
         if role=='commentator':
             listening=self._listening_evidence(context)
             if listening and intent.delivery=='speech':
@@ -161,6 +168,8 @@ class Direction:
                         intent.text not in quotes[0]['audio']['transcript']):
                     raise ValueError('Source captions require an exact excerpt from the selected microphone')
         if intent.op=='graphics' and self.foundation.registry.gemini:
+            if any(not allowed[eid].get('audio') and allowed[eid]['source']!=context['target']['source'] for eid in refs):
+                raise ValueError('Scene graphics require evidence from the on-air camera')
             if intent.preset not in {g['id'] for g in context.get('prepared_graphics',[])}:
                 raise ValueError('Automatic overlay requires reviewed evidence and an eligible prepared purpose')
             if any(cue.prepared.title==intent.title for cue in self.app.program.graphics.active.values()):
@@ -314,7 +323,11 @@ class Direction:
                 'duration_s':intent.duration_s}}
         aid=action_id or uuid.uuid4().hex
         request={'id':aid,'op':op,'args':args,'expected':self.expected(snapshot,args),'expires_at':dependencies['deadline']}
-        return self.app.control.propose(request,actor='Provider crew',dependencies=dependencies)
+        record=self.app.control.propose(request,actor='Provider crew',dependencies=dependencies)
+        self.traces.append({'role':role,'stage':'propose','utc':time.time(),'op':op,
+            'slot':args.get('slot'),'state':record['state'],'reason':intent.reason,
+            'evidence_ids':intent.evidence_ids,'action_id':aid})
+        return record
 
     def _end_reservation(self, reservation, reason):
         self.foundation.program_text(reservation.model_copy(update={'state':'canceled','reason':reason}),owner='controller')
@@ -481,6 +494,7 @@ class Direction:
         elif role=='director':
             context['ready_replays']=self.app.replay_work.ready()
             if self.foundation.registry.gemini:
+                self._camera_context(context,snapshot)
                 from graphics import CATALOG, PURPOSES
                 package=self.app.program.graphics.event_package
                 context['prepared_graphics']=[]
@@ -511,6 +525,33 @@ class Direction:
                 'event_talk_allowed':self._event_talk_allowed(context)}
             context['allowed_speakers']=self._speaker_options(context)
         return context
+
+    def _camera_context(self,context,snapshot):
+        """Compare current visuals on each source's own clock, without merging audio."""
+        context['camera_views']=[]
+        known={o['evidence_id'] for o in context['observations']}
+        for source in snapshot.sources:
+            health=next((h for h in snapshot.runtime.source_health
+                if h.source_id==source.source_id and h.epoch==source.epoch),None)
+            if not health or not health.buffer_ready or health.last_frame_age_s is None or health.last_frame_age_s>.75:continue
+            current=self.app.get_source(source.slot)
+            if not current or current.path!=source.source_id or current.epoch!=source.epoch:continue
+            with current.lock:native=current.frames[-1].native_provenance if current.frames else None
+            if not native:continue
+            point=round(native['native_pts']*float(Fraction(native['native_time_base'])/Fraction(source.time_base)))
+            interval=Interval(start=point-round(12/float(Fraction(source.time_base))),end=point+1)
+            observations=self.foundation.context('director',source,interval,snapshot)['observations']
+            refs=[]
+            for observation in [o for o in observations if not o.get('audio')][:2]:
+                eid=observation['evidence_id']
+                if eid not in known:
+                    # Reserve room for the graphics catalog and other role metadata.
+                    if len(json.dumps(context).encode())+len(json.dumps(observation).encode())>self.foundation.settings.limits.context_bytes-12000:continue
+                    context['observations'].append(observation);known.add(eid)
+                refs.append(eid)
+            context['camera_views'].append({'source':source.model_dump(mode='json'),
+                'on_air':source.source_id==snapshot.runtime.program.actual_target.get('source_path'),
+                'native':interval.model_dump(),'evidence_ids':refs})
 
     @staticmethod
     def _listening_evidence(context):
@@ -731,13 +772,15 @@ class Direction:
     def _policy_replay(self):
         """Air any ready automatic replay after the controller cooldown; no opportunity evidence required."""
         control=self.app.control;program=self.app.program;policy=control.policy
+        gemini=bool(self.foundation.registry.gemini)
+        if gemini and self.foundation.event_context().editorial_policy.get('replay_mode')!='automatic':return
         if control.crew_paused or not control.program_started or not policy.get('replays_enabled'):return
         if program.actual!='LIVE' or program.requested!='LIVE' or program.cue is not None:return
         now=time.monotonic()
-        if now<control.last_replay+policy.get('replay_cooldown_s',30):return
+        if now<control.last_replay+max(policy.get('replay_cooldown_s',30),60 if gemini else 0):return
         if now<control.last_shot+policy.get('minimum_shot_s',2):return
         if now<getattr(self,'_replay_tried',0)+3:return
-        if any(r['state'] in ('Scheduled','Applying') or (r['op']=='replay' and r['state']=='On air') for r in control.actions.values()):return
+        if any(r['op'] in ('live','replay') and r['state'] in ('Scheduled','Applying','On air') for r in control.actions.values()):return
         ready=sorted(self.app.replay_work.ready(),key=lambda r:r['expires_at'])
         if not ready:return
         self._replay_tried=now
@@ -745,7 +788,9 @@ class Direction:
         record=control.propose({'id':uuid.uuid4().hex,'op':'replay','args':args,'expected':control.expected(args),
             'expires_at':min(asset['expires_at'],time.time()+10)},actor='Provider crew')
         self.traces.append({'role':'replay','stage':'propose','utc':time.time(),'state':record.get('state'),'reason':record.get('reason')})
-        if record.get('state') in ('Scheduled','Applying','On air'):self.reason='Policy replay '+asset['id'][:8]
+        if record.get('state') in ('Scheduled','Applying','On air'):
+            self.reason='Policy replay '+asset['id'][:8]
+            return True
 
     COMMENTARY_S=4.0
     COMMENTARY_HOLD=3
@@ -759,8 +804,17 @@ class Direction:
         """Cut to the next healthy live slot on policy.rotate_s for unrelated feeds."""
         policy=self.app.control.policy
         interval=policy.get('rotate_s')
+        gemini=bool(self.foundation.registry.gemini)
+        if gemini:
+            event=self.foundation.event_context()
+            if event.editorial_policy.get('camera_switching')!='automatic':return
+            interval=25
+            if self.app.program.requested!='LIVE' or self.app.program.actual=='REPLAY':return
+            # Never shorten an on-air line to meet the rotation cadence.
+            if self.app.program.cue is not None:return
         if not interval or interval<=0:return
         if self.app.control.crew_paused or not self.app.control.program_started:return
+        if any(r['op'] in ('live','replay') and r['state'] in ('Scheduled','Applying') for r in self.app.control.actions.values()):return
         if self.app.program.actual not in ('LIVE','HOLDING'):return
         # Wait until an on-air live shot exists, then rotate on the policy cadence.
         if self.app.control.last_shot<=0:return
@@ -771,7 +825,7 @@ class Direction:
         # line is being written or on air, but never longer than the hold cap.
         held=now_mono-self.app.control.last_shot
         if self.app.program.cue is not None and held<gate+self.settings.speech_max_s+1:return
-        if held<gate*self.COMMENTARY_HOLD and self._commentary_busy():return
+        if not gemini and held<gate*self.COMMENTARY_HOLD and self._commentary_busy():return
         if now_mono<getattr(self,'_last_rotate_mono',0)+gate:return
         snapshot=self.foundation.reviewed_snapshot()
         if not snapshot.runtime:return
@@ -792,6 +846,9 @@ class Direction:
             self._last_rotate_mono=now_mono
             if record.get('state') in ('Scheduled','Applying','On air','Finished'):
                 self.reason='Rotated to camera '+str(nxt)
+                self.traces.append({'role':'director','stage':'fallback-cut','utc':time.time(),'slot':nxt,
+                    'state':record['state'],'reason':'Variety after a long shot; no new activity claim'})
+                return True
             else:
                 self.reason='Policy rotate: '+(record.get('reason') or record.get('state') or 'rejected')
         except Exception as error:
@@ -816,7 +873,10 @@ class Direction:
                     try:self._policy_graphics()
                     except Exception as error:self.traces.append({'role':'graphics','stage':'error','utc':time.time(),'reason':type(error).__name__+': '+str(error)[:160]})
                 else:
-                    try:self._showcase_graphics()
+                    if self._policy_replay():continue
+                    if self._policy_rotate():continue
+                    try:
+                        if not any(r['op'] in ('live','replay') and r['state'] in ('Scheduled','Applying') for r in self.app.control.actions.values()):self._showcase_graphics()
                     except Exception as error:self.traces.append({'role':'graphics','stage':'error','utc':time.time(),'reason':type(error).__name__+': '+str(error)[:160]})
                 live=self.app.program.actual!='HOLDING' and self.app.program.requested!='HOLDING'
                 gemini=bool(self.foundation.registry.gemini)
@@ -825,7 +885,8 @@ class Direction:
                 near_end=gemini and cue is not None and bool(cue.pcm) and (len(cue.pcm)-cue.offset)/96000<=4
                 queued=any(c is not cue for c in self.prepared.values())
                 preparing=bool({'commentator','speech'} & (self.foundation.role_active | self.foundation.role_pending.keys()))
-                if live and commentary_tick!=self.last_commentary and (cue is None or near_end) and not queued and not preparing:
+                changing_view=any(r['op'] in ('live','replay') and r['state'] in ('Scheduled','Applying') for r in self.app.control.actions.values())
+                if live and not changing_view and commentary_tick!=self.last_commentary and (cue is None or near_end) and not queued and not preparing:
                     self.last_commentary=commentary_tick
                     self.foundation.submit_role('commentator',lambda:self._decide('commentator'))
                 # While replay prepare owns a worker, skip director calls so the
