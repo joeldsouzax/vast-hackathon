@@ -5,7 +5,9 @@
 Breadcast turns video inputs into one program. Gemini supplies video reasoning,
 object detection, crew decisions, embeddings and speech. Supabase stores private
 clips and the vector database. The current input is the bundled video. Physical
-camera checks remain deferred. The Supabase backend is deployed. Media hosting and inference checks are pending.
+camera checks remain deferred. The Supabase backend is deployed. The laptop
+media host is running with a temporary public HTTPS address. Inference and
+public video playback checks remain pending.
 
 ## Play the uploaded video
 
@@ -83,8 +85,11 @@ runtime converts it to 48 kHz mono WAV and mixes it with source audio. Partial
 speech does not go on air. Caption-only output is not a speech pass.
 
 Supabase hosts the backend function, private storage and vector database. A
-separate persistent media host runs FFmpeg, MediaMTX, Studio and Viewer. The new
-host configuration targets one Fly Machine with a persistent volume. Supabase
+separate persistent media host runs FFmpeg, MediaMTX, Studio and Viewer. The user
+selected the laptop for this host. It uses an isolated Colima profile, a
+Cloudflare Quick Tunnel for pages, and an Open Relay TURN configuration for
+public media. TURN relays video when viewers cannot reach the laptop directly.
+Public playback still needs a real viewer check. Supabase
 Edge Functions cannot run this persistent media runtime.
 
 ```mermaid
@@ -101,10 +106,12 @@ flowchart LR
   Controller --> Host
 ```
 
-Follow the [deployment steps and manual production checks](docs/28-gemini-supabase-migration.md).
+Follow the [laptop start and status steps](docs/29-laptop-media-host.md) and
+[manual production checks](docs/28-gemini-supabase-migration.md#production-acceptance-for-this-candidate).
 The model catalog request succeeded through the deployed Supabase function.
-Private storage and the database migration are deployed. Inference, container
-build, media-host deployment and media acceptance remain pending. Checks
+Private storage and the database migration are deployed. The ARM container
+built, its Docker health is healthy, and public HTTP requests returned 200.
+Inference and media acceptance remain pending. Checks
 were skipped under the user's standing instruction.
 
 The old workshop transports remain available only with the explicit

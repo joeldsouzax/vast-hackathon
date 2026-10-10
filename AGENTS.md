@@ -38,10 +38,14 @@ diagram when the explanation needs one.
   and ElevenLabs for AI work. Use streamed responses for the existing clip flow.
   Supabase owns private clip storage, clip records, and the pgvector database.
   Supabase Edge Functions relay Gemini inference; the persistent media runtime
-  needs a separate new host. Fly.io deployment files are prepared; the user asked
-  why Supabase cannot run this runtime. Supabase backend deployment and the
-  authenticated Gemini metadata relay are confirmed in record 24. Media-host
-  selection/access, inference, latency and acceptance remain pending.
+  runs on the user's laptop for public viewers. Use the isolated
+  `breadcast-local` Colima profile and `colima-breadcast-local` Docker context.
+  A Cloudflare Quick Tunnel serves pages; Open Relay TURN is configured for
+  media. Preserve the separate `breadcast-experiment` profile. Host start and
+  status steps are in `docs/29-laptop-media-host.md`. Supabase backend deployment
+  and the authenticated Gemini metadata relay are confirmed in record 24.
+  Laptop startup and public HTTP are recorded in `docs/evidence/laptop-media-host.json`.
+  Public playback, inference, latency and acceptance remain pending.
   Existing media, controller, source identity and original-deadline contracts apply.
   Explicit workshop configuration remains available for historical deployments.
 

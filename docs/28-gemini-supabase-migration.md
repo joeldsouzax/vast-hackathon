@@ -10,7 +10,9 @@ input. Gemini responses stream through a Supabase Edge Function. This is SSE
 Supabase stores original videos, recorded chunks, rendered clips and clip records.
 Postgres with `pgvector` stores 768-dimension Gemini caption embeddings. The
 existing FFmpeg worker creates clips on the media host. Supabase Edge Functions
-do not execute FFmpeg or run MediaMTX. The new host candidate is one Fly Machine. No media host has been created.
+do not execute FFmpeg or run MediaMTX. The user selected the laptop as the media
+host for public viewers. It is running in an isolated Colima profile. See the
+[laptop setup and status steps](29-laptop-media-host.md).
 The reason for separate media hosting is recorded below.
 The same machine serves the Studio and Viewer pages.
 
@@ -125,11 +127,15 @@ This metadata request does not verify SSE inference.
 
 Ignored `.env.supabase` and `.env.media` files are prepared with private
 credentials. The Gemini key belongs only in `.env.supabase` for hosted inference.
-The media file still needs its host origin and reachable media address. Preserve
+The laptop uses ignored `.env` for its origin, TURN configuration and runtime
+settings. `.env.media` remains the optional cloud-host template. Preserve
 its operator and runtime credentials when completing or repeating deployment.
 
-Inference, actual object output, vectors, speech, container build, media-host
-deployment and acceptance remain pending. Checks stay skipped under the standing
+The laptop container build and startup are complete. Docker reports healthy;
+public health and Viewer requests returned HTTP 200. The
+[host record](evidence/laptop-media-host.json) retains the initial startup failure
+and its correction. Inference, actual object output, vectors, speech and public
+playback acceptance remain pending. Checks stay skipped under the standing
 user instruction. No full-flow or latency pass is claimed.
 
 For a new project, obtain its server key and deployment account access first.
@@ -174,13 +180,16 @@ is its Postgres instance, not a general application container host.
 
 A browser-only media engine would need a separate architecture change. It would
 move rendering and program ownership to a running browser. This migration keeps
-the existing controller and media contracts. Fly is prepared as the new media
-host candidate; deployment access and host selection remain pending. The user
+the existing controller and media contracts. The laptop now runs this media
+host. Fly files remain an optional future deployment; no Fly resources were
+created. The user
 has $25 Supabase credit. Use it for eligible backend charges; it does not change
 the Edge Function execution limits. [Pro pricing](https://supabase.com/pricing)
 starts at $25/month. No billing plan was changed.
 
-## Deploy the new media host
+## Optional Fly media host
+
+The current host is the laptop. These commands are only for a later host change.
 
 Set `BREADCAST_FLY_APP` to a unique app name in the selected organization. Change
 the region in `fly.toml` if needed. The following commands create billable host

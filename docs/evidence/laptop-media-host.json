@@ -1,0 +1,72 @@
+{
+  "observed_utc": "2026-10-10T15:34:22.377778+00:00",
+  "source_commit": "7270959",
+  "host": "user laptop",
+  "architecture": "Darwin arm64 / Linux arm64 container",
+  "laptop_memory_bytes": 25769803776,
+  "colima_profile": "breadcast-local",
+  "docker_context": "colima-breadcast-local",
+  "allocated_cpus": 4,
+  "allocated_memory_gib": 6,
+  "data_disk_gib": 30,
+  "http_host_bind": "127.0.0.1",
+  "http_host_port": 9080,
+  "media_port": 9189,
+  "public_origin_file": ".runtime/laptop-origin",
+  "https_provider": "Cloudflare Quick Tunnel",
+  "cloudflared_version": "2026.10.0",
+  "media_route": "Open Relay published static-auth TURN configuration",
+  "turn_output_verified": false,
+  "cloud_ai_route": "Supabase Gemini function",
+  "build": "completed",
+  "service_start": {
+    "container_running": true,
+    "container_exit_code": 0,
+    "docker_health": "healthy"
+  },
+  "program": "not started by agent",
+  "checks": "skipped by standing user instruction",
+  "public_playback": "pending real viewer validation",
+  "inference_and_speech": "pending",
+  "latency": "unmeasured",
+  "updated_utc": "2026-10-10T15:38:29.979468+00:00",
+  "initial_startup": {
+    "service_start": {
+      "container_running": false,
+      "container_exit_code": 1,
+      "docker_health": "unhealthy"
+    },
+    "requests": [
+      {
+        "operation": "local_health",
+        "status": "unavailable",
+        "error_type": "URLError"
+      },
+      {
+        "operation": "public_page",
+        "http_status": 502
+      },
+      {
+        "operation": "public_health",
+        "http_status": 502
+      }
+    ],
+    "failure": "Remote media cannot use loopback ICE hosts",
+    "correction": "Cleared BREADCAST_ICE_HOSTS; retained TURN configuration"
+  },
+  "startup_requests": [
+    {
+      "operation": "local_health",
+      "http_status": 200
+    },
+    {
+      "operation": "public_health",
+      "http_status": 200
+    },
+    {
+      "operation": "public_viewer_page",
+      "http_status": 200
+    }
+  ],
+  "image_config_sha256": "97547b16e3882c97f4c26ce65328bdc7f527d6fe2329b7527c9e170a4c935409"
+}
