@@ -50,8 +50,10 @@ with a progress bar tied to actual replay frames.
 ## Venue use
 
 The active server-video list is empty. The football reference is not offered
-in Studio and cannot start through the sample API. **Go live** below the program
-uses a ready camera. **Hold broadcast** returns to holding. A new runtime session
+in Studio and cannot start through the sample API. **Join camera** starts sharing
+and recording after permission. The phone preview fills its viewport. Automatic
+mode puts the first ready camera on air. **Hold broadcast** returns to holding;
+**Go live** resumes it. A new runtime session
 clears the earlier sample replay cards and keeps prior test evidence out of current
 camera reasoning and search. The reference file remains only for development checks.
 
@@ -60,8 +62,9 @@ camera reasoning and search. The reference file remains only for development che
 2. Put the laptop and phones on the same Wi-Fi. The local media address is
    configured in `BREADCAST_ICE_HOSTS`; update it if the laptop changes networks.
    The HTTPS join page stays on the public tunnel. Camera media uses port 9189.
-3. Use Studio's event QR. On one phone, allow camera access, preview, then select
-   **Start sharing**. Select **Go live** in Studio, or choose that camera's live control. Enable a microphone only on
+3. Use Studio's event QR. On one phone, select **Join camera** and allow camera
+   access. Sharing, recording and the first ready camera's live selection happen
+   automatically. Enable a microphone only on
    the intended audio phone. Check audible speech in the program monitor.
 4. Add the other phones, up to five. Reservations also count toward the limit.
    Confirm each view and confirm that a sixth request is refused.

@@ -40,11 +40,11 @@ const executablePath = process.env.CHROME_PATH || (process.platform === 'darwin'
       await phone.goto(joinUrl);
       assert.equal(await phone.locator('#preview-container').isVisible(),false);
       await phone.getByRole('button', {name: 'Join camera', exact: true}).click();
-      await phone.waitForFunction(() => !document.querySelector('#start').disabled);
+      await phone.waitForFunction(() => !document.querySelector('#stop').disabled);
       assert.equal(await phone.locator('#preview-container').isVisible(),true);
       assert.equal(await phone.locator('#microphone').isDisabled(),true);
-      await phone.getByRole('button', {name: 'Start sharing', exact: true}).click();
-      await phone.waitForFunction(() => document.querySelector('#status').textContent.includes('active'), {}, {timeout: 45000});
+      assert.equal(await phone.locator('#start').count(),0);
+      await phone.waitForFunction(() => document.querySelector('#status').textContent.includes('Live'), {}, {timeout: 45000});
       phones.push({phone, context: phoneContext});
     }
     await joinPhone();

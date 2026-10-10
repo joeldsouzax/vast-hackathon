@@ -12,10 +12,11 @@ network remain pending.
 
 ## Stream the hackathon
 
-Use the event QR to join up to five cameras. Preview the camera, then select
-**Start sharing**. In Studio, select **Go live** below the program video. It uses
-the selected ready camera, or the first ready camera. Use the camera tiles to
-change views. **Hold broadcast** returns to holding. See the
+Use the event QR to join up to five cameras. Tap **Join camera** and allow camera
+access. Sharing and recording start automatically. The preview fills the phone
+screen. In automatic mode, the first ready camera goes live without another tap.
+Use the camera tiles to change views. **Hold broadcast** returns to holding and
+stays there until you select **Go live**. Later joins do not change the view. See the
 [Forever 22 setup and demo steps](docs/30-forever22-demo.md).
 
 ## Reference video (disabled)

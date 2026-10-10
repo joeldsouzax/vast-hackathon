@@ -64,6 +64,21 @@
 .join-footnote { display: flex; justify-content: center; gap: 7px; align-items: center; margin-top: 18px; color: #7a856f; font-size: 11px; }
 .join-footnote .studio-icon { width: 14px; height: 14px; }
 .public-page .join-flow #message { position: static; margin: 14px 0 0; font-size: 12px; }
+/* Camera sharing fills the phone viewport; controls stay over the local preview. */
+.join-page.camera-sharing { height: 100dvh; overflow: hidden; background: #000; }
+.camera-sharing .studio-header, .camera-sharing .public-scene,
+.camera-sharing .join-emblem, .camera-sharing .join-shell h1,
+.camera-sharing .join-description, .camera-sharing .microphone-option,
+.camera-sharing .join-footnote, .camera-sharing .preview-caption { display: none; }
+.camera-sharing .join-shell { position: fixed; inset: 0; max-width: none; margin: 0; padding: 0; animation: none; transform: none; }
+.camera-sharing .join-flow { padding: 0; border: 0; background: transparent; box-shadow: none; }
+.camera-sharing .local-preview { position: fixed; inset: 0; margin: 0; border-radius: 0; background: #000; }
+.camera-sharing .local-preview #preview { width: 100%; height: 100%; aspect-ratio: auto; object-fit: cover; background: #000; }
+.camera-sharing .camera-status-line { position: fixed; z-index: 2; top: max(14px, env(safe-area-inset-top)); left: 16px; right: 16px; margin: 0; padding: 10px 14px; border-radius: 12px; background: #102018c9; color: #fff; }
+.public-page.camera-sharing .camera-status { color: #fff; }
+.camera-sharing .share-actions { position: fixed; z-index: 2; bottom: max(22px, env(safe-area-inset-bottom)); left: 24px; right: 24px; justify-content: center; }
+.public-page.camera-sharing .join-flow #stop { width: auto; max-width: 240px; min-height: 52px; padding: 12px 24px; background: #ae342d; border-color: #d15a4f; color: #fff; box-shadow: 0 4px 24px #0006; }
+.public-page.camera-sharing .join-flow #message { position: fixed; z-index: 3; left: 16px; right: 16px; top: calc(70px + env(safe-area-inset-top)); margin: 0; padding: 12px; color: #fff; background: #8c2c26e8; border-radius: 10px; }
 .page-reveal { animation: page-reveal .65s ease-out both; }
 @keyframes page-reveal { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes orbit-drift { to { transform: translate(-3%, 5%) rotate(12deg); } }

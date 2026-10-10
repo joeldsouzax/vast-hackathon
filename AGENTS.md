@@ -64,6 +64,12 @@ diagram when the explanation needs one.
   keep the active `config/server-videos.json` list empty. Do not restart it for
   further diagnostics unless the user asks. The red Go live / Hold broadcast
   control belongs below the operator video. Confirm one phone before five.
+  Current user override: one Join camera tap starts publishing and recording
+  after browser permission. Remove the second Start sharing step. Fill the phone
+  viewport with its local preview. In automatic mode, the first ready camera
+  starts the program through the controller; no separate Go live is required.
+  A later Hold broadcast or Take control must win. Later joins do not cut away
+  from the selected view or interrupt replay.
   Work one runnable change at a time. Push complete changes to `main` promptly.
   Current user override: connect the full S01–S07 stack first and skip checks.
   The user tests the full flow on the laptop media host. Do not label skipped checks as passed.

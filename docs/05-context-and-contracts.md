@@ -16,6 +16,20 @@ The current user override replaces workshop providers with Gemini and Supabase.
 selection. These provider changes preserve source IDs, source epochs, immutable
 chunks, native clocks, reviewed snapshots and controller ownership.
 
+- Current user override: Join starts camera publishing immediately after browser
+  permission. Gateway recording already starts with publishing. In automatic
+  camera mode, the server controller starts the first ACTIVE, current-epoch
+  camera with a ready delay buffer. The recorded actor is `Automatic start`;
+  it is not a model proposal or a forged human action. Startup sets
+  `program_started` and disarms automatic start for the rest of the run.
+  Explicit Hold or Take control also disarms it. Later joins cannot override
+  the view. Replay playback still requires operator approval.
+- Register a live source from its decoded native clock before its first clip
+  finalizes, and register each new source epoch after a clock reset. Event talk
+  can then use the current source without waiting for recording work. This
+  supplies identity only; it does not invent observations, freshness receipts,
+  capture synchronization, or recording coverage.
+
 - Gemini clip previews retain source audio when every included chunk has an
   audio track. Program commentary is never added to these previews. Missing
   tracks leave audio evidence unknown. `Observation.audio` is optional and
@@ -506,11 +520,13 @@ flowchart LR
 attempts, speech duration/storage, action capacity, gains, ramps, and crop limit.
 Provider selection remains in `providers`. Normal Studio startup leaves direction
 disabled. The direction templates enable it without changing any endpoint.
-Preparing an event and enabling workers cannot start or publish the program.
-The operator must select live output and release control for crew work.
+Preparing an event and enabling workers alone cannot publish a camera. The
+current automatic Join policy above starts the first ready camera. Explicit
+human mode and the historical sample-video flow retain operator start controls.
 
 The controller's `program_started` flag records a successful human live or replay
-command in this run. It starts false and is never restored from the previous run.
+command, or the server-owned automatic camera start, in this run. It starts false
+and is never restored from the previous run.
 After that command, holding can schedule the director for recovery. Holding does
 not schedule the commentator. Provider live/replay application cannot start a run
 whose flag is false. Setup, graphics, and release do not set this flag.

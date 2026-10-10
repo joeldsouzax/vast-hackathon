@@ -50,8 +50,9 @@ The proxy and provider work took 4.606 seconds. This diagnostic did not change
 the program and does not prove transcription accuracy or viewer latency. See
 [the measured result](evidence/source-audio.json).
 
-After the runtime restart, reconnect a phone with the current QR and select
-**Go live**. Select its microphone. Speak a clear short sentence, then pause.
+After the runtime restart, reconnect a phone with the current QR and tap
+**Join camera**. The first ready camera goes live automatically. Select its
+microphone. Speak a clear short sentence, then pause.
 Confirm that heard quotes match the words and cabbie commentary continues over
 ordinary conversation, with brief pauses for useful speaker content. Change or mute the selected microphone and check
 that an old quote cannot continue. These venue checks remain manual.

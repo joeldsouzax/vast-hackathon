@@ -491,13 +491,28 @@ class App:
                             with self.program.lock, self.sources_lock:
                                 self.sources[row["slot"]] = source
                             self.log("source_epoch", slot=row["slot"], epoch=source.epoch)
+                        try:self.register_live_source(source)
+                        except ValueError as error:self.log('live_source_registration_failed',source_path=source.path,reason=str(error))
                 for lease_id in self.leases.expired():
                     self.release(lease_id)
+                self.control.start_ready_camera()
             except (OSError, urllib.error.URLError, KeyError) as error:
                 self.gateway_error = str(error)
                 if self.gateway_process.poll() is not None:
                     self.program.error = "MediaMTX exited; restart the experiment"
                     self.stop.set()
+
+    def register_live_source(self, source):
+        # A decoded camera exists before its first recording is finalized. A
+        # clock reset must not leave event commentary waiting on archive work.
+        from foundation_records import SourceEpoch
+        with source.lock:
+            frame=source.frames[-1] if source.frames else None
+            native=frame.native_provenance if frame else None
+            if not native or frame.source_epoch!=source.epoch:return
+            identity=SourceEpoch(event_id=self.foundation.settings.event.event_id,run_id=self.control.run_id,
+                source_id=source.path,slot=source.slot,epoch=source.epoch,time_base=native['native_time_base'])
+        self.foundation.register_source(identity)
 
     def source_discontinuity(self, path, epoch, *, mapping_only=False):
         if mapping_only:

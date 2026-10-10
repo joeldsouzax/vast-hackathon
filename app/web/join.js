@@ -7,7 +7,7 @@ if (!client) { client = crypto.randomUUID().replaceAll('-', ''); sessionStorage.
 const joinReady = api('/api/viewer').then(state => {
   updateJoinNavigation(state.join_url);
   if (state.event_title) {
-    document.querySelector('.join-description').textContent = `Join cameras for ${state.event_title}. Up to ${state.camera_limit} cameras. Your feed may appear in the broadcast.`;
+    document.querySelector('.join-description').textContent = `Join ${state.event_title}. Joining starts sharing and recording. The first ready camera goes live automatically. Up to ${state.camera_limit} cameras.`;
     document.title = `${state.event_title} · Join camera`;
   }
   if (!code) {
@@ -16,10 +16,11 @@ const joinReady = api('/api/viewer').then(state => {
   }
 }).catch(error => {if (!code) throw error;});
 joinReady.catch(() => {});
-const joinButton = document.querySelector('#join'), startButton = document.querySelector('#start');
+const joinButton = document.querySelector('#join');
 const stopButton = document.querySelector('#stop'), status = document.querySelector('#status');
 for (const holder of document.querySelectorAll('[data-icon]')) holder.prepend(studioIcon(holder.dataset.icon));
 function sharingState(value) {
+  document.body.classList.toggle('camera-sharing', value !== 'idle');
   document.querySelector('.join-flow').dataset.state = value;
   document.querySelector('#preview-container').hidden = value === 'idle';
   document.querySelector('#share-actions').hidden = value === 'idle';
@@ -43,38 +44,43 @@ joinButton.onclick = async () => {
     await joinReady;
     if (!window.isSecureContext || !navigator.mediaDevices) throw new Error('Camera access needs HTTPS. Use the trusted event URL.');
     lease = await api('/api/leases', {code, client});
-    const reservationReceivedAt = performance.now();
+    const joiningLease = lease;
     status.textContent = `Camera ${lease.slot} reserved. Allow camera permission.`;
-    stream = await navigator.mediaDevices.getUserMedia({
+    const acquired = await navigator.mediaDevices.getUserMedia({
       video: {facingMode: {ideal: 'environment'}, width: {ideal: 1280}, height: {ideal: 720}, frameRate: {ideal: 30, max: 30}},
       audio: document.querySelector('#microphone').checked,
     });
+    if (lease !== joiningLease) {
+      acquired.getTracks().forEach(track => track.stop());
+      throw new Error('Your camera slot expired. Select Join camera again.');
+    }
+    stream = acquired;
     document.querySelector('#preview').srcObject = stream;
-    sharingState('preview');
-    startButton.disabled = false; stopButton.disabled = false;
-    const remaining = Math.max(0, Math.ceil(lease.reservation_remaining_s - (performance.now() - reservationReceivedAt)/1000));
-    status.textContent = `Camera ${lease.slot} preview. Select Start sharing within ${remaining} seconds.`;
+    sharingState('connecting');
+    stopButton.disabled = false;
+    status.textContent = `Camera ${lease.slot} connecting. Sharing and recording start automatically.`;
+    startSharing();
   } catch (error) {
     message(error.message);
     try { await release(); } catch (_) {}
     joinButton.disabled = false;
   } finally { busy = false; }
 };
-startButton.onclick = () => {
+function startSharing() {
   if (!lease || !stream) return;
-  startButton.disabled = true; message();
+  message();
   const sharingLease = lease;
   publisher = new MediaMTXWebRTCPublisher({
     url: `${location.origin}${publicPath(`/media/${lease.source_path}/whip`)}`, token: lease.token, stream,
     videoCodec: 'h264', videoBitrate: 1500, audioCodec: 'opus', audioBitrate: 64, audioVoice: false,
-    onConnected: () => { if (lease !== sharingLease) return; sharingState('sharing'); status.textContent = `Connected as Camera ${lease.slot}`; message(); },
+    onConnected: () => { if (lease !== sharingLease) return; sharingState('sharing'); status.textContent = `Camera ${lease.slot} sharing · Recording automatically`; message(); },
     onError: error => { if (lease !== sharingLease) return; message(`Connection issue: ${error}. Reconnecting while this slot remains valid.`); },
   });
-};
+}
 stopButton.onclick = async () => {
   try { await release(); status.textContent = 'Camera sharing is off.'; message(); }
   catch (error) { message(error.message); }
-  startButton.disabled = true; stopButton.disabled = true; joinButton.disabled = false;
+  stopButton.disabled = true; joinButton.disabled = false;
 };
 setInterval(async () => {
   if (!lease || pollingLease) return;
@@ -93,7 +99,7 @@ setInterval(async () => {
       try { await release(); } catch (_) {}
       status.textContent = 'Camera sharing is off.';
       message('Your camera slot expired or was removed. Select Join camera again.');
-      startButton.disabled = true; stopButton.disabled = true; joinButton.disabled = false;
+      stopButton.disabled = true; joinButton.disabled = false;
     } else {
       status.textContent = `Camera ${checkedLease.slot} · Status unavailable. Retrying…`;
     }

@@ -22,6 +22,7 @@ class Coordinator:
         self.run_id = uuid.uuid4().hex
         self.crew_paused = getattr(app.cfg, 'crew_mode', 'automatic') == 'human'
         self.program_started = False
+        self.auto_start_armed = getattr(app.cfg, 'crew_mode', 'automatic') == 'automatic'
         self.revision = 0
         # rotate_s: when several unrelated live sources are healthy, cut to the
         # next slot on this cadence. minimum_shot_s still gates every live cut.
@@ -53,7 +54,7 @@ class Coordinator:
             current = [r for r in records if r['state'] not in TERMINAL]
             failures = [r for r in records if r['state'] in ('Failed', 'Rejected', 'Expired')][-32:]
             recent = [r for r in records if r['state'] in ('Ready', 'Finished', 'Canceled')][-24:]
-            return copy.deepcopy({'run_id': self.run_id, 'crew_paused': self.crew_paused, 'program_started': self.program_started, 'control_revision': self.revision,
+            return copy.deepcopy({'run_id': self.run_id, 'crew_paused': self.crew_paused, 'program_started': self.program_started, 'auto_start_armed': self.auto_start_armed, 'control_revision': self.revision,
                 'context_revision': self.app.foundation.context_revision, 'policy': self.policy,
                 'rehearsal': self.rehearsal, 'actions': current + failures + recent})
 
@@ -94,6 +95,7 @@ class Coordinator:
         self.app.program.cancel_commentary(reason)
 
     def _takeover(self):
+        self.auto_start_armed = False
         self.crew_paused = True
         self._invalidate('Human took control; pending airtime canceled')
 
@@ -251,8 +253,10 @@ class Coordinator:
                                               'ribbon-sweep' if op=='replay' and self.app.foundation.registry.gemini else None))
         if op=='replay':self.app.program.replay_ticket=self.app.replay_work.tickets.get('play-'+record['id'])
         record['program_revision'] = result['revision']
-        if record['actor']=='Human' and op in ('live','replay'):
+        if record['actor'] in ('Human','Automatic start') and op in ('live','replay'):
             self.program_started=True
+            self.auto_start_armed=False
+        if record['actor']=='Human' and op=='holding':self.auto_start_armed=False
         if op == 'live':
             record['target'] = {'kind': 'camera', 'source_path': source.path, 'epoch': source.epoch}
         elif op == 'replay':
@@ -266,6 +270,37 @@ class Coordinator:
             self.last_shot = time.monotonic()
         if op == 'replay':
             self.last_replay = time.monotonic()
+
+    def start_ready_camera(self):
+        """One server-owned start after Join; later cameras cannot override the operator."""
+        if self.app.examples.status()['configured']:return
+        with self.lock:
+            if (not self.auto_start_armed or self.program_started or self.crew_paused or
+                    self.app.stop.is_set() or self.rehearsal['state']=='Running' or
+                    self.app.program.requested!='HOLDING'):return
+            for lease in sorted(self.app.leases.rows(),key=lambda row:row['slot']):
+                if lease['state']!='ACTIVE':continue
+                source=self.app.get_source(lease['slot'])
+                if not source or source.path!=lease['path'] or source.epoch!=lease['epoch']:continue
+                health=source.status()
+                if not health.get('buffer_ready') or health.get('last_frame_age_s') is None or health['last_frame_age_s']>1:continue
+                # Bind the initial camera microphone at its ready epoch. Preserve
+                # an operator's separate microphone or explicit mute.
+                if (source.has_audio and not self.app.program.audio_muted and
+                        self.app.program.audio_source_path in (None,source.path)):
+                    audio_args={'slot':source.slot,'muted':False}
+                    audio,_=self._record({'id':uuid.uuid4().hex,'op':'audio','args':audio_args,
+                        'expected':self.expected(audio_args),'expires_at':time.time()+2},'Automatic start')
+                    try:self._media(audio)
+                    except (ValueError,TypeError,KeyError) as error:
+                        self._state(audio,'Rejected',str(error))
+                args={'slot':source.slot,'independent':True}
+                record,_=self._record({'id':uuid.uuid4().hex,'op':'live','args':args,
+                    'expected':self.expected(args),'expires_at':time.time()+2},'Automatic start')
+                try:self._media(record)
+                except (ValueError,TypeError,KeyError) as error:
+                    self._state(record,'Rejected',str(error))
+                return
 
     def submit(self, request, *, chat_text=None):
         """Human path. Recognized direct airtime commands take over before validation."""

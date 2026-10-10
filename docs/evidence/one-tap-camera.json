@@ -1,0 +1,49 @@
+{
+  "kind": "isolated synthetic camera and mocked publisher; no public broadcast",
+  "checks": [
+    "one Join starts publisher once",
+    "no Start sharing button",
+    "portrait and landscape fill viewport",
+    "Stop remains visible and stops tracks"
+  ],
+  "layouts": [
+    {
+      "width": 390,
+      "height": 844,
+      "preview": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 844
+      },
+      "stop": {
+        "x": 75,
+        "y": 770,
+        "width": 240,
+        "height": 52
+      }
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "preview": {
+        "x": 0,
+        "y": 0,
+        "width": 844,
+        "height": 390
+      },
+      "stop": {
+        "x": 302,
+        "y": 316,
+        "width": 240,
+        "height": 52
+      }
+    }
+  ],
+  "errors": [],
+  "controller_checks": {
+    "workshop_configuration": 35,
+    "gemini_configuration": 3
+  },
+  "physical_phone_acceptance": "pending after restart"
+}

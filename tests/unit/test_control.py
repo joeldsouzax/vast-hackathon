@@ -43,6 +43,56 @@ class ControlContracts(unittest.TestCase):
             self.c.submit({**request, 'args': {'slot': 2}})
         self.assertEqual(self.app.program.revision, 1)
 
+    def test_first_ready_join_starts_once_and_binds_microphone(self):
+        source=self.app.sources[1]
+        source.status=lambda:{'buffer_ready':True,'last_frame_age_s':0.1}
+        lease={'state':'ACTIVE','path':source.path,'epoch':source.epoch,'slot':1}
+        with patch.object(self.app.leases,'rows',return_value=[lease]),patch.object(self.app.examples,'status',return_value={'configured':False}):
+            self.c.start_ready_camera()
+            self.assertEqual(self.app.program.requested,'LIVE')
+            self.assertTrue(self.c.program_started);self.assertFalse(self.c.crew_paused)
+            self.assertEqual(self.app.program.audio_source_path,source.path)
+            self.assertEqual(self.app.program.audio_epoch,source.epoch)
+            self.assertEqual({r['actor'] for r in self.c.actions.values()},{'Automatic start'})
+            revision=self.app.program.revision
+            self.c.start_ready_camera()
+            self.assertEqual(self.app.program.revision,revision)
+            self.human('holding')
+            self.c.start_ready_camera()
+            self.assertEqual(self.app.program.requested,'HOLDING')
+
+    def test_auto_start_requires_current_ready_lease_and_respects_hold(self):
+        source=self.app.sources[1]
+        source.status=lambda:{'buffer_ready':True,'last_frame_age_s':0.1}
+        lease={'state':'ACTIVE','path':source.path,'epoch':source.epoch,'slot':1}
+        with patch.object(self.app.examples,'status',return_value={'configured':False}):
+            for change in ({'state':'RESERVED'},{'state':'REVOKING'},{'epoch':2},{'path':'camera/reused'}):
+                with patch.object(self.app.leases,'rows',return_value=[{**lease,**change}]):self.c.start_ready_camera()
+                self.assertFalse(self.c.program_started)
+            with patch.object(self.app.leases,'rows',return_value=[lease]):
+                source.status=lambda:{'buffer_ready':False,'last_frame_age_s':0.1}
+                self.c.start_ready_camera();self.assertFalse(self.c.program_started)
+                source.status=lambda:{'buffer_ready':True,'last_frame_age_s':3.0}
+                self.c.start_ready_camera();self.assertFalse(self.c.program_started)
+                source.status=lambda:{'buffer_ready':True,'last_frame_age_s':0.1}
+                self.human('holding');self.c.start_ready_camera()
+                self.assertFalse(self.c.program_started)
+
+    def test_live_decoder_registers_new_epoch_without_a_recording(self):
+        from collections import deque
+        source=self.app.sources[1]
+        source.lock=threading.RLock()
+        source.frames=deque([SimpleNamespace(source_epoch=1,native_provenance={'native_time_base':'1/90000'})])
+        with patch.object(self.app.foundation,'snapshot_reader',return_value={}):
+            self.app.register_live_source(source)
+            self.assertEqual(self.app.foundation.reviewed_snapshot().sources[0].epoch,1)
+            source.epoch=2
+            self.app.register_live_source(source)
+            self.assertEqual(self.app.foundation.reviewed_snapshot().sources[0].epoch,1)
+            source.frames.append(SimpleNamespace(source_epoch=2,native_provenance={'native_time_base':'1/90000'}))
+            self.app.register_live_source(source)
+            self.assertEqual(self.app.foundation.reviewed_snapshot().sources[0].epoch,2)
+
     def test_E01_human_score_snapshot_survives_its_own_takeover(self):
         args={'graphics':{'op':'score','score':{'confirmed':True,'home_score':2}}}
         request={'id':'score-once','op':'graphics','args':args,'expected':self.c.expected(args)}

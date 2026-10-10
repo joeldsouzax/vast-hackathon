@@ -221,7 +221,8 @@ function examplesState(examples) {
     const camera = readyLiveCamera();
     button.textContent = live ? 'Hold broadcast' : 'Go live';
     button.disabled = examplesBusy || !operatorAuthorized || (!live && !camera);
-    status.textContent = live ? '' : camera ? `Ready to use Camera ${camera.slot}.` : 'Join a camera with the event QR to go live.';
+    status.textContent = live ? '' : state?.control.auto_start_armed ?
+      'The first ready camera goes live automatically.' : camera ? `Ready to use Camera ${camera.slot}.` : 'Join a camera with the event QR to go live.';
     status.hidden = !status.textContent;
     return;
   }
