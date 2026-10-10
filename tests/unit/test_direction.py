@@ -226,6 +226,37 @@ class DirectionContracts(unittest.TestCase):
                 self.d.validate(self.result(line,context),'director',context,time.time()+6)
             self.c.actions.clear()
 
+    def test_showcase_covers_templates_during_speech_without_model_work(self):
+        event=self.f.event_context().model_copy(update={'title':'Known event',
+            'editorial_policy':{'graphics_mode':'showcase'},'branding':{'organizer':'Known organizer','venue':'Known venue'}})
+        seen=[];now=time.time()
+        self.app.program.cue=self.cue()
+        def capture(preset,title,subtitle,duration):
+            seen.append(preset)
+            row={'op':'graphics','state':'Finished','created_at':time.time(),'cue_ids':['applied'],
+                'args':{'graphics':{'preset':preset,'title':title,'subtitle':subtitle}}}
+            self.c.actions[str(len(seen))]=row
+            return row
+        with patch.object(self.f,'event_context',return_value=event),patch.object(self.d,'_graphic',side_effect=capture):
+            for i in range(20):
+                with patch('direction.time.time',return_value=now+i*8.1):self.d._showcase_graphics()
+        self.assertEqual(len(set(seen)),15)
+        self.assertTrue(set(self.d.STINGERS).issubset(seen))
+        self.assertNotIn('score-wide',seen);self.assertNotIn('closing',seen)
+        self.assertIsNotNone(self.app.program.cue)
+        self.c.actions.clear();self.app.program.cue=None
+
+    def test_showcase_respects_hold_takeover_package_and_spacing(self):
+        event=self.f.event_context().model_copy(update={'title':'Known event','editorial_policy':{'graphics_mode':'showcase'}})
+        with patch.object(self.f,'event_context',return_value=event),patch.object(self.d,'_graphic') as graphic:
+            self.c.crew_paused=True;self.d._showcase_graphics();graphic.assert_not_called()
+            self.c.crew_paused=False;self.app.program.requested='HOLDING';self.d._showcase_graphics();graphic.assert_not_called()
+            self.app.program.requested='LIVE'
+            self.c.actions['recent']={'op':'graphics','state':'Finished','created_at':time.time(),'cue_ids':['applied']}
+            self.d._showcase_graphics();graphic.assert_not_called();self.c.actions.clear()
+            with patch.object(self.f,'event_context',return_value=event.model_copy(update={'revision':99})):
+                self.d._showcase_graphics();graphic.assert_not_called()
+
     def test_source_quote_requires_exact_words_and_selected_microphone(self):
         context=self.audio_context()
         line={'op':'commentary','delivery':'source_caption','text':'We built a voice demo.',

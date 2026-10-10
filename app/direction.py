@@ -170,8 +170,8 @@ class Direction:
                         spoken[0]['source']['source_id']!=microphone.get('source_path') or
                         spoken[0]['source']['epoch']!=microphone.get('epoch')):
                     raise ValueError('Speech graphics require the selected microphone meaning, labeled as a paraphrase')
-            if entry['slot'] in ('screen','lower') and self.app.program.cue is not None:
-                raise ValueError('Keep the caption area clear during commentary')
+            if entry['slot']=='screen' and self.app.program.cue is not None:
+                raise ValueError('Full-screen cards must wait for commentary')
             if entry['text_binding']=='evidence' and not intent.title:
                 raise ValueError('Action overlay needs a cited short title')
             if entry['text_binding']!='evidence' and (intent.title is not None or intent.subtitle is not None):
@@ -257,6 +257,7 @@ class Direction:
     def dispatch(self, result, role, context, deadline, *, action_id=None):
         intent,dependencies=self.validate(result,role,context,deadline)
         if isinstance(intent,Abstention):
+            self.traces.append({'role':role,'stage':'abstain','utc':time.time(),'reason':intent.reason})
             self.state[role]='Holding';self.reason=intent.reason;return None
         if role=='commentator':
             snapshot=dependencies['snapshot']
@@ -485,6 +486,10 @@ class Direction:
                         context['graphics_catalog'].append(entry)
                         if reason is None:context['prepared_graphics'].append(entry)
                 context['active_graphics']=[cue.summary() for cue in self.app.program.graphics.active.copy().values()]
+                context['recent_graphics']=[{'preset':r['args']['graphics'].get('preset'),
+                    'title':r['args']['graphics'].get('title'),'state':r['state']}
+                    for r in tuple(self.app.control.actions.values()) if r['op']=='graphics' and
+                    r.get('cue_ids') and r['state'] in ('On air','Finished')][-20:]
         return context
 
     def _transition_unavailable(self):
@@ -616,6 +621,45 @@ class Direction:
             preset,title,subtitle=self.BANNERS[state['banner']%len(self.BANNERS)];state['banner']+=1
             self._graphic(preset,title,subtitle,4);state['next']=now+self.GRAPHICS_S
 
+    def _showcase_graphics(self):
+        """Explicit event demo: prepared facts keep graphics moving without model work."""
+        control=self.app.control;program=self.app.program
+        if (control.crew_paused or not control.program_started or control.rehearsal['state']=='Running' or
+                program.actual!='LIVE' or program.requested!='LIVE'):return
+        event=self.foundation.event_context()
+        if event.editorial_policy.get('graphics_mode')!='showcase' or not event.title:return
+        package=program.graphics.event_package
+        if not package or package['manifest']['context_revision']!=event.revision:return
+        actions=[r for r in tuple(control.actions.values()) if r['op']=='graphics']
+        if any(r['state'] in ('Scheduled','Applying') for r in actions):return
+        now=time.time()
+        if any(now-r['created_at']<1 for r in actions):return
+        accepted=[r for r in actions if r.get('cue_ids') and r['state'] in ('On air','Finished')]
+        if any(now-r['created_at']<8 for r in accepted):return
+        if any(slot in program.graphics.active or slot in program.graphics.retiring
+                for slot in ('screen','stinger','lower','banner','ticker')):return
+        title=event.branding.get('short_title') or event.title
+        organizer=event.branding.get('organizer') or event.title
+        venue=event.branding.get('venue','')
+        # No invented people, scores, breaks, event phase or countdown. Replay
+        # playback stays separate. These are event facts, not camera observations.
+        entries=[('headline',title,venue),('ribbon-sweep',title,''),
+            ('lower-classic',organizer,event.title),('toast-note',title,venue),
+            ('iris-reveal',title,''),('lower-pill',title,organizer),
+            ('wide-banner',event.title,venue),('toast-wipe',title,''),
+            ('lower-split',organizer,venue),('caption',title,''),
+            ('crumb-burst',title,''),('ticker',title+(' · '+venue if venue else ''),''),
+            ('corner-label',organizer,''),('status-bug','LIVE',''),
+            ('brand-bug',event.branding.get('broadcast','Breadcast'),'')]
+        if self._transition_unavailable():entries=[e for e in entries if e[0] not in self.STINGERS]
+        def usage(entry):
+            previous=[r for r in accepted if r['args'].get('graphics',{}).get('preset')==entry[0]]
+            return len(previous),max((r['created_at'] for r in previous),default=0)
+        preset,title,subtitle=min(entries,key=usage)
+        record=self._graphic(preset,title[:80],subtitle[:120],.8 if preset in self.STINGERS else 5)
+        self.traces.append({'role':'graphics','stage':'showcase','utc':now,'preset':preset,
+            'context_revision':event.revision,'state':record['state'],'reason':'Prepared event facts; no new camera claim'})
+
     def _policy_replay(self):
         """Air any ready automatic replay after the controller cooldown; no opportunity evidence required."""
         control=self.app.control;program=self.app.program;policy=control.policy
@@ -702,6 +746,9 @@ class Direction:
                     except Exception as error:self.traces.append({'role':'replay','stage':'error','utc':time.time(),'reason':type(error).__name__+': '+str(error)[:160]})
                     self._policy_rotate()
                     try:self._policy_graphics()
+                    except Exception as error:self.traces.append({'role':'graphics','stage':'error','utc':time.time(),'reason':type(error).__name__+': '+str(error)[:160]})
+                else:
+                    try:self._showcase_graphics()
                     except Exception as error:self.traces.append({'role':'graphics','stage':'error','utc':time.time(),'reason':type(error).__name__+': '+str(error)[:160]})
                 live=self.app.program.actual!='HOLDING' and self.app.program.requested!='HOLDING'
                 gemini=bool(self.foundation.registry.gemini)

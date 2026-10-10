@@ -95,6 +95,11 @@ chunks, native clocks, reviewed snapshots and controller ownership.
   The four stingers can mark cited scene/topic changes on the same live camera.
   Automatic stingers last at most one second, with at least 20 seconds between
   accepted stingers. Their animation preserves narration and source sound.
+  Explicit `graphics_mode=showcase` also permits a controller sequence of supplied
+  event facts without camera evidence. It cycles eleven overlays and four stingers
+  using accepted cue history, at least eight seconds apart. It never invents
+  scores, people or event phases. Lower cards may replace the speech caption
+  while narration continues. Hold, takeover and replay block showcase cues.
 - A replay command can select one of the four existing stingers. The accepted
   replay command owns its short entry and return transitions. Entry holds the
   first source frame until the transition ends. The replay progress bar uses
