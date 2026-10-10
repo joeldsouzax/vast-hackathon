@@ -66,6 +66,66 @@ class DirectionContracts(unittest.TestCase):
     def result(self,intent,context):
         return LLMResult(text=json.dumps(intent),snapshot=context['snapshot'],origin='fixture',model_id='fixture',model_version='fixture-1')
 
+    def opening_event(self):
+        event=self.f.event_context().model_copy(update={'opening_script':['Welcome to our event.','Let us see the demos.']})
+        return patch.object(self.f,'event_context',return_value=event)
+
+    def test_opening_prepares_all_audio_and_waits_for_speech_completion(self):
+        part=bytes(5*96000)
+        with self.opening_event(), patch.object(self.f,'submit_role',side_effect=lambda role,job:job()), \
+                patch.object(self.d,'_speech',return_value=(part,None,None)) as speech:
+            self.assertTrue(self.d._opening())
+            self.assertEqual(speech.call_count,2)
+            cue=self.d.prepared[self.d.opening['cue_id']]
+            self.assertEqual(len(cue.pcm),10*96000)
+            self.assertGreater(cue.end_frame-cue.start_frame,8*self.app.cfg.fps)
+            self.c._fresh(self.c.actions[cue.id])
+            self.assertTrue(self.d._opening())
+            # A completed caption cannot release the opening gate.
+            self.app.program._cue_receipt(cue,'caption','started',1,2)
+            self.app.program._cue_receipt(cue,'caption','completed',1,2)
+            self.d.drain_receipts()
+            self.assertTrue(self.d._opening())
+            self.app.program._cue_receipt(cue,'speech','started',0,100)
+            self.app.program._cue_receipt(cue,'speech','completed',0,len(cue.pcm)//2)
+            self.d.drain_receipts()
+            self.assertFalse(self.d._opening())
+            self.source.epoch+=1
+            self.app.program.actual_target['epoch']=self.source.epoch
+            self.assertFalse(self.d._opening())
+            self.assertEqual(speech.call_count,2)
+
+    def test_opening_no_partial_audio_or_caption_fallback_and_bounded_retries(self):
+        with self.opening_event(), patch.object(self.f,'submit_role',side_effect=lambda role,job:job()), \
+                patch.object(self.d,'_speech',side_effect=[(bytes(96000),None,None),(b'',None,'Provider failed')]):
+            self.assertTrue(self.d._opening())
+            self.assertFalse(self.d.prepared)
+            self.assertFalse(self.c.actions)
+            self.assertTrue(self.d._opening())
+            self.assertEqual(self.d.opening['state'],'Retrying')
+            self.d.opening['attempts']=3
+            self.assertFalse(self.d._opening())
+            self.assertEqual(self.d.opening['state'],'Unavailable')
+
+    def test_opening_event_facts_survive_microphone_and_camera_epoch_changes(self):
+        with self.opening_event(), patch.object(self.f,'submit_role',side_effect=lambda role,job:job()), \
+                patch.object(self.d,'_speech',return_value=(bytes(96000),None,None)):
+            self.d._opening()
+            cue=self.d.prepared[self.d.opening['cue_id']]
+            self.app.program.audio_epoch=999
+            self.app.program.actual_target['epoch']=2
+            self.app.program.revision+=1
+            self.assertTrue(cue.valid())
+            self.c._fresh(self.c.actions[cue.id])
+            self.c.crew_paused=True
+            self.assertFalse(cue.valid())
+
+    def test_opening_absent_or_speech_disabled_does_not_block_crew(self):
+        self.assertFalse(self.d._opening())
+        with self.opening_event(), patch.dict('os.environ',{'BREADCAST_SPEECH':'off'}):
+            self.assertFalse(self.d._opening())
+            self.assertEqual(self.d.opening['state'],'Unavailable')
+
     def test_D01_setup_preload_preview_unknown_and_unicode(self):
         event=self.f.event_context().model_dump();event.update(revision=2,title='東京 — Montréal '+('Long name '*20),participants=['Zoë'],branding={'logo':'missing.png'})
         revision=self.app.program.revision

@@ -46,6 +46,8 @@ class EventContext(Record):
     pronunciations: dict[str, str] = Field(default_factory=dict)
     voice_id: str | None = Field(default=None,max_length=192)
     co_commentator: CommentaryVoice | None = Field(default=None, exclude_if=lambda value: value is None)
+    opening_script: list[Annotated[str, Field(min_length=1, max_length=160)]] = Field(
+        default_factory=list, max_length=6, exclude_if=lambda value: not value)
     broadcast_delay_s: Annotated[float, Field(ge=0, le=10)] | None = None
 
 

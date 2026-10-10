@@ -135,10 +135,11 @@ class Coordinator:
         direction=getattr(self.app,'direction',None)
         dependencies=direction.dependencies.get(record['id'],{}) if direction else {}
         current=self.expected(record['args'])
-        if record['op']=='commentary' and (dependencies.get('commentary_camera') or dependencies.get('archive_session')):
+        if record['op']=='commentary' and (dependencies.get('opening') or dependencies.get('commentary_camera') or dependencies.get('archive_session')):
             # The trusted speech guard pins camera/microphone or replay session.
             # A decorative graphic revision must not discard the waiting voice.
             current['program_revision']=expected['program_revision']
+            if dependencies.get('opening'):current['sources']=[]
         if expected != current:
             raise ValueError('Proposal run, control, program, or source revision changed')
         if direction and record['id'] in direction.dependencies:

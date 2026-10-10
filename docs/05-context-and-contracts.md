@@ -16,6 +16,14 @@ The current user override replaces workshop providers with Gemini and Supabase.
 selection. These provider changes preserve source IDs, source epochs, immutable
 chunks, native clocks, reviewed snapshots and controller ownership.
 
+- An optional `EventContext.opening_script` supplies bounded event-only speech
+  for the first live camera in an application run. The director waits for the
+  encoder's completed speech receipt before normal automatic work. Captions
+  cannot establish spoken completion. Camera and microphone epoch changes do
+  not invalidate these event facts; run, context, control, deadline, and live
+  camera requirements still apply. Manual controls retain authority. See
+  [the introduction contract](39-broadcast-opening.md) for limits and retries.
+
 - Current user override: Join starts camera publishing immediately after browser
   permission. Gateway recording already starts with publishing. In automatic
   camera mode, the server controller starts the first ACTIVE, current-epoch

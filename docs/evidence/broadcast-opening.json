@@ -1,0 +1,47 @@
+{
+  "scope": "Real Gemini speech; synthetic camera; private real program encode and decode",
+  "parts": [
+    {
+      "text": "Welcome to Breadcast! This is The New Agentic Economy Hackathon.",
+      "duration_s": 6.32,
+      "preparation_s": 2.161
+    },
+    {
+      "text": "From Forever twenty-two at Betaworks, New York, supported by Google DeepMind.",
+      "duration_s": 5.72,
+      "preparation_s": 1.734
+    },
+    {
+      "text": "Live voice, clever agents, and real demos. We are here to see what these builders can do!",
+      "duration_s": 7.04,
+      "preparation_s": 2.0
+    },
+    {
+      "text": "I will call the action. My co-commentator will keep me honest. Let us see what is happening!",
+      "duration_s": 5.88,
+      "preparation_s": 1.686
+    }
+  ],
+  "duration_s": 24.96,
+  "delivered_samples": 1198080,
+  "decoded_rms": 4775.54,
+  "state": "Completed",
+  "public_phone_playback": "pending",
+  "unit_checks": {
+    "direction": 49,
+    "controller": 41,
+    "result": "passed"
+  },
+  "preparation_s": 7.581,
+  "release": "breadcast-forever22-r16",
+  "broad_stack_checks": "skipped under standing user override",
+  "deployment": {
+    "context_revision": 3,
+    "opening_state": "Waiting",
+    "public_http": {
+      "/watch": 200,
+      "/join": 200,
+      "/media/program/hls/index.m3u8": 200
+    }
+  }
+}

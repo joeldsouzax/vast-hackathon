@@ -32,6 +32,7 @@ class Direction:
         self.state={'director':'Inactive','commentator':'Inactive','speech':'Inactive'}
         self.reason='Awaiting fresh mapped evidence' if self.settings.enabled else 'Direction is disabled in server configuration'
         self.provider_failures={}
+        self.opening={'state':'Waiting','attempts':0,'cue_id':None,'retry_at':0.0}
         self.cursor=0;self.last_trigger=None;self.last_commentary=None;self.traces=deque(maxlen=256)
         self.thread=threading.Thread(target=self._run,name='crew-coordinator',daemon=True)
 
@@ -45,6 +46,7 @@ class Direction:
             reason=self.reason
             if self.settings.enabled and not capabilities['llm']['ready']:reason='LLM unavailable: '+capabilities['llm']['reason']
             return {'enabled':self.settings.enabled,'roles':dict(self.state),'reason':reason,
+                'opening':dict(self.opening),
                 'fixture':capabilities['llm']['adapter']=='fixture',
                 'prepared_assets':len(self.prepared),'prepared_bytes':sum(c.memory_bytes for c in self.prepared.values()),
                 'setup':{**package['manifest'],'ready':package['manifest']['context_revision']==self.foundation.context_revision} if package else {'ready':False},
@@ -73,7 +75,10 @@ class Direction:
                     app.program.audio_muted!=microphone['muted'] or
                     app.program.audio_epoch!=microphone['epoch']):
                 raise ValueError('Reviewed microphone changed')
-        if camera:
+        if dependencies.get('opening'):
+            if app.program.requested!='LIVE' or app.program.actual_target.get('kind')!='camera':
+                raise ValueError('Opening requires a live camera')
+        elif camera:
             # Captions stay valid across graphics or other program changes while
             # the same camera feed remains on air.
             target=app.program.actual_target
@@ -364,14 +369,25 @@ class Direction:
                     raise ValueError('Speech preparation cannot reserve its bounded buffer')
             event=EventContext.model_validate(context['event'])
             source_caption=intent.delivery=='source_caption'
-            pcm,asset,fallback=(b'',None,None) if source_caption else self._speech(intent,dependencies,event)
-            display_text=('Heard: '+intent.text) if source_caption else intent.text
+            opening=dependencies.get('opening',False)
+            if opening:
+                parts=[]
+                for line in event.opening_script:
+                    self.check(dependencies)
+                    part,part_asset,fallback=self._speech(intent.model_copy(update={'text':line}),dependencies,event)
+                    if part_asset:self.foundation.storage.delete(part_asset)
+                    if not part:raise ValueError(fallback or 'Opening speech unavailable')
+                    parts.append(part)
+                pcm=b''.join(parts);fallback=None
+            else:
+                pcm,asset,fallback=(b'',None,None) if source_caption else self._speech(intent,dependencies,event)
+            display_text=' '.join(event.opening_script) if opening else ('Heard: '+intent.text) if source_caption else intent.text
             caption_text=display_text
             if not source_caption and event.co_commentator:
                 caption_text=('Co-commentator: ' if intent.speaker=='co_commentator' else 'Lead: ')+display_text
             self.check(dependencies)
             layer=None
-            try:layer=caption_layer(self.app.program.graphics,caption_text)
+            try:layer=caption_layer(self.app.program.graphics,('Welcome · '+(event.title or 'Breadcast')) if opening else caption_text)
             except ValueError:
                 if not pcm:raise
             with self.lock:
@@ -383,7 +399,8 @@ class Direction:
             with program.lock:
                 self.check(dependencies)
                 start=program.frames_written+2
-                remaining=min(self.settings.speech_max_s,dependencies['deadline']-time.time()-2/self.app.cfg.fps)
+                duration_limit=len(pcm)/96000+1 if opening else self.settings.speech_max_s
+                remaining=min(duration_limit,dependencies['deadline']-time.time()-2/self.app.cfg.fps)
                 if source_caption:remaining=min(remaining,4.0)
                 frames=math.floor(remaining*self.app.cfg.fps)
                 if program.requested=='REPLAY' and program.replay:
@@ -394,6 +411,7 @@ class Direction:
                     pcm=b'';fallback='Speech cannot fit its original window'
                 if not pcm and layer is None:raise ValueError('No eligible commentary media')
                 target={key:value for key,value in program.actual_target.items() if key in ('kind','source_path','epoch','id','command_revision')}
+                if opening:target={'kind':'camera'}  # The intro contains event facts, not camera evidence.
                 aid=reservation.cue_id.removesuffix('-intent')
                 session_revision=dependencies.get('archive_session',{}).get('revision',snapshot.program_revision)
                 cue=PreparedCue(aid,f'{snapshot.run_id}:{session_revision}',display_text,pcm,layer,start,start+frames,
@@ -403,7 +421,8 @@ class Direction:
             with self.lock:self.prepared[cue.id]=cue
             self._history(cue,'prepared')
             self._history(cue,'pending')
-            expected=self.app.control.expected({}) if dependencies.get('commentary_camera') or dependencies.get('archive_session') else self.expected(snapshot,{})
+            expected=self.app.control.expected({}) if opening or dependencies.get('commentary_camera') or dependencies.get('archive_session') else self.expected(snapshot,{})
+            if opening:expected['sources']=[]
             record=self.app.control.propose({'id':cue.id,'op':'commentary','args':{'cue_id':cue.id},
                 'expected':expected,'expires_at':dependencies['deadline']},
                 actor='Provider crew',dependencies=dependencies)
@@ -449,6 +468,10 @@ class Direction:
             cue=receipt['cue']
             try:self._history(cue,receipt['state'],receipt['channel'],receipt,receipt['reason'])
             except ValueError as error:self.reason='Cue history failure: '+str(error)
+            else:
+                if cue.id==self.opening['cue_id'] and receipt['channel']=='speech':
+                    if receipt['state']=='completed':self.opening['state']='Completed'
+                    elif receipt['state']=='started':self.opening['state']='Playing'
             self.app.log('commentary_delivery',cue_id=cue.id,session_id=cue.session_id,speaker=cue.speaker,channel=receipt['channel'],
                 state=receipt['state'],first=receipt.get('first'),last=receipt.get('last'),reason=receipt['reason'])
         with self.lock:
@@ -854,6 +877,43 @@ class Direction:
         except Exception as error:
             self.reason='Policy rotate: '+type(error).__name__+': '+str(error)[:120]
 
+    def _opening(self):
+        """One complete, bounded event introduction per process run, before normal crew work."""
+        event=self.foundation.event_context()
+        if not event.opening_script or self.opening['state'] in ('Completed','Unavailable'):return False
+        if os.environ.get('BREADCAST_SPEECH','on')=='off':
+            self.opening['state']='Unavailable';self.reason='Opening needs speech enabled';return False
+        busy=bool({'commentator','speech'} & (self.foundation.role_active | self.foundation.role_pending.keys()))
+        if busy or self.prepared or self.app.program.cue:return True
+        if self.opening['state'] in ('Preparing','Playing'):
+            self.opening.update(state='Retrying',retry_at=time.monotonic()+5)
+        if self.opening['attempts']>=3:
+            self.opening['state']='Unavailable';self.reason='Opening failed after three attempts; normal crew resumed';return False
+        if time.monotonic()<self.opening['retry_at']:return True
+        if self.app.program.requested!='LIVE' or self.app.program.actual_target.get('kind')!='camera':return True
+        snapshot=self.foundation.reviewed_snapshot()
+        aid='opening-'+uuid.uuid4().hex
+        # Each short TTS request retains the normal provider limit. All decoded
+        # parts must be ready before one uninterrupted cue can enter the program.
+        deadline=time.time()+len(event.opening_script)*(self.settings.role_timeout_s+self.settings.speech_max_s)+5
+        dependencies={'snapshot':snapshot,'opening':True,'deadline':deadline,'sources':{},'evidence_ids':[]}
+        intent=COMMENTATOR.validate_python({'op':'commentary','text':event.opening_script[0],
+            'basis':'event_context','evidence_ids':[],'reason':'Complete the configured broadcast introduction'})
+        context={'event':event.model_dump(),'target':{'event_ms':None}}
+        reservation=ProgramText(cue_id=aid+'-intent',event_id=snapshot.event_id,run_id=snapshot.run_id,
+            text=' '.join(event.opening_script),state='pending',event_ms=None,program_revision=snapshot.program_revision,
+            origin='controller',basis='event_context',context_revision=snapshot.context_revision,
+            channel='intent',session_id=f'{snapshot.run_id}:{snapshot.program_revision}')
+        # A controlled retry may repeat an interrupted opening, but never a completed one.
+        self.foundation.program_text(reservation,owner='controller')
+        self.opening.update(state='Preparing',attempts=self.opening['attempts']+1,cue_id=aid)
+        def prepare():self._prepare_speech(intent,dependencies,context,reservation)
+        prepare.cancel=lambda reason:self._end_reservation(reservation,reason)
+        try:self.foundation.submit_role('speech',prepare)
+        except Exception:
+            prepare.cancel('Opening could not be queued');raise
+        return True
+
     def _run(self):
         while not self.app.stop.wait(.05):
             try:
@@ -866,6 +926,7 @@ class Direction:
                         if record and record['state'] in ('Rejected','Canceled','Expired'):self.discard(cue.id,record['reason'])
                 if not self.settings.enabled or self.app.control.crew_paused or self.app.control.rehearsal['state']=='Running':continue
                 if not self.app.control.program_started:continue
+                if self._opening():continue
                 if not self.foundation.registry.gemini:
                     try:self._policy_replay()
                     except Exception as error:self.traces.append({'role':'replay','stage':'error','utc':time.time(),'reason':type(error).__name__+': '+str(error)[:160]})

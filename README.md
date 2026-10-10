@@ -16,6 +16,9 @@ Open `/join` directly on the public broadcast address, or use the event QR.
 Studio does not need to be open. Tap **Join camera** and allow camera and
 microphone access. The microphone is selected by default. Sharing and recording start automatically. The preview fills the phone
 screen. In automatic mode, the first ready camera goes live without another tap.
+The Forever 22 setup then plays one complete spoken introduction before normal
+commentary, automatic graphics, cuts, and replays. A completed intro does not
+repeat when a camera reconnects. See [broadcast opening](docs/39-broadcast-opening.md).
 Gemini compares fresh observations from ready cameras and proposes useful cuts.
 Use the camera tiles to change views manually. **Hold broadcast** returns to holding
 and stays there until you select **Go live**. See the
