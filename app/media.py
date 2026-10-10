@@ -714,8 +714,8 @@ class Program:
                         if self.graphics.active: self.revision += 1
                         self.graphics.active.clear(); self.graphics.retiring.clear()
                         applied_graphics = {"visible": [], "covers_camera": False, "error": str(error)}
-                    # Full-screen cards mute live ambient sound throughout their entry and exit.
-                    if any(cue["slot"] in ("screen","stinger") for cue in applied_graphics["visible"]):
+                    # Short transitions preserve the audio story; full-screen cards mute it.
+                    if any(cue["slot"] == "screen" for cue in applied_graphics["visible"]):
                         audio = bytes(cfg.audio_size)
                         self.cancel_commentary('Full-screen graphic suppresses commentary')
                     cue=self.cue

@@ -157,8 +157,19 @@ class Direction:
             if any(cue.prepared.title==intent.title for cue in self.app.program.graphics.active.values()):
                 raise ValueError('Action label is already visible')
             entry=next(g for g in context['prepared_graphics'] if g['id']==intent.preset)
-            if not refs and entry['text_binding']!='prepared':
+            if not refs and (entry['text_binding']!='prepared' or entry['slot']=='stinger'):
                 raise ValueError('Action overlays require reviewed evidence')
+            if entry['slot']=='stinger' and (intent.duration_s>1 or self._transition_unavailable()):
+                raise ValueError('Scene transitions need a live view, a short duration and spacing')
+            spoken=[allowed[eid] for eid in refs if allowed[eid].get('audio')]
+            if spoken and entry['slot']!='stinger':
+                microphone=context['target'].get('microphone',{})
+                if (len(refs)!=1 or not spoken[0]['audio'].get('meaning') or intent.subtitle!='Heard meaning' or
+                        intent.title!=spoken[0]['audio']['meaning'] or
+                        intent.preset not in ('headline','wide-banner','lower-split') or microphone.get('muted',True) or
+                        spoken[0]['source']['source_id']!=microphone.get('source_path') or
+                        spoken[0]['source']['epoch']!=microphone.get('epoch')):
+                    raise ValueError('Speech graphics require the selected microphone meaning, labeled as a paraphrase')
             if entry['slot'] in ('screen','lower') and self.app.program.cue is not None:
                 raise ValueError('Keep the caption area clear during commentary')
             if entry['text_binding']=='evidence' and not intent.title:
@@ -171,6 +182,8 @@ class Direction:
             if not intent.rect or not refs or not any(d['confidence']>=.6 for eid in refs for d in allowed[eid]['detections']):
                 raise ValueError('Live crop requires geometry and subject evidence')
         dependencies={'snapshot':snapshot,'evidence_ids':refs,'deadline':deadline,'sources':{}}
+        if any(allowed[eid].get('audio') for eid in refs):
+            dependencies['microphone']=context['target'].get('microphone')
         archive_session=role=='commentator' and context['target'].get('archive_session')
         if archive_session:dependencies['archive_session']=context['target']['archive_session']
         elif role=='commentator':
@@ -460,18 +473,29 @@ class Direction:
                     context['graphics_catalog']=[]
                     for key,spec in CATALOG.items():
                         reason=None
-                        if spec['slot']=='stinger':reason='Select with replay.transition; never interrupt action as decoration'
+                        if spec['slot']=='stinger':reason=self._transition_unavailable()
                         elif key in ('opening','countdown','closing'):reason='Requires an explicit event phase or start time; not inferred from camera motion'
                         elif spec['slot']=='score' and self.app.program.graphics.score.get('authority')!='operator-confirmed':reason='Official score is unknown'
                         elif spec['slot']=='screen' and (not quiet or self.app.program.actual=='REPLAY'):reason='Needs a quiet live interval'
                         elif key=='matchup' and not context['event'].get('participants'):reason='Participant identities are unknown'
-                        binding='prepared' if key=='brand-bug' else 'official' if spec['slot']=='score' else 'evidence'
+                        binding='prepared' if key=='brand-bug' or spec['slot']=='stinger' else 'official' if spec['slot']=='score' else 'evidence'
                         entry={'id':key,'name':spec['name'],'slot':spec['slot'],'motion':spec['motion'],
                             'purpose':PURPOSES[key],'text_binding':binding,'unavailable_reason':reason}
+                        if spec['slot']=='stinger':entry['max_duration_s']=1.0
                         context['graphics_catalog'].append(entry)
                         if reason is None:context['prepared_graphics'].append(entry)
                 context['active_graphics']=[cue.summary() for cue in self.app.program.graphics.active.copy().values()]
         return context
+
+    def _transition_unavailable(self):
+        if self.app.program.actual!='LIVE' or self.app.program.requested!='LIVE':
+            return 'Scene transitions require a live view'
+        for action in tuple(self.app.control.actions.values()):
+            if (action['op']=='graphics' and action.get('args',{}).get('graphics',{}).get('preset') in self.STINGERS and
+                    action['state'] in ('Scheduled','Applying','On air','Finished') and
+                    time.time()-action['created_at']<20):
+                return 'Leave at least 20 seconds between scene transitions'
+        return None
 
     def _microphone_context(self,context,snapshot):
         """Review the selected microphone on its own clock, even across camera cuts."""

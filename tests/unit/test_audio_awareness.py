@@ -22,6 +22,15 @@ class AudioAwareness(unittest.TestCase):
                 AudioEvidence(speech=speech, transcript='Invented words')
             self.assertEqual(AudioEvidence(speech=speech).transcript, '')
 
+    def test_meaning_requires_words_and_preserves_old_records(self):
+        for speech in ('none','unclear','foreground','background'):
+            with self.assertRaises(ValidationError):
+                AudioEvidence(speech=speech,meaning='A voice demo')
+        heard=AudioEvidence(speech='foreground',transcript='We built a voice demo.',meaning='They built a voice demo.')
+        self.assertNotEqual(heard.meaning,heard.transcript)
+        old={'speech':'background','transcript':'Hello'}
+        self.assertEqual(AudioEvidence.model_validate(old).model_dump(),old)
+
     def test_trimmed_proxy_preserves_audio_and_video_only_fallback(self):
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder);source=root/'source.mp4'

@@ -101,6 +101,9 @@ Gemini also hears the selected microphone through recorded clips. It can leave
 a speaker audible, show a short **Heard:** quote, or comment over background
 chatter. The voice uses impatient, mock-angry delivery. See the
 [audio behavior and limits](docs/31-source-audio.md).
+Scene commentary now prioritizes visible people, movement, readable text and
+understood speech. Meaning summaries can appear in labeled graphics. Short scene
+transitions preserve commentary. See [scene commentary and release checks](docs/33-scene-commentary.md).
 The server permits at most five camera slots. Actual phone playback still needs
 the venue check in that guide.
 

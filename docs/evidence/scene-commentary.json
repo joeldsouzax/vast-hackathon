@@ -1,0 +1,70 @@
+{
+  "provider": {
+    "kind": "private retained camera clip diagnostic; not put on air",
+    "source_epoch": 7,
+    "native": {
+      "start": 14776380,
+      "end": 14950260
+    },
+    "time_base": "1/90000",
+    "sha256": "f683db96222d2e6f11515465eb88c5702b20dcd3cae02779ae5b796e1c8c148d",
+    "proxy_tracks": [
+      "video",
+      "audio"
+    ],
+    "proxy_audio_samples": 30720,
+    "proxy_audio_rate": 16000,
+    "audio_observations": 1,
+    "speech_class": "foreground",
+    "transcript_characters": 30,
+    "model": {
+      "id": "gemini-3.8-flash",
+      "version": "3.0"
+    },
+    "seconds": 8.293,
+    "stream": {
+      "state": "complete",
+      "model_id": "gemini-3.8-flash",
+      "chunks": 9,
+      "first_chunk_s": 2.298414,
+      "elapsed_s": 3.04763,
+      "returned_model_version": "gemini-3.8-flash",
+      "finish_reason": "STOP"
+    },
+    "meaning_characters": 29,
+    "scene_observations": 1,
+    "transcript_accuracy": "not human-verified"
+  },
+  "media": {
+    "scope": "isolated synthetic source and narration tone; actual encoder to local file, no public broadcast",
+    "transition": "iris-reveal",
+    "duration_s": 0.8,
+    "speech_complete": true,
+    "speech_canceled": false,
+    "decoded_rms_during_transition": 3463.49,
+    "camera_remained_live": true
+  },
+  "contracts": {
+    "direction": 32,
+    "audio_awareness": 3,
+    "scene_evidence": 2,
+    "graphics": 8,
+    "result": "passed"
+  },
+  "failed_diagnostic": {
+    "clip_duration_s": 0.368,
+    "result": "Gemini HTTP 400 for video input, with and without audio; still-image input succeeded. Full retained camera clip succeeded.",
+    "scope": "private diagnostic; not on air"
+  },
+  "pending": [
+    "Human verification of transcript, meaning, visible counts and readable text",
+    "Phone/viewer check of commentary and graphics on the deployed release",
+    "Five-camera venue check"
+  ],
+  "deployment": {
+    "event_context_revision": 7,
+    "runtime_healthcheck": "passed",
+    "automatic_start_armed": true,
+    "graphics_ready": true
+  }
+}

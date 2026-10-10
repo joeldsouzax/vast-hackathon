@@ -172,14 +172,14 @@ class DirectionContracts(unittest.TestCase):
         self.assertEqual(result['state'],'Rejected')
         self.assertIn('operator approval',result['reason'])
 
-    def audio_context(self, speech='foreground'):
+    def audio_context(self, speech='foreground', meaning=''):
         from foundation_records import Observation, AudioEvidence
         self.app.program.audio_source_path=self.s.source_id
         self.app.program.audio_epoch=self.s.epoch
         observation=Observation(evidence_id='heard-words' if speech=='foreground' else 'heard-background',job_key='heard-job',source=self.s,native=Interval(start=100,end=140),
             chunk_ids=['heard-chunk'],snapshot=self.f.reviewed_snapshot(),configuration_revision=1,model_id='fixture',model_version='fixture-1',
             origin='fixture',description='Heard words',kind='observed',uncertainty=.5,produced_utc=time.time(),
-            audio=AudioEvidence(speech=speech,transcript='We built a voice demo.'))
+            audio=AudioEvidence(speech=speech,transcript='We built a voice demo.',meaning=meaning))
         with self.f.transaction():
             self.f._put('observation',observation.evidence_id,1,observation)
             self.f.db.execute('INSERT INTO evidence_versions SELECT ?,COALESCE(max(ordinal),0)+1 FROM evidence_versions',(observation.evidence_id,))
@@ -187,6 +187,44 @@ class DirectionContracts(unittest.TestCase):
         context['observations']=[observation.model_dump(mode='json')]
         context['target']['microphone']={'slot':1,'source_path':self.s.source_id,'epoch':self.s.epoch,'muted':False}
         return context
+
+    def test_speech_graphics_bind_meaning_and_microphone(self):
+        context=self.audio_context(meaning='They built a voice demo.')
+        context['prepared_graphics']=[{'id':'headline','slot':'banner','text_binding':'evidence'}]
+        line={'op':'graphics','preset':'headline','title':'They built a voice demo.','subtitle':'Heard meaning',
+            'evidence_ids':['heard-words'],'reason':'Explain the spoken point'}
+        caps=self.f.registry.capabilities()
+        with patch.object(self.f.registry,'gemini',object()), patch.object(self.f.registry,'capabilities',return_value=caps):
+            for change in ({'subtitle':'They won.'},{'title':'Confirmed result'},{'evidence_ids':[]}):
+                with self.subTest(change=change),self.assertRaises(ValueError):
+                    self.d.validate(self.result({**line,**change},context),'director',context,time.time()+6)
+            # Use a real frame-receipt job deadline for the live evidence guard.
+            original_execute=self.f.db.execute
+            class JobDB:
+                def execute(inner,sql,args=()):
+                    if sql.startswith('SELECT deadline,body FROM jobs'):
+                        return SimpleNamespace(fetchone=lambda:{'deadline':time.time()+6,'body':'{"deadline_basis":"frame-receipt"}'})
+                    return original_execute(sql,args)
+            with patch.object(self.f,'db',JobDB()):
+                _,deps=self.d.validate(self.result(line,context),'director',context,time.time()+6)
+            self.app.program.audio_muted=True
+            with self.assertRaisesRegex(ValueError,'microphone changed'):self.d.check(deps)
+
+    def test_scene_transition_needs_citation_duration_and_spacing(self):
+        context=self.audio_context(meaning='They built a voice demo.')
+        context['prepared_graphics']=[{'id':'iris-reveal','slot':'stinger','text_binding':'prepared'}]
+        line={'op':'graphics','preset':'iris-reveal','duration_s':.8,'evidence_ids':['heard-words'],'reason':'New topic'}
+        caps=self.f.registry.capabilities()
+        with patch.object(self.f.registry,'gemini',object()), patch.object(self.f.registry,'capabilities',return_value=caps):
+            for change in ({'duration_s':4.0},{'evidence_ids':[]}):
+                with self.subTest(change=change),self.assertRaises(ValueError):
+                    self.d.validate(self.result({**line,**change},context),'director',context,time.time()+6)
+            self.assertIsNone(self.d._transition_unavailable())
+            self.c.actions['transition']={'op':'graphics','args':{'graphics':{'preset':'iris-reveal'}},
+                'state':'Finished','created_at':time.time()}
+            with self.assertRaisesRegex(ValueError,'spacing'):
+                self.d.validate(self.result(line,context),'director',context,time.time()+6)
+            self.c.actions.clear()
 
     def test_source_quote_requires_exact_words_and_selected_microphone(self):
         context=self.audio_context()

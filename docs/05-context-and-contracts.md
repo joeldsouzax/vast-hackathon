@@ -75,6 +75,11 @@ chunks, native clocks, reviewed snapshots and controller ownership.
   Live commentary excludes expired and archive-only observations.
 - Gemini uses two-second analysis windows. Object detection samples one recent
   frame, with up to eight requested boxes. This is sampled detection, not tracking.
+  Scene reasoning shares a still image bounded to 1280 pixels. Still descriptions
+  bind to exact inspected frame IDs and decoder intervals. Unknown counts stay
+  unknown; movement requires video evidence. Audio keeps literal transcript words
+  separate from its optional 80-character meaning summary. A meaning requires
+  intelligible words. See [scene and speech behavior](33-scene-commentary.md).
 - Gemini uses four bounded workers so speech, current analysis, direction and
   replay preparation can progress in parallel. Each role still has one pending
   request and one active request. Archive analysis for a source waits while that
@@ -85,6 +90,11 @@ chunks, native clocks, reviewed snapshots and controller ownership.
   Runtime titles and subtitles bind cited facts into these templates. Official
   scores remain operator-owned. Opening, countdown and closing cards require
   explicit event timing or phase, not an inference from camera motion.
+  Speech summary graphics use the exact cited meaning as their title and
+  `Heard meaning` as their subtitle. They require selected-microphone evidence.
+  The four stingers can mark cited scene/topic changes on the same live camera.
+  Automatic stingers last at most one second, with at least 20 seconds between
+  accepted stingers. Their animation preserves narration and source sound.
 - A replay command can select one of the four existing stingers. The accepted
   replay command owns its short entry and return transitions. Entry holds the
   first source frame until the transition ends. The replay progress bar uses
@@ -290,7 +300,7 @@ Program history must resolve applied output intervals to immutable source identi
 
 Keep one designated live microphone. Camera cuts do not silently select another microphone. Source loss produces silence until an eligible replacement is explicitly selected by a human or accepted director proposal; slot reuse cannot inherit selection. Local browser listening controls only that browser. The source audio/video time mapping and uncertainty must be checked when using separate cameras for sound and picture; arrival time alone does not prove lip sync.
 
-Preserve current replay behavior: mute live ambient sound and replay source audio, then restore the designated live source and mute setting on return. Full-screen graphics suppress camera audio through entry and exit. Narration may play during replay only for its accepted replay cue. Full-screen graphics suppress commentary unless a separately supported cue explicitly permits it; the first implementation may keep all full-screen output silent.
+Preserve current replay behavior: mute live ambient sound and replay source audio, then restore the designated live source and mute setting on return. Full-screen information cards suppress camera audio and commentary through entry and exit. Short transition stingers preserve the current audio mix. Narration may play during replay only for its accepted replay cue.
 
 Timed captions belong in the encoded program, have a bounded duration, and use actual cue timing. The PRD must define one deterministic layer priority with the prepared graphics. Manual/full-screen cues take priority; captions must not obscure required graphics or accumulate a backlog while hidden. Restore only still-eligible cues after suppression. Keep the REPLAY label visible.
 

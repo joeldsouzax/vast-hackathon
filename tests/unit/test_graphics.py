@@ -41,6 +41,19 @@ class GraphicsContracts(unittest.TestCase):
                     self.assertEqual(self.g.base_layers[spec['id']].getpixel((0, 0))[3], 0)
         self.assertIsNone(self.g.score['home_score']); self.assertIsNone(self.g.score['away_score'])
 
+    def test_short_transitions_reveal_camera_at_requested_end(self):
+        for preset in ('toast-wipe','ribbon-sweep','crumb-burst','iris-reveal'):
+            self.g.active.clear()
+            cue=self.g.prepare({'op':'cue','preset':preset,'duration_s':.8})
+            self.assertEqual(cue.duration,.8)
+            self.g.apply(cue,100)
+            camera=Image.new('RGB',(640,360),'green')
+            frame,status=self.g.compose(camera,100.4,'LIVE')
+            self.assertTrue(status['visible'])
+            frame,status=self.g.compose(camera,100.81,'LIVE')
+            self.assertFalse(status['visible'])
+            self.assertIsNone(ImageChops.difference(frame,camera).getbbox())
+
     def test_score_requires_explicit_confirmation_and_valid_fields(self):
         for data in ({}, {'confirmed': False}, {'confirmed': True, 'home_score': True},
                      {'confirmed': True, 'home_score': 3.5}, {'confirmed': True, 'clock_running': True},

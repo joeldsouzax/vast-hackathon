@@ -56,7 +56,7 @@ PURPOSES = {
     'lower-portrait':'Spotlight a verified participant; do not invent an identity',
     'caption':'Show a concise evidence-backed observation',
     'ticker':'Summarize confirmed event facts during a quiet interval',
-    'headline':'Highlight a notable visible action',
+    'headline':'Highlight a visible action or a labeled paraphrase of understood speech',
     'toast-note':'Brief update on a changed event fact or visible action',
     'wide-banner':'Summarize a cited turning point during a quiet interval',
     'brand-bug':'Identify the broadcast service without covering action',
@@ -64,10 +64,10 @@ PURPOSES = {
     'corner-label':'Label a visible action without covering captions',
     'score-compact':'Show only operator-confirmed score and clock',
     'score-wide':'Show only operator-confirmed score and clock',
-    'toast-wipe':'Short replay entry and return wipe',
-    'ribbon-sweep':'Sliding replay entry and return transition',
-    'crumb-burst':'Playful replay entry and return transition',
-    'iris-reveal':'Replay entry and return reveal',
+    'toast-wipe':'Short transition for a cited scene/topic change, or replay entry and return',
+    'ribbon-sweep':'Sliding transition for a cited scene/topic change, or replay entry and return',
+    'crumb-burst':'Playful transition for a cited scene/topic change, or replay entry and return',
+    'iris-reveal':'Reveal a cited scene/topic change, or replay entry and return',
 }
 
 
@@ -289,7 +289,7 @@ class Graphics:
         title = text(data.get('title', ''), 'Headline') or spec['title']
         subtitle = text(data.get('subtitle', spec['subtitle']), 'Subtitle', 160)
         duration = seconds(data.get('duration_s', 0), 'Duration')
-        if spec['slot'] == 'stinger': duration = 2.
+        if spec['slot'] == 'stinger': duration = min(duration or 2., 2.)
         if spec['id'] == 'countdown' and not 1 <= duration <= 3600:
             raise ValueError('Set a countdown duration from 1 to 3600 seconds')
         if 'score' in data and not preview:
@@ -429,7 +429,7 @@ class Graphics:
                 mask = Image.new('L', frame.size); r = int((1-ease(t))*750)
                 ImageDraw.Draw(mask).ellipse((320-r, 180-r, 320+r, 180+r), fill=255)
                 layer.putalpha(mask)
-            if age >= 2: return False, False
+            if age >= (p.duration or 2): return False, False
         if alpha < 1: layer.putalpha(layer.getchannel('A').point(lambda a: int(a*alpha)))
         channel = layer.getchannel('A'); bounds = channel.getbbox()
         visible = bool(bounds and bounds[0]+dx < self.w and bounds[2]+dx > 0 and bounds[1]+dy < self.h and bounds[3]+dy > 0)
@@ -445,7 +445,7 @@ class Graphics:
             cue = self.active.get(slot)
             if cue and cue.prepared.duration and now-cue.started >= cue.prepared.duration:
                 self.active.pop(slot); cue = None
-            if cue and slot == 'stinger' and now-cue.started >= 2:
+            if cue and slot == 'stinger' and now-cue.started >= (cue.prepared.duration or 2):
                 self.active.pop(slot); cue = None
             # Current official facts must not be presented over historical replay video.
             has_screen = ('screen' in self.active or 'screen' in self.retiring) and mode != 'REPLAY'

@@ -272,11 +272,14 @@ class ViewAssessment(Record):
 class AudioEvidence(Record):
     speech: Literal['foreground', 'background', 'none', 'unclear']
     transcript: str = Field(default='', max_length=512)
+    meaning: str = Field(default='', max_length=80, exclude_if=lambda value: not value)
 
     @model_validator(mode='after')
     def transcript_requires_speech(self):
         if self.transcript and self.speech not in ('foreground', 'background'):
             raise ValueError('Unclear or absent speech cannot supply a transcript')
+        if self.meaning and not self.transcript.strip():
+            raise ValueError('Speech meaning requires intelligible transcript words')
         return self
 
 
