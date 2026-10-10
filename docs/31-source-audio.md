@@ -97,3 +97,11 @@ and [MDN](https://developer.mozilla.org/en-US/docs/Web/Media/Guides/Autoplay).
 See [the focused check](evidence/default-sound.json). For the manual check, refresh
 Viewer, tap the page if sound is blocked, then mute it and use another control.
 The second action must not undo an explicit mute.
+
+## Reconnect recovery
+
+The controller now restores the selected unmuted microphone when the same
+phone lease reconnects with a newer source epoch. It waits for fresh buffered
+frames and preserves the current view, explicit mute and crew mode. A different
+phone in the same slot cannot inherit the selection. See
+[microphone recovery and measured audio](38-microphone-recovery.md).

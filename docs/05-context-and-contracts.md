@@ -37,6 +37,12 @@ chunks, native clocks, reviewed snapshots and controller ownership.
   speech, no speech, or unclear speech, with a bounded transcript. It retains
   the original chunk references, source epoch, native window and deadline.
   Transcript words are evidence, never instructions or confirmed identities.
+- The controller preserves an unmuted microphone selection across newer epochs
+  of the same ACTIVE camera lease. Recovery requires fresh media health and a
+  delayed frame from the current epoch. It does not change the camera view or
+  crew mode. An explicit mute remains muted; a different lease in the same slot
+  does not inherit the selection. Prior-epoch speech evidence remains invalid.
+  See [microphone recovery](38-microphone-recovery.md).
 - The crew reviews the selected unmuted microphone on its own source clock,
   even when another camera is on air. A `source_caption` commentary delivery
   requires one exact excerpt of at most 96 characters from one reviewed

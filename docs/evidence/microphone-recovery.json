@@ -1,0 +1,34 @@
+{
+  "release": "breadcast-forever22-r15",
+  "checked_at": "2026-10-10T18:43:24.331682+00:00",
+  "scope": "Selected microphone recovery across epochs of the same active lease",
+  "checks": {
+    "controller_suite": 41,
+    "old_microphone_epoch_invalidates_queued_speech": 1,
+    "result": "passed"
+  },
+  "encoded_media": {
+    "scope": "Synthetic source epoch change; actual FFmpeg encoder and decoded audio; no public broadcast",
+    "rms_before_reconnect": 3463.73,
+    "rms_before_recovery": 0.05,
+    "rms_after_recovery": 3464.2,
+    "camera_unchanged": true,
+    "selected_epoch_after_recovery": 2
+  },
+  "pending": [
+    "Physical phone reconnect and audible public playback"
+  ],
+  "broad_checks": "skipped under existing user override",
+  "deployment": {
+    "checked_at": "2026-10-10T18:44:37.470881+00:00",
+    "healthcheck": "passed",
+    "public": {
+      "/watch": 200,
+      "/join": 200,
+      "/media/program/hls/index.m3u8": 200
+    },
+    "context_revision": 2,
+    "camera_count": 0,
+    "program": "HOLDING"
+  }
+}

@@ -280,6 +280,30 @@ class Coordinator:
         if op == 'replay':
             self.last_replay = time.monotonic()
 
+    def recover_microphone(self):
+        """Keep an existing microphone selection across epochs of the same lease."""
+        program=self.app.program
+        # Lease reads can wait on the gateway; keep them outside the media lock.
+        leases=self.app.leases.rows()
+        with self.lock,program.lock,self.app.sources_lock:
+            if self.app.stop.is_set() or program.audio_muted or program.audio_epoch is None:return
+            source=self.app.get_source(program.audio_slot)
+            if not source or source.path!=program.audio_source_path or not source.has_audio:return
+            with source.lock:
+                if source.epoch<=program.audio_epoch:return
+                lease=next((row for row in leases if row['path']==source.path and
+                    row['slot']==source.slot and row['epoch']==source.epoch and row['state']=='ACTIVE'),None)
+                if not lease:return
+                health=source.status()
+                if not health.get('buffer_ready') or health.get('last_frame_age_s') is None or health['last_frame_age_s']>1:return
+                frame=source.at(time.monotonic()-self.app.cfg.delay)
+                if frame is None or frame.source_epoch!=source.epoch:return
+                old_epoch=program.audio_epoch
+                program.command('audio',program.revision,source.slot,muted=False)
+                self.app.log('microphone_recovered',source_path=source.path,slot=source.slot,
+                    old_epoch=old_epoch,epoch=source.epoch,program_revision=program.revision)
+                return True
+
     def start_ready_camera(self):
         """One server-owned start after Join; later cameras cannot override the operator."""
         if self.app.examples.status()['configured']:return

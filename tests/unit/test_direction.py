@@ -380,7 +380,11 @@ class DirectionContracts(unittest.TestCase):
         self.c._fresh(record)
         self.app.program.audio_muted=True
         with self.assertRaisesRegex(ValueError,'microphone changed'):self.c._fresh(record)
-        self.app.program.audio_muted=False;self.app.program.actual_target={'kind':'holding'}
+        self.app.program.audio_muted=False
+        self.app.program.audio_epoch+=1
+        with self.assertRaisesRegex(ValueError,'microphone changed'):self.c._fresh(record)
+        self.app.program.audio_epoch-=1
+        self.app.program.actual_target={'kind':'holding'}
         with self.assertRaisesRegex(ValueError,'camera changed'):self.c._fresh(record)
 
     def test_second_voice_cannot_overlap_active_voice(self):

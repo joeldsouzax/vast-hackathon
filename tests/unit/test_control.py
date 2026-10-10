@@ -90,6 +90,60 @@ class ControlContracts(unittest.TestCase):
             self.c.submit({**request, 'args': {'slot': 2}})
         self.assertEqual(self.app.program.revision, 1)
 
+    def reconnecting_microphone(self):
+        source=self.app.sources[1]
+        self.human('audio',slot=1,muted=False)
+        source.epoch=2;source.lock=threading.RLock()
+        source.status=lambda:{'buffer_ready':True,'last_frame_age_s':.1}
+        source.at=lambda _:SimpleNamespace(source_epoch=source.epoch)
+        lease={'state':'ACTIVE','path':source.path,'epoch':2,'slot':1}
+        return source,lease
+
+    def test_microphone_reconnect_recovers_same_lease_once_without_changing_view(self):
+        source,lease=self.reconnecting_microphone()
+        before=(self.app.program.requested,self.app.program.slot,self.c.crew_paused)
+        with patch.object(self.app.leases,'rows',return_value=[lease]),patch.object(self.app,'log') as log:
+            self.assertTrue(self.c.recover_microphone())
+            self.assertEqual(self.app.program.audio_epoch,2)
+            self.assertFalse(self.app.program.audio_muted)
+            self.assertEqual(self.app.program.audio_source_path,source.path)
+            self.assertEqual((self.app.program.requested,self.app.program.slot,self.c.crew_paused),before)
+            self.assertTrue(any(call.args[0]=='microphone_recovered' for call in log.call_args_list))
+            revision=self.app.program.revision
+            self.assertIsNone(self.c.recover_microphone())
+            self.assertEqual(self.app.program.revision,revision)
+
+    def test_microphone_reconnect_preserves_explicit_mute_and_slot_ownership(self):
+        source,lease=self.reconnecting_microphone()
+        with patch.object(self.app.leases,'rows',return_value=[lease]):
+            self.app.program.audio_muted=True
+            self.c.recover_microphone();self.assertEqual(self.app.program.audio_epoch,1)
+            self.assertTrue(self.app.program.audio_muted)
+            self.app.program.audio_muted=False
+            source.path='camera/new-owner';lease['path']=source.path
+            self.c.recover_microphone();self.assertEqual(self.app.program.audio_epoch,1)
+            self.assertEqual(self.app.program.audio_source_path,'camera/lease-one')
+
+    def test_microphone_reconnect_waits_for_active_current_epoch_and_fresh_delay_buffer(self):
+        source,lease=self.reconnecting_microphone()
+        for change in ({'state':'RECONNECTING'},{'state':'REVOKING'},{'epoch':1},{'slot':2}):
+            with self.subTest(lease=change),patch.object(self.app.leases,'rows',return_value=[{**lease,**change}]):
+                self.c.recover_microphone();self.assertEqual(self.app.program.audio_epoch,1)
+        with patch.object(self.app.leases,'rows',return_value=[lease]):
+            for health in ({'buffer_ready':False,'last_frame_age_s':0},
+                    {'buffer_ready':True,'last_frame_age_s':2},{'buffer_ready':True,'last_frame_age_s':None}):
+                source.status=lambda:health
+                self.c.recover_microphone();self.assertEqual(self.app.program.audio_epoch,1)
+            source.status=lambda:{'buffer_ready':True,'last_frame_age_s':0}
+            for frame in (None,SimpleNamespace(source_epoch=1),SimpleNamespace(source_epoch=None)):
+                source.at=lambda _:frame
+                self.c.recover_microphone();self.assertEqual(self.app.program.audio_epoch,1)
+            source.at=lambda _:SimpleNamespace(source_epoch=2)
+            source.has_audio=False
+            self.c.recover_microphone();self.assertEqual(self.app.program.audio_epoch,1)
+            source.has_audio=True
+            self.assertTrue(self.c.recover_microphone())
+
     def test_first_ready_join_starts_once_and_binds_microphone(self):
         source=self.app.sources[1]
         source.status=lambda:{'buffer_ready':True,'last_frame_age_s':0.1}
