@@ -172,6 +172,59 @@ class DirectionContracts(unittest.TestCase):
         self.assertEqual(result['state'],'Rejected')
         self.assertIn('operator approval',result['reason'])
 
+    def audio_context(self, speech='foreground'):
+        from foundation_records import Observation, AudioEvidence
+        self.app.program.audio_source_path=self.s.source_id
+        self.app.program.audio_epoch=self.s.epoch
+        observation=Observation(evidence_id='heard-words' if speech=='foreground' else 'heard-background',job_key='heard-job',source=self.s,native=Interval(start=100,end=140),
+            chunk_ids=['heard-chunk'],snapshot=self.f.reviewed_snapshot(),configuration_revision=1,model_id='fixture',model_version='fixture-1',
+            origin='fixture',description='Heard words',kind='observed',uncertainty=.5,produced_utc=time.time(),
+            audio=AudioEvidence(speech=speech,transcript='We built a voice demo.'))
+        with self.f.transaction():
+            self.f._put('observation',observation.evidence_id,1,observation)
+            self.f.db.execute('INSERT INTO evidence_versions SELECT ?,COALESCE(max(ordinal),0)+1 FROM evidence_versions',(observation.evidence_id,))
+        context=self.context('commentator')
+        context['observations']=[observation.model_dump(mode='json')]
+        context['target']['microphone']={'slot':1,'source_path':self.s.source_id,'epoch':self.s.epoch,'muted':False}
+        return context
+
+    def test_source_quote_requires_exact_words_and_selected_microphone(self):
+        context=self.audio_context()
+        line={'op':'commentary','delivery':'source_caption','text':'We built a voice demo.',
+            'evidence_ids':['heard-words'],'reason':'Let the speaker explain'}
+        self.d.validate(self.result(line,context),'commentator',context,time.time()+6)
+        for change in ({'text':'We won the hackathon.'},{'evidence_ids':[]},{'text':' '},{'basis':'event_context'}):
+            with self.subTest(change=change),self.assertRaises(ValueError):
+                self.d.validate(self.result({**line,**change},context),'commentator',context,time.time()+6)
+        for change in ({'muted':True},{'source_path':'camera/other'},{'epoch':2}):
+            changed={**context,'target':{**context['target'],'microphone':{**context['target']['microphone'],**change}}}
+            with self.subTest(change=change),self.assertRaisesRegex(ValueError,'selected microphone'):
+                self.d.validate(self.result(line,changed),'commentator',changed,time.time()+6)
+
+    def test_foreground_speech_blocks_narration_but_background_allows_it(self):
+        for speech in ('foreground','background'):
+            context=self.audio_context(speech)
+            line={'op':'commentary','text':self.phrase,'reason':'Fixture commentary'}
+            if speech=='foreground':
+                with self.assertRaisesRegex(ValueError,'foreground speaker'):
+                    self.d.validate(self.result(line,context),'commentator',context,time.time()+6)
+            else:self.d.validate(self.result(line,context),'commentator',context,time.time()+6)
+
+    def test_source_quote_has_no_tts_and_mic_changes_cancel_it(self):
+        context=self.audio_context()
+        line={'op':'commentary','delivery':'source_caption','text':'We built a voice demo.',
+            'evidence_ids':['heard-words'],'reason':'Show heard words'}
+        with patch.object(self.d,'_speech',side_effect=AssertionError('Source quote must not call TTS')):
+            self.d.dispatch(self.result(line,context),'commentator',context,time.time()+6)
+            self.f.role_pending.pop('speech')()
+        cue=next(iter(self.d.prepared.values()))
+        self.assertFalse(cue.pcm);self.assertIsNotNone(cue.caption)
+        self.assertEqual(cue.text,'Heard: We built a voice demo.')
+        self.assertLessEqual(cue.end_frame-cue.start_frame,4*self.app.cfg.fps)
+        self.assertTrue(cue.valid())
+        self.app.program.audio_muted=True
+        self.assertFalse(cue.valid())
+
     def test_D07_unknown_ambiguous_and_discontinuous_mapping(self):
         from live_timing import match_recording
         from PIL import ImageDraw

@@ -15,6 +15,7 @@ import time
 from urllib.parse import urlsplit
 
 import httpx
+import av
 
 from foundation_records import Observation, Interval, ViewAssessment
 from provider_errors import ProviderFailure, http_failure
@@ -112,7 +113,15 @@ def _ffmpeg_seconds(value):
     return f'{seconds:.6f}'
 
 
-async def proxy(window,manifests,storage):
+async def proxy(window,manifests,storage,*,include_audio=False):
+    # Never invent audio for a missing track or mix the program's generated voice
+    # back into source evidence. Workshop callers retain their video-only proxy.
+    if include_audio:
+        for manifest in manifests:
+            with av.open(str(storage.inspect(manifest.media))) as media:
+                if not media.streams.audio:
+                    include_audio=False
+                    break
     folder=Path(tempfile.mkdtemp(prefix='video-window-',dir=storage.root))
     target=folder/'window.mp4';arguments=[];filters=[]
     base=float(Fraction(window.source.time_base))
@@ -124,13 +133,19 @@ async def proxy(window,manifests,storage):
         filters.append(f'[{index}:v]trim=start={_ffmpeg_seconds(start)}:end={_ffmpeg_seconds(end)},'
             f'setpts=PTS-STARTPTS,scale=320:180:force_original_aspect_ratio=decrease,'
             f'pad=320:180:(ow-iw)/2:(oh-ih)/2[v{index}]')
-    joined=''.join(f'[v{i}]' for i in range(len(manifests)))
-    filters.append(joined+f'concat=n={len(manifests)}:v=1:a=0,fps=5[out]')
+        if include_audio:
+            filters.append(f'[{index}:a:0]atrim=start={_ffmpeg_seconds(start)}:end={_ffmpeg_seconds(end)},'
+                f'asetpts=PTS-STARTPTS,aresample=16000,aformat=channel_layouts=mono,'
+                f'apad,atrim=duration={_ffmpeg_seconds(end-start)}[a{index}]')
+    joined=''.join(f'[v{i}]'+(f'[a{i}]' if include_audio else '') for i in range(len(manifests)))
+    filters.append(joined+f'concat=n={len(manifests)}:v=1:a={int(include_audio)}[video]'+('[audio]' if include_audio else ''))
+    filters.append('[video]fps=5[out]')
+    audio_args=['-map','[audio]','-c:a','aac','-b:a','32k'] if include_audio else ['-an']
     process=None
     try:
         process=await asyncio.create_subprocess_exec('ffmpeg','-nostdin','-hide_banner','-loglevel','error',
             '-filter_complex_threads','1',*arguments,'-filter_complex',';'.join(filters),'-map','[out]',
-            '-an','-c:v','libx264','-threads','1','-preset','ultrafast','-pix_fmt','yuv420p',
+            *audio_args,'-c:v','libx264','-threads','1','-preset','ultrafast','-pix_fmt','yuv420p',
             '-movflags','+faststart','-y',str(target),stdout=asyncio.subprocess.DEVNULL,stderr=asyncio.subprocess.PIPE)
         _,stderr=await process.communicate()
         if process.returncode or not target.is_file() or target.stat().st_size>16*1024*1024:

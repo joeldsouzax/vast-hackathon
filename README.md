@@ -96,6 +96,10 @@ speech does not go on air. Caption-only output is not a speech pass.
 
 The laptop is configured for the [Forever 22 demo](docs/30-forever22-demo.md),
 with a custom New York cabbie voice and event talk between camera updates.
+Gemini also hears the selected microphone through recorded clips. It can leave
+a speaker audible, show a short **Heard:** quote, or comment over background
+chatter. The voice uses impatient, mock-angry delivery. See the
+[audio behavior and limits](docs/31-source-audio.md).
 The server permits at most five camera slots. Actual phone playback still needs
 the venue check in that guide.
 

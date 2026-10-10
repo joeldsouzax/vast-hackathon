@@ -67,6 +67,12 @@ class Direction:
             app.control.rehearsal['state']=='Running' or app.stop.is_set()):
             raise ValueError('Reviewed context or control changed')
         camera=dependencies.get('commentary_camera')
+        microphone=dependencies.get('microphone')
+        if microphone:
+            if (app.program.audio_source_path!=microphone['source_path'] or
+                    app.program.audio_muted!=microphone['muted'] or
+                    app.program.audio_epoch!=microphone['epoch']):
+                raise ValueError('Reviewed microphone changed')
         if camera:
             # Captions stay valid across graphics or other program changes while
             # the same camera feed remains on air.
@@ -134,8 +140,20 @@ class Direction:
                 raise ValueError('Event commentary must not claim camera evidence')
             if not refs and not event_bridge and not (result.origin=='fixture' and intent.text in disclosures):
                 raise ValueError('Commentary requires reviewed evidence')
-            if any(row['text']==intent.text for row in context['aired']+context['pending']):
+            if any(row['text'] in (intent.text,'Heard: '+intent.text) for row in context['aired']+context['pending']):
                 raise ValueError('Commentary repeats pending or delivered text')
+            microphone=context['target'].get('microphone',{})
+            heard=[o for o in context['observations'] if o.get('audio') and
+                o['source']['source_id']==microphone.get('source_path') and
+                o['source']['epoch']==microphone.get('epoch') and not microphone.get('muted',True)]
+            latest=max(heard,key=lambda o:o['native']['end'],default=None)
+            if intent.delivery=='source_caption':
+                quotes=[allowed[eid] for eid in refs if eid in {o['evidence_id'] for o in heard}]
+                if (intent.basis!='action' or len(refs)!=1 or len(quotes)!=1 or not intent.text.strip() or len(intent.text)>96 or
+                        intent.text not in quotes[0]['audio']['transcript']):
+                    raise ValueError('Source captions require an exact excerpt from the selected microphone')
+            elif latest and latest['audio']['speech']=='foreground':
+                raise ValueError('Let the foreground speaker finish; listen or show a source caption')
         if intent.op=='graphics' and self.foundation.registry.gemini:
             if intent.preset not in {g['id'] for g in context.get('prepared_graphics',[])}:
                 raise ValueError('Automatic overlay requires reviewed evidence and an eligible prepared purpose')
@@ -161,8 +179,11 @@ class Direction:
         elif role=='commentator':
             reviewed=context['target']['source']
             dependencies['commentary_camera']={'source_path':reviewed['source_id'],'epoch':reviewed['epoch']}
+            if context['target'].get('microphone'):
+                dependencies['microphone']=context['target']['microphone']
         for source in (() if archive_session else snapshot.sources):
-            if role=='commentator' and source.source_id!=context['target']['source']['source_id']:continue
+            if role=='commentator' and source.source_id not in (
+                    context['target']['source']['source_id'],dependencies.get('microphone',{}).get('source_path')):continue
             current=self.app.get_source(source.slot)
             if current and current.path==source.source_id:
                 reviewed=snapshot.decoder_revisions.get(source.source_id)
@@ -305,10 +326,12 @@ class Direction:
                 if len(self.prepared)>=2 or sum(c.memory_bytes for c in self.prepared.values())+self.settings.speech_asset_bytes>self.settings.speech_total_bytes:
                     raise ValueError('Speech preparation cannot reserve its bounded buffer')
             event=EventContext.model_validate(context['event'])
-            pcm,asset,fallback=self._speech(intent,dependencies,event)
+            source_caption=intent.delivery=='source_caption'
+            pcm,asset,fallback=(b'',None,None) if source_caption else self._speech(intent,dependencies,event)
+            display_text=('Heard: '+intent.text) if source_caption else intent.text
             self.check(dependencies)
             layer=None
-            try:layer=caption_layer(self.app.program.graphics,intent.text)
+            try:layer=caption_layer(self.app.program.graphics,display_text)
             except ValueError:
                 if not pcm:raise
             with self.lock:
@@ -321,6 +344,7 @@ class Direction:
                 self.check(dependencies)
                 start=program.frames_written+2
                 remaining=min(self.settings.speech_max_s,dependencies['deadline']-time.time()-2/self.app.cfg.fps)
+                if source_caption:remaining=min(remaining,4.0)
                 frames=math.floor(remaining*self.app.cfg.fps)
                 if program.requested=='REPLAY' and program.replay:
                     frames=min(frames,len(program.replay.frames)-program.replay_index-2)
@@ -332,7 +356,7 @@ class Direction:
                 target={key:value for key,value in program.actual_target.items() if key in ('kind','source_path','epoch','id','command_revision')}
                 aid=reservation.cue_id.removesuffix('-intent')
                 session_revision=dependencies.get('archive_session',{}).get('revision',snapshot.program_revision)
-                cue=PreparedCue(aid,f'{snapshot.run_id}:{session_revision}',intent.text,pcm,layer,start,start+frames,
+                cue=PreparedCue(aid,f'{snapshot.run_id}:{session_revision}',display_text,pcm,layer,start,start+frames,
                     dependencies['deadline'],snapshot.program_revision,target,
                     lambda:self._guard(dependencies),intent.evidence_ids,context['target'].get('event_ms'),asset,
                     basis=intent.basis,context_revision=snapshot.context_revision)
@@ -346,7 +370,8 @@ class Direction:
             if record['state'] not in ('Scheduled','Applying'):
                 self.discard(cue.id,record['reason']);self.drain_receipts()
                 raise ValueError('Prepared commentary was rejected')
-            self.state['speech']='Prepared' if pcm else 'Caption only';self.reason=fallback or 'Prepared speech and captions'
+            self.state['speech']='Listening' if source_caption else 'Prepared' if pcm else 'Caption only'
+            self.reason='Showing heard words; source audio stays clear' if source_caption else fallback or 'Prepared speech and captions'
             if pcm:self.provider_failures.pop('speech',None)
             self.traces.append({'cue_id':cue.id,'stage':'speech-ready','utc':time.time(),'samples':len(pcm)//2,'fallback':fallback})
         except Exception as error:
@@ -419,6 +444,8 @@ class Direction:
         event_ms=self.app.program.actual_target.get('event_ms')
         archive=role=='commentator' and self.app.program.actual=='REPLAY' and self.app.program.replay_ticket is not None
         context=self.foundation.context(role,source,interval,snapshot,event_ms=round(event_ms) if event_ms is not None else None,archive=archive)
+        if self.foundation.registry.gemini and not archive:
+            self._microphone_context(context,snapshot)
         if archive:
             context['facts']={}
             context['event']['participants']=[]
@@ -448,6 +475,29 @@ class Direction:
                         if reason is None:context['prepared_graphics'].append(entry)
                 context['active_graphics']=[cue.summary() for cue in self.app.program.graphics.active.copy().values()]
         return context
+
+    def _microphone_context(self,context,snapshot):
+        """Review the selected microphone on its own clock, even across camera cuts."""
+        program=snapshot.runtime.program
+        microphone=next((s for s in snapshot.sources if s.source_id==program.audio_source_path),None)
+        context['target']['microphone']={'slot':program.audio_slot,'source_path':program.audio_source_path,
+            'epoch':self.app.program.audio_epoch,'muted':program.audio_muted}
+        # Audio from other cameras must not become captions for the on-air microphone.
+        context['observations']=[o for o in context['observations'] if not o.get('audio')]
+        if not microphone or program.audio_muted or microphone.epoch!=self.app.program.audio_epoch:return
+        current=self.app.get_source(microphone.slot)
+        if not current or current.path!=microphone.source_id or current.epoch!=microphone.epoch:return
+        frame=current.at(time.monotonic()-self.app.cfg.delay)
+        native=frame.native_provenance if frame else None
+        if not native:return
+        point=round(native['native_pts']*float(Fraction(native['native_time_base'])/Fraction(microphone.time_base)))
+        end=point+1-math.ceil(native.get('uncertainty_ms',1000/self.app.cfg.fps)/1000/float(Fraction(microphone.time_base)))
+        eligible=Interval(start=end-round(12/float(Fraction(microphone.time_base))),end=end)
+        # Listening needs no TTS reserve. Original evidence deadlines still apply.
+        heard=self.foundation.context('director',microphone,eligible,snapshot)['observations']
+        latest=max((o for o in heard if o.get('audio') and o['native']['end']<=end),
+            key=lambda o:o['native']['end'],default=None)
+        if latest:context['observations'].append(latest)
 
     def _decide(self, role):
         try:

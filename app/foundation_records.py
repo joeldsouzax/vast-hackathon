@@ -269,6 +269,17 @@ class ViewAssessment(Record):
     adds: str = Field(min_length=1, max_length=256)
 
 
+class AudioEvidence(Record):
+    speech: Literal['foreground', 'background', 'none', 'unclear']
+    transcript: str = Field(default='', max_length=512)
+
+    @model_validator(mode='after')
+    def transcript_requires_speech(self):
+        if self.transcript and self.speech not in ('foreground', 'background'):
+            raise ValueError('Unclear or absent speech cannot supply a transcript')
+        return self
+
+
 class Observation(Record):
     evidence_id: ID
     job_key: ID
@@ -286,6 +297,7 @@ class Observation(Record):
     association_key: ID | None = None
     detections: list[Detection] = Field(default_factory=list, max_length=256)
     object_frame: ObjectFrame | None = Field(default=None, exclude_if=lambda value: value is None)
+    audio: AudioEvidence | None = Field(default=None, exclude_if=lambda value: value is None)
     produced_utc: float
     view: ViewAssessment | None = None
     replay_opportunity: Literal['quiet', 'stoppage', 'recap'] | None = None
@@ -513,6 +525,7 @@ class CommentaryIntent(Record):
     op: Literal['commentary']
     text: str = Field(min_length=1, max_length=240)
     basis: Literal['action', 'event_context'] = 'action'
+    delivery: Literal['speech', 'source_caption'] = 'speech'
     evidence_ids: list[ID] = Field(default_factory=list, max_length=32)
     reason: str = Field(min_length=1, max_length=256)
 

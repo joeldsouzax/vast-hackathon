@@ -1,0 +1,48 @@
+{
+  "kind": "private retained camera clip diagnostic; not put on air",
+  "source_epoch": 4,
+  "native": {
+    "start": 23487210,
+    "end": 23655780
+  },
+  "time_base": "1/90000",
+  "sha256": "aa0bad800c9fe37e86f35ca5417c875211bf7bc0dede87d136c9feefa7ac1a4c",
+  "proxy_tracks": [
+    "video",
+    "audio"
+  ],
+  "proxy_audio_samples": 30720,
+  "proxy_audio_rate": 16000,
+  "audio_observations": 1,
+  "speech_class": "foreground",
+  "transcript_characters": 19,
+  "model": {
+    "id": "gemini-3.8-flash",
+    "version": "3.0"
+  },
+  "seconds": 4.606,
+  "stream": {
+    "state": "complete",
+    "model_id": "gemini-3.8-flash",
+    "chunks": 3,
+    "first_chunk_s": 3.177718,
+    "elapsed_s": 3.297202,
+    "returned_model_version": "gemini-3.8-flash",
+    "finish_reason": "STOP"
+  },
+  "transcript_accuracy": "not human-verified",
+  "focused_checks": {
+    "direction_contracts": {
+      "passed": 30
+    },
+    "audio_proxy_and_transcript": {
+      "passed": 2
+    }
+  },
+  "venue_acceptance": "pending reconnect, selected microphone, heard quote accuracy and audible source/commentary checks",
+  "installed": {
+    "event_revision": 5,
+    "program_state_after_restart": "HOLDING",
+    "graphics_ready": true
+  }
+}

@@ -8,7 +8,7 @@ translation, multimodal interaction and agentic workflows. It does not name
 unverified attendees or claim an event phase, result or connected camera count.
 
 [config/events/forever22.json](../config/events/forever22.json) preserves the
-reusable brief. The active laptop context is revision 4. Its custom voice ID is
+reusable brief. The active laptop context is revision 5. Its custom voice ID is
 stored in the local environment and persisted context. The template leaves that
 account-specific voice unset. Importing it requires the current revision plus one.
 
@@ -24,6 +24,8 @@ and [speech generation](https://ai.google.dev/gemini-api/docs/speech-generation)
 Commentary and graphics run independently. Only replay playback needs operator
 approval. Event talk fills gaps between fresh camera observations. It must not
 pretend that sample football footage is the venue or invent activity.
+The [source-audio update](31-source-audio.md) adds listening, heard quotes and
+a more impatient cabbie delivery.
 
 ```mermaid
 flowchart LR

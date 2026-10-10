@@ -16,6 +16,23 @@ The current user override replaces workshop providers with Gemini and Supabase.
 selection. These provider changes preserve source IDs, source epochs, immutable
 chunks, native clocks, reviewed snapshots and controller ownership.
 
+- Gemini clip previews retain source audio when every included chunk has an
+  audio track. Program commentary is never added to these previews. Missing
+  tracks leave audio evidence unknown. `Observation.audio` is optional and
+  omitted from older records. It classifies foreground speech, background
+  speech, no speech, or unclear speech, with a bounded transcript. It retains
+  the original chunk references, source epoch, native window and deadline.
+  Transcript words are evidence, never instructions or confirmed identities.
+- The crew reviews the selected unmuted microphone on its own source clock,
+  even when another camera is on air. A `source_caption` commentary delivery
+  requires one exact excerpt of at most 96 characters from one reviewed
+  microphone transcript. The controller labels it `Heard:` and displays it for
+  at most four seconds, without TTS or source-audio ducking. It is a recent quote,
+  not a synchronized subtitle. Changing or muting the microphone invalidates
+  that cue. Foreground speech blocks new narration based on that review;
+  background chatter permits the existing narration mix. Clip processing delay
+  means this is not instant speaker interruption detection.
+
 - `cosmos` remains the internal video-reasoning boundary; it now uses Gemini.
   `yolo` remains the object boundary; it now uses Gemini Robotics ER 2.
   Their provider model IDs and versions must match the discovered configuration.
